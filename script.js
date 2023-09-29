@@ -1,28 +1,15 @@
 document.addEventListener("DOMContentLoaded", function () {
     // Example course data
 
+    const homeSection = document.getElementById("home");
     const aboutSection = document.getElementById("about");
     const coursesSection = document.getElementById("courses");
+    const contactSection = document.getElementById("contact");
         
         aboutSection.style.display = "none";
         coursesSection.style.display = "none";
-
-        // Rest of your JavaScript code...
-        
-        // Function to display the selected section and hide others
-        function showSection(sectionId) {
-            const sections = ['contact', 'about', 'courses'];
-            sections.forEach(section => {
-                const element = document.getElementById(section);
-                if (section === sectionId) {
-                    element.style.display = 'block';
-                } else {
-                    element.style.display = 'none';
-                }
-            });
-        }
-
-        
+        contactSection.style.display = "none";
+      
     const courses = [
         { title: "Data Science", description: "Convolutional Neural Networks | CNN | Kernel | Stride | Padding | Pooling | Flatten | Formula", id: "Y1qxI-Df4Lk" },
         { title: "Data Engineering", description: "Box Plot - 1 | How to draw Box Plot and Outlier | Data Mining | Statistics" , id: "sytBDWefYb0"},
@@ -62,11 +49,7 @@ document.addEventListener("DOMContentLoaded", function () {
             coursesSection.appendChild(courseDiv);
         });
     }
-    
-    
-
-   
-
+ 
     // Call the function to display courses
     displayCourses();
     displayLatestVideos();
@@ -76,7 +59,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Function to display the selected section and hide others
     function showSection(sectionId) {
-        const sections = ['courses', 'about', 'contact'];
+        const sections = ['home','courses', 'about', 'contact'];
         sections.forEach(section => {
             const element = document.getElementById(section);
             if (section === sectionId) {
@@ -91,6 +74,12 @@ document.addEventListener("DOMContentLoaded", function () {
     const coursesLink = document.getElementById('courses-link');
     const aboutLink = document.getElementById('about-link');
     const contactLink = document.getElementById('contact-link');
+    const homeLink = document.getElementById('home-link');
+
+    homeLink.addEventListener('click', function (event) {
+        event.preventDefault();
+        showSection('home');
+    });
 
     coursesLink.addEventListener('click', function (event) {
         event.preventDefault();
