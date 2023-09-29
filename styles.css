@@ -1,0 +1,113 @@
+/* styles.css */
+
+/* styles.css */
+
+/* Apply the background image to the body */
+body {
+    margin: 0;
+    padding: 0;
+    background-image: url('image/bg.png'); /* Replace with the correct path to your background image */
+    background-size: cover;
+    background-position: left right;
+    background-attachment: fixed; /* This makes the background fixed */
+    background-repeat: repeat;
+    animation: moveBackground 10s linear infinite; /* Adjust the animation duration as needed */
+    transition: background-position 0s linear; /* Smoothly transition background position */
+
+}
+
+/* Rest of your CSS styles... */
+
+/* Add a keyframe animation to move the background */
+@keyframes moveBackground {
+    0% {
+        background-position: left right;
+    }
+    100% {
+        background-position: 100%  0; /* Adjust the amount and direction of movement */
+    }
+}
+
+.static-image {
+    position: fixed;
+    top: 10;
+    right: 0;
+    width: 40%;
+    height: 90%;
+    object-fit: cover; /* Ensure the image covers the entire container without distortion */
+    z-index: 2; /* Place the static image above the background */
+}
+
+.static-image {
+    position: fixed;
+    top: 10;
+    right: 0;
+    width: 40%;
+    height: 90%;
+    object-fit: cover; /* Ensure the image covers the entire container without distortion */
+    z-index: 2; /* Place the static image above the background */
+}
+
+
+
+header {
+    background-color: #0078d4;
+    color: #fff;
+    text-align: center;
+    padding: 20px 0;
+}
+
+nav ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+}
+
+nav li {
+    display: inline;
+    margin-right: 20px;
+}
+
+nav a {
+    text-decoration: none;
+    color: #0078d4;
+}
+
+
+
+
+/* Style the header and main content to expand and fill the available space */
+header, main {
+    flex: 1;
+}
+
+/* Style the footer */
+footer {
+    text-align: center;
+    padding: 10px;
+    background-color: #0078d4;
+    color: #fff;
+}
+
+
+.background-image {
+    background-image: url('bg.png'); /* Replace with your image URL */
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed; /* This makes the background fixed */
+    background-repeat: no-repeat;
+    /* Add more styles as needed */
+}
+
+/* Style the main content */
+main {
+    padding: 20px;
+    color: #fff;
+}
+
+/* Style the section content with a light black color */
+.section-content {
+    padding: 20px;
+    color: #5c3ea9;
+}
+
