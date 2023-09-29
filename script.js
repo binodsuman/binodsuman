@@ -75,6 +75,9 @@ document.addEventListener("DOMContentLoaded", function () {
     const aboutLink = document.getElementById('about-link');
     const contactLink = document.getElementById('contact-link');
     const homeLink = document.getElementById('home-link');
+    //const youtubeLink = document.getElementById('youtube-link');
+
+    
 
     homeLink.addEventListener('click', function (event) {
         event.preventDefault();
