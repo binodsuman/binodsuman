@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Thumbnails Carousel</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <h1>YouTube Thumbnails Carousel</h1>
+    <div class="carousel-container">
+        <button class="arrow left-arrow" onclick="scrollCarousel('left')">&lt;</button>
+        <div class="thumbnails">
+            <div class="thumbnail" onclick="openVideo('VIDEO_URL_1')"></div>
+            <div class="thumbnail" onclick="openVideo('VIDEO_URL_2')"></div>
+            <div class="thumbnail" onclick="openVideo('VIDEO_URL_3')"></div>
+            <!-- Add more thumbnails as needed -->
+        </div>
+        <button class="arrow right-arrow" onclick="scrollCarousel('right')">&gt;</button>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

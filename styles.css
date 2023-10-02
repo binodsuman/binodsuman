@@ -86,41 +86,73 @@ nav a {
     
 }
 
-
-
-
-/* Style the header and main content to expand and fill the available space */
-header, main {
-    flex: 1;
+/* Reset default margin and padding */
+body, h1 {
+    margin: 0;
+    padding: 0;
 }
 
-/* Style the footer */
-footer {
-    text-align: center;
-    padding: 10px;
-    background-color: #0078d4;
-    color: #fff;
+/* Style for the carousel container */
+.carousel-container {
+    position: relative;
+    overflow: hidden;
+    width: 100%;
 }
 
+/* Style for the thumbnails */
+.thumbnails {
+    display: flex;
+    animation: scrollCarousel 15s linear infinite; /* Adjust the duration as needed */
+}
 
-.background-image {
-    background-image: url('bg.png'); /* Replace with your image URL */
+/* Style for each thumbnail */
+.thumbnail {
+    width: 150px;
+    height: 100px;
+    margin-right: 10px;
+    cursor: pointer;
+    background-image: url('youtube_thumbnail.png'); /* Replace with your thumbnail URL */
     background-size: cover;
     background-position: center;
-    background-attachment: fixed; /* This makes the background fixed */
-    background-repeat: no-repeat;
-    /* Add more styles as needed */
 }
 
-/* Style the main content */
-main {
-    padding: 10px;
-    color: #fff;
+/* Style for navigation buttons */
+/* You can add navigation buttons here if needed */
+
+/* Additional styles as needed */
+h1 {
+    text-align: center;
 }
 
-/* Style the section content with a light black color */
-.section-content {
-    padding: 10px;
-    color: #5c3ea9;
+/* Keyframes animation for scrolling carousel */
+@keyframes scrollCarousel {
+    0% {
+        transform: translateX(0);
+    }
+    100% {
+        transform: translateX(calc(-60px * 3)); /* Adjust the thumbnail width and number of thumbnails */
+    }
 }
+
+/* Style for the left and right arrow buttons */
+.arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 24px;
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+.left-arrow {
+    left: 10px;
+}
+
+.right-arrow {
+    right: 10px;
+}
+
+/* Rest of the existing styles for the thumbnails and carousel container */
+/* ... */
 

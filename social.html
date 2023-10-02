@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>My Social Media Links</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+        .container {
+            position: relative;
+            height: 100vh;
+        }
+        .social-icon {
+            width: 200px; /* Adjust the size of the circles as needed */
+            height: 200px;
+            border-radius: 50%;
+            background-color: #0077B5; /* LinkedIn blue color, replace with your preferred colors */
+            position: absolute;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 2s, opacity 2s;
+        }
+        .social-icon:hover {
+            transform: scale(1.2);
+        }
+        .social-icon img {
+            width: 90%; /* Adjust the size of the icon inside the circle */
+            height: auto;
+        }
+        .social-text {
+            text-align: center;
+            margin-top: 10px;
+            color: #333;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="social-icon" style="top: 20%; left: 20%;">
+            <a href="https://github.com/your_username" target="_blank">
+                <img src="github_icon.png" alt="GitHub">
+            </a>
+            <div class="social-text">GitHub</div>
+        </div>
+        <div class="social-icon" style="top: 40%; left: 50%;">
+            <a href="https://www.kaggle.com/your_username" target="_blank">
+                <img src="kaggle_icon.png" alt="Kaggle">
+            </a>
+            <div class="social-text">Kaggle</div>
+        </div>
+        <div class="social-icon" style="top: 70%; left: 80%;">
+            <a href="https://www.linkedin.com/in/your_username" target="_blank">
+                <img src="linkedin_icon.png" alt="LinkedIn">
+            </a>
+            <div class="social-text">LinkedIn</div>
+        </div>
+        <div class="social-icon" style="top: 10%; left: 70%;">
+            <a href="https://twitter.com/your_username" target="_blank">
+                <img src="twitter_icon.png" alt="Twitter">
+            </a>
+            <div class="social-text">Twitter</div>
+        </div>
+        <div class="social-icon" style="top: 60%; left: 30%;">
+            <a href="https://leetcode.com/your_username" target="_blank">
+                <img src="leetcode_icon.png" alt="LeetCode">
+            </a>
+            <div class="social-text">LeetCode</div>
+        </div>
+        <div class="social-icon" style="top: 80%; left: 70%;">
+            <a href="https://www.youtube.com/your_channel" target="_blank">
+                <img src="image/binod_suman_youtube.png" alt="YouTube">
+            </a>
+            <div class="social-text">YouTube</div>
+        </div>
+        <!-- Add more social icons here with their respective positions -->
+    </div>
+
+    <script>
+        // JavaScript to make social icons move smoothly
+        const socialIcons = document.querySelectorAll('.social-icon');
+
+        function moveIcons() {
+            socialIcons.forEach(icon => {
+                const maxX = window.innerWidth - icon.clientWidth;
+                const maxY = window.innerHeight - icon.clientHeight;
+                const deltaX = (Math.random() - 0.5) * 10; // Adjust the pixel movement here
+                const deltaY = (Math.random() - 0.5) * 10; // Adjust the pixel movement here
+                const currentTransform = getComputedStyle(icon).transform;
+                const currentX = parseFloat(currentTransform.split(',')[4]);
+                const currentY = parseFloat(currentTransform.split(',')[5]);
+                const newX = Math.max(0, Math.min(maxX, currentX + deltaX));
+                const newY = Math.max(0, Math.min(maxY, currentY + deltaY));
+                icon.style.transform = `translate(${newX}px, ${newY}px)`;
+            });
+
+            requestAnimationFrame(moveIcons);
+        }
+
+        requestAnimationFrame(moveIcons);
+    </script>
+</body>
+</html>

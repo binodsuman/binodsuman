@@ -42,10 +42,11 @@
         <nav>
             <ul>
                 <li><a href="#" id="home-link">Home</a></li>
-                <li><a href="#" id="contact-link">Latest YouTuve Videos</a></li>
-                <li><a href="#" id="courses-link">Most Watched YouTube Videos</a></li>
+                <li><a href="#" id="latest-link">Latest YouTuve Videos</a></li>
+                <li><a href="#" id="most-link">Most Watched YouTube Videos</a></li>
                 <li><a href="#" id="about-link">About</a></li>
                 <li><a href="http://youtube.com/@binodsuman" target="_blank" id="youtube-link">My YouTube</a></li>
+                <!-- <li><a href="#" id="about-me-link">About Me</a></li> -->
 
             </ul>
         </nav>
@@ -57,12 +58,31 @@
                 <img src="image/intro.png" alt="Binod Suman" class="left-image">
             </section>
 
-            <section id="contact" class="section-content">
+            <section id="latest" class="section-content">
                 <h2>Latest YouTube Videos</h2>
+
+                <div class="carousel-container">
+                    <button class="arrow left-arrow" onclick="scrollCarousel('left')">&lt;</button>
+                    <div class="thumbnails">
+                        <div class="thumbnail" onclick="openVideo('VIDEO_URL_1')"></div>
+                        <div class="thumbnail" onclick="openVideo('VIDEO_URL_2')"></div>
+                        <div class="thumbnail" onclick="openVideo('VIDEO_URL_3')"></div>
+                        <!-- Add more thumbnails as needed -->
+                    </div>
+                    <button class="arrow right-arrow" onclick="scrollCarousel('right')">&gt;</button>
+                </div>
+                
             </section>
             
-            <section id="courses"  class="section-content">
+            <section id="most"  class="section-content">
                 <h2>Most watched YouTube Videos</h2>
+                <!-- Course listings go here -->
+                <!-- Example course listing -->
+                
+            </section>
+
+            <section id="about-me"  class="section-content">
+                <h2>About Me</h2>
                 <!-- Course listings go here -->
                 <!-- Example course listing -->
                 
@@ -70,13 +90,35 @@
 
             <section id="about" class="section-content">
                 <h2>About Us</h2>
+          
                 <table>
                     <tr>
                         <td><h3>LinkedIn</h3>
-                            <div class="badge-base LI-profile-badge" data-locale="en_US" data-size="large" data-theme="dark" data-type="HORIZONTAL" data-vanity="binodsuman" data-version="v1"><a class="badge-base__link LI-simple-link" href="https://in.linkedin.com/in/binodsuman?trk=profile-badge">Binod Suman</a></div>
+                            <a href="https://www.linkedin.com/in/binodsuman/" target="_blank">
+                                <img src="image/binod_suman_LinkedIn.jpeg" alt="Binod Suman LinkedIn" width="200" height="200">
+                            </a>
+                        </td><td> &nbsp;&nbsp;&nbsp;&nbsp; </td>
+                        <td><h3>GitHub</h3>
+                            <a href="https://github.com/binodsuman" target="_blank">
+                                <img src="image/binod_suman_github.png" alt="Binod Suman LinkedIn" width="200" height="200">
+                            </a>
                         </td>
-                        <td><h2>YouTube Channel Introduction</h2>
-                            <iframe width="424" height="238" src="https://www.youtube.com/embed/SSmekHv2W58" title="Binod Suman Academy Introduction" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+                        <td> &nbsp;&nbsp;&nbsp;&nbsp; </td>
+                        <td><h3>LeetCode</h3>
+                            <a href="https://leetcode.com/binodsuman/" target="_blank">
+                                <img src="image/binod_suman_leetcode.png" alt="Binod Suman LinkedIn" width="200" height="200">
+                            </a>
+                        </td>
+                        <tr>
+                        <td><h2>Tweeter X</h2>
+                            <a href="https://twitter.com/BinodSuman" target="_blank">
+                                <img src="image/binod_suman_Tweeter.jpeg" alt="Binod Suman Tweeter X" width="200" height="200">
+                            </a>
+                        </td><td> &nbsp;&nbsp;&nbsp;&nbsp; </td>
+                        <td><h3>Kaggle</h3>
+                            <a href="https://www.kaggle.com/binodsuman" target="_blank">
+                                <img src="image/binod_suman_kaggle.png" alt="Binod Suman LinkedIn" width="200" height="200">
+                            </a>
                         </td>
                     </tr>
                 </table>
