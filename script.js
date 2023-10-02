@@ -99,7 +99,7 @@
     });
 
     aboutLink.addEventListener('click', function (event) {
-        
+        document.body.style.animation = " moveBackground 10s linear infinite"; 
         event.preventDefault();
         showSection('about');
     });
