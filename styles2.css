@@ -1,0 +1,303 @@
+body {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+}
+section {
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 2em;
+}
+#section-menu {
+    height: 15vh;
+}
+
+#section0 {
+    /* position: fixed; */
+    height: 10vh;
+    background: #d3d6d8a9;
+    background-image: url('image/bg.png'); /* Replace with the correct path to your background image */
+    background-size: cover;
+    background-position: left right;
+    background-attachment: fixed; /* This makes the background fixed */
+    background-repeat: repeat;
+    animation: moveBackground 10s linear infinite; /* Adjust the animation duration as needed */
+    transition: background-position 0s linear; /* Smoothly transition background position */
+    z-index: 1;
+}
+
+#section1 {
+    height: 90vh;
+    background: #d3d6d8a9;
+    background-image: url('image/bg.png'); /* Replace with the correct path to your background image */
+    background-size: cover;
+    background-position: left right;
+    background-attachment: fixed; /* This makes the background fixed */
+    background-repeat: repeat;
+    animation: moveBackground 10s linear infinite; /* Adjust the animation duration as needed */
+    transition: background-position 0s linear; /* Smoothly transition background position */
+    z-index: 1;
+}
+@keyframes moveBackground {
+    0% {
+        background-position: left right;
+    }
+    100% {
+        background-position: 100%  0; /* Adjust the amount and direction of movement */
+    }
+}
+
+#section2 {
+    /* background:  hsl(78, 100%, 72%); */
+    /* background-image: url('image/section_2_blue.png'); */
+    background-image: url('image/section_2_corer.png');
+    background-size: cover;
+    background-position: left right;
+}
+#section3 {
+    /* background: #66ccff; */
+    background-image: url('image/section_3_white.png');
+    
+}
+#section4__ {
+    background-image: url('image/Binod_Suman_testomonial.png');
+    
+}
+#section5 {
+    background-image: url('image/Binod_Suman_playlist.png'); 
+    background-size: cover;
+    background-position: left right;
+    
+}
+
+#section6 {
+    background-image: url('image/Binod_Suman_About_Me.png'); 
+    background-size: cover;
+    background-position: left right;
+    
+}
+
+
+
+
+
+/* Style for the left side */
+.left-side {
+    background-color: #f4f4f4; /* Left side background color */
+}
+
+/* Style for the right side */
+.right-side {
+    background-color: #333; /* Right side background color */
+}
+
+/* <img src="image/Binod_Suman_About_Me.png" alt="Binod Suman" width="100%" 
+        height="100%"> */
+
+.static-image {
+    /* position: fixed; */
+    top: 10;
+    right: 0;
+    width: 40%;
+    height: 95%;
+    object-fit: cover; /* Ensure the image covers the entire container without distortion */
+    z-index: 1; /* Place the static image above the background */
+}
+
+.left-image {
+    /* position: fixed; */
+    top: 10;
+    left: 0;
+    width: 100%;
+    height: 95%;
+    object-fit: cover; /* Ensure the image covers the entire container without distortion */
+    opacity: 0.5;
+  
+}
+
+.grid-container {
+    left: 100px;
+    display: grid;
+    grid-template-columns: auto auto auto auto ;
+    grid-gap: 15px;
+    /* background-color: #c2c6caa9; */
+    padding: 10px;
+  }
+ 
+  .grid-container-first-page {
+    display: grid;
+    grid-template-columns: auto auto;
+    grid-gap: 15px;
+    /* background-color: #c2c6caa9; */
+    padding: 10px;
+  }
+
+  .grid-container-about-me-inner {
+    display: grid;
+    grid-template-columns: auto auto;
+    grid-gap: 0px;
+    /* background-color: #c2c6caa9; */
+    padding: 10px;
+  }
+
+  .grid-container-playlist {
+    left: 100px;
+    display: grid;
+    grid-template-columns: auto auto auto auto auto auto auto ;
+    grid-gap: 15px;
+    /* background-color: #c2c6caa9; */
+    padding: 10px;
+  }
+
+
+
+  .grid-container-about-me {
+    top: 50;
+    display: grid;
+    grid-template-columns: 35% 65%; /* 25% for the left side, 75% for the right side */
+    height: 100vh; /* 100% of the viewport height */
+    width: 100vh;
+    grid-gap: 15px;
+    padding: 10px;
+}
+
+  .grid-menu {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
+    grid-gap: 5px;
+    /* background-color: #c2c6caa9; */
+    padding: 12px;
+    font: 15px Arial, sans-serif;
+    font-weight: italic;
+    text-align: center;
+  }
+
+  p.a {
+    font: 75px Arial, sans-serif;
+    font-weight: bold;
+    text-align: center;
+    /* color: #1aff00; */
+  }
+  p.b {
+    font: 35px Arial, sans-serif;
+    text-align: center;
+  }
+  p.c {
+    font: 25px Arial, sans-serif;
+    text-align: center;
+  }
+
+  .rounded-image {
+    width: 290px; /* Adjust the width and height as needed */
+    height: 180px;
+    border-radius: 20px; /* Adjust the border-radius for desired corner roundness */
+    overflow: hidden; /* Clip the image to the rounded border */
+    /* border: 2px solid #333; Add a border with a color of your choice */
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.5); /* Add a box shadow for a subtle effect */
+    background-size: cover;
+}
+
+
+.rounded-image-2 {
+    width: 180px; /* Adjust the width and height as needed */
+    height: 180px;
+    border-radius: 20px; /* Adjust the border-radius for desired corner roundness */
+    overflow: hidden; /* Clip the content within the container */
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+    background-size: cover; /* Crop and scale the background image to cover the container */
+    background-clip: content-box; /* Clip the background within the content box */
+}
+
+.testomonial-image {
+    width: 90%;
+    height: 90%;
+    
+}
+
+.square-container {
+    width: 200px; /* Adjust the width and height as needed */
+    height: 200px;
+    overflow: hidden; /* Clip the content within the container */
+    border-radius: 20px; /* Add rounded corners if desired */
+    background-size: cover;
+    position: relative;
+}
+
+.square-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Fit the image within the container */
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+
+#special-image {
+    margin-top: 0px; /* Add a top margin of 50 pixels to push this image down */
+}
+
+.static-image {
+    /* position: fixed; */
+    top: 102;
+    right: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Ensure the image covers the entire container without distortion */
+    z-index: 1; /* Place the static image above the background */
+}
+
+.menu {
+    /* background-color: #333; */
+    color: #fff;
+    padding: 10px;
+    text-align: center;
+}
+
+/* Style for the links */
+.menu a {
+    text-decoration: none; /* Remove the default underline */
+    transition: text-decoration 0.2s, font-size 0.2s;
+    font-size: 16px;
+    color: #000;
+}
+
+.menu a:hover {
+    text-decoration: underline; /* Add underline on hover */
+    text-underline-position: under; /* Set underline position to under (to create a gap) */
+    text-decoration-thickness: 0.2em; /* Set the thickness of the underline */
+    text-decoration-color: green; /* Set the color of the underline */
+    font-size: 18px; /* Increase font size on hover */
+}
+
+.image-link {
+    display: inline-block;
+    position: relative;
+    transition: transform 0.2s, filter 0.2s;
+}
+
+/* Style for the image */
+.image-link img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+}
+
+/* Hover effect */
+.image-link:hover {
+    transform: scale(1.1); /* Scale the image up by 10% */
+    filter: brightness(1.2); /* Increase brightness for a highlight effect */
+}
+
+.image-link-media:hover {
+    transform: scale(1.1); /* Scale the image up by 10% */
+    filter: brightness(1.2); /* Increase brightness for a highlight effect */
+}
+
+
+
+
+
+

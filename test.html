@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Single-Page Scroll Website</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+        section {
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2em;
+        }
+        #section1 {
+            background: #f2f2f2;
+        }
+        #section2 {
+            background: #ffcc66;
+        }
+        #section3 {
+            background: #66ccff;
+        }
+    </style>
+</head>
+<body>
+    <section id="section1">
+        <div>Section 1</div>
+    </section>
+    <section id="section2">
+        <div>Section 2</div>
+    </section>
+    <section id="section3">
+        <div>Section 3</div>
+    </section>
+
+    <script>
+        let currentSection = 0;
+
+        document.addEventListener("scroll", function () {
+            const sections = document.querySelectorAll("section");
+            const offset = window.innerHeight / 2;
+
+            sections.forEach((section, index) => {
+                if (section.getBoundingClientRect().top < offset) {
+                    currentSection = index;
+                }
+            });
+        });
+
+        document.addEventListener("keydown", function (e) {
+            if (e.key === "ArrowDown" && currentSection < 2) {
+                currentSection++;
+                scrollToSection(currentSection);
+            } else if (e.key === "ArrowUp" && currentSection > 0) {
+                currentSection--;
+                scrollToSection(currentSection);
+            }
+        });
+
+        function scrollToSection(sectionIndex) {
+            const sections = document.querySelectorAll("section");
+            sections[sectionIndex].scrollIntoView({ behavior: "smooth" });
+        }
+    </script>
+</body>
+</html>
