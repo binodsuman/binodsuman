@@ -1,6 +1,16 @@
 <!DOCTYPE html>
 <html>
 <head>
+     <!-- Google tag (gtag.js) -->
+     <script async src="https://www.googletagmanager.com/gtag/js?id=G-H79D6G9EZ5"></script>
+     <script>
+     window.dataLayer = window.dataLayer || [];
+     function gtag(){dataLayer.push(arguments);}
+     gtag('js', new Date());
+ 
+     gtag('config', 'G-H79D6G9EZ5');
+     </script>
+     
     <meta charset="UTF-8">
     <title>Binod Suman - YouTuber | Architect | Blogger</title>
     <link rel="stylesheet" type="text/css" href="styles2.css">
@@ -30,11 +40,11 @@
                 <p class="a">Binod Suman</p>
                 <p class="b">Youtuber, Architect, Speaker, Blogger</p> 
                 <p class="c">Passionate to explore new technology, I disseminate <br> knowledge and empower eager learners by simplifying<br> complex subjects through <a href = "http://youtube.com/@binodsuman" target="_blank"><b style="color:red;">YouTube</b>.</a> </p>
-                <p class="a"><img id="special-image" src="image/down_arror.png" alt="Binod Suman" width="70" height="105"></p> 
+                <p class="a"><img id="page-scroll" src="image/down_arrow_3.png" alt="Binod Suman" width="70" height="125" class="image-link-arrow"></p> 
                 
             </div>
              </div>
-             <div><img id="special-image" src="image/binod_suman.png" alt="Binod Suman" width="550" height="745"></div>
+             <div><img id="special-image" src="image/binod_suman.png" alt="Binod Suman" width="550" height="745" /></div>
     </section>
 
     
@@ -153,34 +163,8 @@
 
     </section>
 
-    <script>
-        let currentSection = 0;
+  
+ <script src="script.js"></script> <!-- Reference to the JavaScript file -->
 
-        document.addEventListener("scroll", function () {
-            const sections = document.querySelectorAll("section");
-            const offset = window.innerHeight / 2;
-
-            sections.forEach((section, index) => {
-                if (section.getBoundingClientRect().top < offset) {
-                    currentSection = index;
-                }
-            });
-        });
-
-        document.addEventListener("keydown", function (e) {
-            if (e.key === "ArrowDown" && currentSection < 2) {
-                currentSection++;
-                scrollToSection(currentSection);
-            } else if (e.key === "ArrowUp" && currentSection > 0) {
-                currentSection--;
-                scrollToSection(currentSection);
-            }
-        });
-
-        function scrollToSection(sectionIndex) {
-            const sections = document.querySelectorAll("section");
-            sections[sectionIndex].scrollIntoView({ behavior: "smooth" });
-        }
-    </script>
 </body>
 </html>

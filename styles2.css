@@ -296,8 +296,17 @@ section {
     filter: brightness(1.2); /* Increase brightness for a highlight effect */
 }
 
+.image-link-arrow:hover {
+    transform: scale(1.1); /* Scale the image up by 10% */
+    filter: brightness(1.2); /* Increase brightness for a highlight effect */
+    cursor: pointer;
+}
 
 
+
+.opacity-image {
+    opacity: 0.7;
+}
 
 
 
