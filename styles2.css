@@ -304,8 +304,38 @@ section {
 
 
 
-.opacity-image {
-    opacity: 0.7;
+.word {
+    opacity: 0; /* Start with the word hidden */
+    font-weight: bold; /* Start with bold font */
+    color: green;
+}
+
+#word1 {
+    animation: fadeIn 0.5s linear 0.5s forwards; /* Delay the animation for 0.5 seconds */
+}
+
+#word2 {
+    animation: fadeIn 0.5s linear 1.2s forwards; /* Delay the animation for 1 second */
+}
+
+#word3 {
+    animation: fadeIn 0.5s linear 1.9s forwards; /* Delay the animation for 1.5 seconds */
+}
+
+#word4 {
+    animation: fadeIn 0.5s linear 2.6s forwards; /* Delay the animation for 2 seconds */
+}
+
+@keyframes fadeIn {
+    0% {
+        opacity: 0; /* Initial opacity is 0 (hidden) */
+        color: red; 
+    }
+    100% {
+        opacity: 1; /* Final opacity is 1 (fully visible) */
+        font-weight: normal; /* Switch to normal font at the end of the animation */
+        color: black; 
+    }
 }
 
 

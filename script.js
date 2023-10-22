@@ -31,7 +31,7 @@ let currentSection = 0;
         
         hoverImage.addEventListener('mouseover', () => {
             // Get the target section you want to scroll to
-            const targetSection = document.getElementById('section2'); // Change 'section2' to the ID of the desired section
+            const targetSection = document.getElementById('section6'); // Change 'section2' to the ID of the desired section
             
             if (targetSection) {
                 // Calculate the target scroll position
