@@ -364,5 +364,34 @@ section {
     }
 }
 
+.scroll-to-top {
+    position: fixed;
+    top: 50%;
+    left: 0;
+    transform: translateY(-50%);
+    background-color: #007bff;
+    color: #fff;
+    padding: 10px 15px;
+    text-align: center;
+    text-decoration: none;
+    border-radius: 5px 0 0 5px;
+    z-index: 999; /* Ensure it's on top of other content */
+    display: none; /* Initially hidden */
+}
+
+#backToConfirm {
+    display: none;
+}
+
+.scroll-to-top:hover {
+    background-color: #0056b3;
+}
+
+/* Show the button when the user scrolls down */
+.scroll-to-top.show {
+    display: block;
+}
+
+
 
 

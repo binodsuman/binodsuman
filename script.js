@@ -60,4 +60,36 @@ function easeInOutCubic(t, b, c, d) {
     return c / 2 * ((t -= 2) * t * t + 2) + b;
 }
 
+// Add this code to your HTML file or an external script
+
+// window.addEventListener('scroll', function() {
+//     var scrollButton = document.querySelector('.scroll-to-top');
+//     if (window.scrollY > 100) {
+//         scrollButton.classList.add('show');
+//     } else {
+//         scrollButton.classList.remove('show');
+//     }
+// });
+
+document.addEventListener("DOMContentLoaded", function () {
+    const backToConfirmButton = document.getElementById("backToConfirm");
+    const section2 = document.getElementById("section2");
+
+    // Listen for scroll events
+    window.addEventListener("scroll", function () {
+        const section2Top = section2.getBoundingClientRect().top;
+
+        // If the top of Section 2 is in the viewport, show the button
+        if (section2Top < window.innerHeight / 2) {
+            backToConfirmButton.style.display = "block";
+        } else {
+            backToConfirmButton.style.display = "none";
+        }
+    });
+});
+
+
+
+
+
 
