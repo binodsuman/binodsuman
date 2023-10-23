@@ -73,6 +73,13 @@ section {
 }
 
 #section6 {
+    background-image: url('image/Binod_Suman_DSA.png'); 
+    background-size: cover;
+    background-position: left right;
+    
+}
+
+#section7 {
     background-image: url('image/Binod_Suman_About_Me.png'); 
     background-size: cover;
     background-position: left right;
@@ -121,6 +128,15 @@ section {
     left: 100px;
     display: grid;
     grid-template-columns: auto auto auto auto ;
+    grid-gap: 15px;
+    /* background-color: #c2c6caa9; */
+    padding: 10px;
+  }
+
+  .grid-container-dsa {
+    left: 100px;
+    display: grid;
+    grid-template-columns: auto auto auto auto auto auto;
     grid-gap: 15px;
     /* background-color: #c2c6caa9; */
     padding: 10px;
@@ -192,6 +208,16 @@ section {
   .rounded-image {
     width: 290px; /* Adjust the width and height as needed */
     height: 180px;
+    border-radius: 20px; /* Adjust the border-radius for desired corner roundness */
+    overflow: hidden; /* Clip the image to the rounded border */
+    /* border: 2px solid #333; Add a border with a color of your choice */
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.5); /* Add a box shadow for a subtle effect */
+    background-size: cover;
+}
+
+.rounded-image-dsa {
+    width: 200px; /* Adjust the width and height as needed */
+    height: 120px;
     border-radius: 20px; /* Adjust the border-radius for desired corner roundness */
     overflow: hidden; /* Clip the image to the rounded border */
     /* border: 2px solid #333; Add a border with a color of your choice */
