@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Testimonials - Binod Suman</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --secondary: #7c3aed;
+            --accent: #f59e0b;
+            --dark: #1e293b;
+            --light: #f8fafc;
+            --gray: #64748b;
+            --gray-light: #e2e8f0;
+            --transition: all 0.3s ease;
+            --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            --radius: 12px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            line-height: 1.6;
+            color: var(--dark);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Navigation */
+        .testimonials-nav {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+        }
+
+        .logo span {
+            color: var(--accent);
+        }
+
+        .back-link {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+            transition: var(--transition);
+        }
+
+        .back-link:hover {
+            color: var(--primary-dark);
+            transform: translateX(-5px);
+        }
+
+        /* Hero Section */
+        .testimonials-hero {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: white;
+        }
+
+        .testimonials-hero h1 {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+            font-weight: 700;
+        }
+
+        .testimonials-hero p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Testimonials Container */
+        .testimonials-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .testimonial-slider {
+            max-width: 1000px;
+            width: 100%;
+            background: white;
+            border-radius: 20px;
+            box-shadow: var(--shadow-lg);
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Testimonial Card */
+        .testimonial-card {
+            display: none;
+            padding: 3rem;
+            text-align: center;
+            animation: fadeIn 0.8s ease-in-out;
+        }
+
+        .testimonial-card.active {
+            display: block;
+        }
+
+        .testimonial-image {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid var(--primary);
+            margin: 0 auto 2rem;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .testimonial-text {
+            font-size: 1.3rem;
+            line-height: 1.8;
+            color: var(--dark);
+            margin-bottom: 2rem;
+            font-style: italic;
+            position: relative;
+        }
+
+        .testimonial-text::before,
+        .testimonial-text::after {
+            content: '"';
+            font-size: 4rem;
+            color: var(--primary);
+            opacity: 0.3;
+            position: absolute;
+        }
+
+        .testimonial-text::before {
+            top: -20px;
+            left: -10px;
+        }
+
+        .testimonial-text::after {
+            bottom: -40px;
+            right: -10px;
+        }
+
+        .testimonial-author {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .testimonial-source {
+            color: var(--gray);
+            font-size: 0.9rem;
+        }
+
+        /* Navigation Controls */
+        .testimonial-controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 2rem;
+            padding: 2rem;
+            background: var(--light);
+        }
+
+        .control-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 1.2rem;
+        }
+
+        .control-btn:hover {
+            background: var(--primary-dark);
+            transform: scale(1.1);
+        }
+
+        .testimonial-dots {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--gray-light);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .dot.active {
+            background: var(--primary);
+            transform: scale(1.2);
+        }
+
+        .auto-play-toggle {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--gray);
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+
+        .toggle-switch {
+            width: 40px;
+            height: 20px;
+            background: var(--gray-light);
+            border-radius: 10px;
+            position: relative;
+            transition: var(--transition);
+        }
+
+        .toggle-switch::before {
+            content: '';
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            background: white;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            transition: var(--transition);
+        }
+
+        .auto-play-toggle.active .toggle-switch {
+            background: var(--primary);
+        }
+
+        .auto-play-toggle.active .toggle-switch::before {
+            transform: translateX(20px);
+        }
+
+        /* Stats Section */
+        .testimonial-stats {
+            background: white;
+            padding: 3rem 2rem;
+            text-align: center;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: var(--gray);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Footer */
+        .testimonials-footer {
+            background: var(--dark);
+            color: white;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .testimonials-hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .testimonial-card {
+                padding: 2rem 1.5rem;
+            }
+
+            .testimonial-text {
+                font-size: 1.1rem;
+            }
+
+            .testimonial-controls {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .testimonials-hero h1 {
+                font-size: 2rem;
+            }
+
+            .testimonial-image {
+                width: 80px;
+                height: 80px;
+            }
+
+            .testimonial-text {
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="testimonials-nav">
+        <div class="nav-container">
+            <a href="/" class="logo">Binod<span>Suman</span></a>
+            <a href="/" class="back-link">
+                <i class="fas fa-arrow-left"></i>
+                Back to Main Site
+            </a>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="testimonials-hero">
+        <h1>What Viewers Say</h1>
+        <p>Heartfelt feedback from our amazing community of learners</p>
+    </section>
+
+    <!-- Testimonials Slider -->
+    <div class="testimonials-container">
+        <div class="testimonial-slider">
+            <!-- Testimonial Cards will be dynamically inserted here -->
+            <div id="testimonial-cards">
+                <!-- Cards will be generated by JavaScript -->
+            </div>
+
+            <!-- Navigation Controls -->
+            <div class="testimonial-controls">
+                <button class="control-btn prev-btn">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                
+                <div class="testimonial-dots" id="testimonial-dots">
+                    <!-- Dots will be generated by JavaScript -->
+                </div>
+                
+                <button class="control-btn next-btn">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+                
+                <div class="auto-play-toggle" id="auto-play-toggle">
+                    <span>Auto Play</span>
+                    <div class="toggle-switch"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Section -->
+    <section class="testimonial-stats">
+        <div class="stats-grid">
+            <div class="stat-item">
+                <div class="stat-number" id="total-testimonials">20+</div>
+                <div class="stat-label">Amazing Reviews</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="happy-students">10K+</div>
+                <div class="stat-label">Happy Students</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="video-views">1M+</div>
+                <div class="stat-label">Video Views</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="countries">50+</div>
+                <div class="stat-label">Countries Reached</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="testimonials-footer">
+        <p>&copy; 2023 Binod Suman. All rights reserved.</p>
+    </footer>
+
+    <script>
+        // Testimonials Data
+        const testimonials = [
+            {
+                image: "../image/testimonial_Images/comment1.jpg",
+                text: "Your explanation of dynamic programming made complex concepts so simple! Finally understand how to approach these problems.",
+                author: "Rajesh Kumar",
+                source: "YouTube Comment"
+            },
+            {
+                image: "../image/testimonial_Images/comment2.jpg",
+                text: "The way you break down system design concepts is phenomenal. Your videos helped me crack my FAANG interview!",
+                author: "Priya Sharma",
+                source: "YouTube Comment"
+            },
+            {
+                image: "../image/testimonial_Images/comment3.jpg",
+                text: "Best DSA tutorials on YouTube! Your teaching style is engaging and the examples are perfectly chosen.",
+                author: "Amit Patel",
+                source: "YouTube Comment"
+            },
+            {
+                image: "../image/testimonial_Images/comment4.jpg",
+                text: "Your microservices series transformed my understanding of distributed systems. Thank you for the quality content!",
+                author: "Neha Gupta",
+                source: "YouTube Comment"
+            },
+            {
+                image: "../image/testimonial_Images/comment5.jpg",
+                text: "The real-world examples you provide make all the difference. Finally someone who explains why we need these concepts!",
+                author: "Sanjay Verma",
+                source: "YouTube Comment"
+            },
+            {
+                image: "../image/testimonial_Images/comment6.jpg",
+                text: "Your teaching method is exceptional. Complex topics become easy to grasp with your step-by-step approach.",
+                author: "Anjali Singh",
+                source: "YouTube Comment"
+            },
+            {
+                image: "../image/testimonial_Images/comment7.jpg",
+                text: "The production quality and content depth are outstanding. You deserve millions of subscribers!",
+                author: "Vikram Malhotra",
+                source: "YouTube Comment"
+            },
+            {
+                image: "../image/testimonial_Images/comment8.jpg",
+                text: "Your videos helped me transition from frontend to full-stack development. Forever grateful!",
+                author: "Rohit Joshi",
+                source: "YouTube Comment"
+            },
+            {
+                image: "../image/testimonial_Images/comment9.jpg",
+                text: "The way you connect theory with practical implementation is brilliant. Keep up the great work!",
+                author: "Deepika Reddy",
+                source: "YouTube Comment"
+            },
+            {
+                image: "../image/testimonial_Images/comment10.jpg",
+                text: "Your channel is a goldmine for software engineers. Every video adds tremendous value to my knowledge.",
+                author: "Arun Mehta",
+                source: "YouTube Comment"
+            }
+            // Add more testimonials as needed...
+        ];
+
+        // Testimonial Slider
+        class TestimonialSlider {
+            constructor() {
+                this.currentIndex = 0;
+                this.autoPlayInterval = null;
+                this.autoPlayEnabled = true;
+                this.autoPlayDelay = 5000; // 5 seconds
+                
+                this.initializeSlider();
+                this.startAutoPlay();
+            }
+
+            initializeSlider() {
+                const cardsContainer = document.getElementById('testimonial-cards');
+                const dotsContainer = document.getElementById('testimonial-dots');
+
+                // Create testimonial cards
+                testimonials.forEach((testimonial, index) => {
+                    const card = document.createElement('div');
+                    card.className = `testimonial-card ${index === 0 ? 'active' : ''}`;
+                    card.innerHTML = `
+                        <img src="${testimonial.image}" alt="${testimonial.author}" class="testimonial-image" onerror="this.src='../image/default-avatar.jpg'">
+                        <div class="testimonial-text">${testimonial.text}</div>
+                        <div class="testimonial-author">${testimonial.author}</div>
+                        <div class="testimonial-source">${testimonial.source}</div>
+                    `;
+                    cardsContainer.appendChild(card);
+
+                    // Create dots
+                    const dot = document.createElement('div');
+                    dot.className = `dot ${index === 0 ? 'active' : ''}`;
+                    dot.addEventListener('click', () => this.goToSlide(index));
+                    dotsContainer.appendChild(dot);
+                });
+
+                // Add event listeners
+                document.querySelector('.prev-btn').addEventListener('click', () => this.prevSlide());
+                document.querySelector('.next-btn').addEventListener('click', () => this.nextSlide());
+                
+                // Auto-play toggle
+                const autoPlayToggle = document.getElementById('auto-play-toggle');
+                autoPlayToggle.addEventListener('click', () => this.toggleAutoPlay());
+            }
+
+            goToSlide(index) {
+                this.currentIndex = index;
+                this.updateSlider();
+            }
+
+            nextSlide() {
+                this.currentIndex = (this.currentIndex + 1) % testimonials.length;
+                this.updateSlider();
+            }
+
+            prevSlide() {
+                this.currentIndex = (this.currentIndex - 1 + testimonials.length) % testimonials.length;
+                this.updateSlider();
+            }
+
+            updateSlider() {
+                // Update cards
+                document.querySelectorAll('.testimonial-card').forEach((card, index) => {
+                    card.classList.toggle('active', index === this.currentIndex);
+                });
+
+                // Update dots
+                document.querySelectorAll('.dot').forEach((dot, index) => {
+                    dot.classList.toggle('active', index === this.currentIndex);
+                });
+            }
+
+            startAutoPlay() {
+                if (this.autoPlayEnabled) {
+                    this.autoPlayInterval = setInterval(() => {
+                        this.nextSlide();
+                    }, this.autoPlayDelay);
+                }
+            }
+
+            stopAutoPlay() {
+                if (this.autoPlayInterval) {
+                    clearInterval(this.autoPlayInterval);
+                    this.autoPlayInterval = null;
+                }
+            }
+
+            toggleAutoPlay() {
+                this.autoPlayEnabled = !this.autoPlayEnabled;
+                const toggle = document.getElementById('auto-play-toggle');
+                toggle.classList.toggle('active', this.autoPlayEnabled);
+
+                if (this.autoPlayEnabled) {
+                    this.startAutoPlay();
+                } else {
+                    this.stopAutoPlay();
+                }
+            }
+        }
+
+        // Initialize the slider when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new TestimonialSlider();
+        });
+
+        // Add some interactive stats animation
+        function animateStats() {
+            const stats = {
+                'total-testimonials': 20,
+                'happy-students': 10000,
+                'video-views': 1000000,
+                'countries': 50
+            };
+
+            Object.keys(stats).forEach(statId => {
+                const element = document.getElementById(statId);
+                const target = stats[statId];
+                let current = 0;
+                const increment = target / 50;
+                const timer = setInterval(() => {
+                    current += increment;
+                    if (current >= target) {
+                        current = target;
+                        clearInterval(timer);
+                    }
+                    element.textContent = Math.floor(current).toLocaleString() + (statId === 'total-testimonials' ? '+' : '+');
+                }, 50);
+            });
+        }
+
+        // Start animation when page is loaded
+        window.addEventListener('load', animateStats);
+    </script>
+</body>
+</html>
