@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DP Master - Dynamic Programming Learning Platform</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            display: flex;
+            min-height: 100vh;
+            background-color: #f5f7fa;
+            color: #333;
+        }
+        
+        .sidebar {
+            width: 300px;
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            color: white;
+            padding: 20px 0;
+            overflow-y: auto;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .main-content {
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
+        }
+        
+        .logo {
+            text-align: center;
+            padding: 20px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 20px;
+        }
+        
+        .logo h1 {
+            font-size: 24px;
+            font-weight: 600;
+        }
+        
+        .logo span {
+            color: #4fc3f7;
+        }
+        
+        .menu-item {
+            padding: 15px 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-left: 4px solid transparent;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .menu-item:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-left: 4px solid #4fc3f7;
+        }
+        
+        .menu-item.active {
+            background-color: rgba(255, 255, 255, 0.15);
+            border-left: 4px solid #4fc3f7;
+        }
+        
+        .submenu {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+            background-color: rgba(0, 0, 0, 0.2);
+        }
+        
+        .submenu.show {
+            max-height: 500px;
+        }
+        
+        .submenu-item {
+            padding: 12px 25px 12px 45px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .submenu-item:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .submenu-item.active {
+            background-color: rgba(255, 255, 255, 0.15);
+        }
+        
+        .toggle-icon {
+            transition: transform 0.3s ease;
+        }
+        
+        .rotated {
+            transform: rotate(45deg);
+        }
+        
+        .content-section {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        .content-section.active {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .section-title {
+            font-size: 28px;
+            margin-bottom: 20px;
+            color: #1e3c72;
+            border-bottom: 2px solid #4fc3f7;
+            padding-bottom: 10px;
+        }
+        
+        .intro-box {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            margin-bottom: 30px;
+        }
+        
+        .intro-box h2 {
+            color: #1e3c72;
+            margin-bottom: 15px;
+        }
+        
+        .intro-box p {
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+        
+        .problem-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s ease;
+        }
+        
+        .problem-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .problem-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #1e3c72;
+        }
+        
+        .problem-desc {
+            color: #666;
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+        
+        .pattern-formula {
+            background: #f0f7ff;
+            border-left: 4px solid #4fc3f7;
+            padding: 12px 15px;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+            border-radius: 4px;
+        }
+        
+        .leetcode-link {
+            display: inline-block;
+            background: #ffa726;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: background 0.3s ease;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .leetcode-link:hover {
+            background: #f57c00;
+        }
+        
+        .parent-problem {
+            font-size: 22px;
+            margin: 30px 0 15px;
+            color: #1e3c72;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #4fc3f7;
+        }
+        
+        .dp-steps {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .step {
+            flex: 1;
+            min-width: 200px;
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+        
+        .step-number {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            background: #4fc3f7;
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 30px;
+            margin-bottom: 10px;
+        }
+        
+        .step-title {
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #1e3c72;
+        }
+        
+        .pattern-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .pattern-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s ease;
+        }
+        
+        .pattern-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .pattern-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #1e3c72;
+        }
+        
+        .pattern-desc {
+            color: #666;
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+        
+        /* New Table Styles for Variations */
+        .variations-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+        
+        .variations-table th {
+            background: #1e3c72;
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+        
+        .variations-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .variations-table tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .variations-table tr:hover {
+            background-color: #f9f9f9;
+        }
+        
+        .pattern-header {
+            background: #f0f7ff !important;
+            color: #1e3c72 !important;
+            font-size: 18px;
+            font-weight: 700;
+        }
+        
+        .pattern-header td {
+            padding: 15px;
+            border-bottom: 2px solid #4fc3f7;
+        }
+        
+        .problem-cell {
+            font-weight: 500;
+        }
+        
+        .desc-cell {
+            color: #666;
+        }
+        
+        @media (max-width: 768px) {
+            body {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+                height: auto;
+            }
+            
+            .main-content {
+                padding: 20px;
+            }
+            
+            .pattern-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .variations-table {
+                display: block;
+                overflow-x: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="logo">
+            <h1>DP<span>Master</span></h1>
+            <p>Master Dynamic Programming Patterns</p>
+        </div>
+        
+        <div class="menu-item active" id="dp-concept">
+            <span>Dynamic Programming</span>
+            <i class="fas fa-plus toggle-icon"></i>
+        </div>
+        
+        <div class="submenu show">
+            <div class="submenu-item active" data-target="intro">Introduction to DP</div>
+            <div class="submenu-item" data-target="parent-problems">Parent Problems</div>
+            <div class="submenu-item" data-target="all-variations">All DP Variations</div>
+            <div class="submenu-item" data-target="core-patterns">Core DP Patterns</div>
+        </div>
+    </div>
+    
+    <div class="main-content">
+        <div class="content-section active" id="intro">
+            <h1 class="section-title">Introduction to Dynamic Programming</h1>
+            
+            <div class="intro-box">
+                <h2>What is Dynamic Programming?</h2>
+                <p>Dynamic Programming (DP) is a method for solving complex problems by breaking them down into simpler subproblems. It is applicable when the problem has overlapping subproblems and optimal substructure.</p>
+                
+                <h2>Where to Use Dynamic Programming?</h2>
+                <p>DP is commonly used in optimization problems, such as:</p>
+                <ul>
+                    <li>Finding shortest paths in graphs</li>
+                    <li>Sequence alignment in bioinformatics</li>
+                    <li>Resource allocation problems</li>
+                    <li>Knapsack and other combinatorial optimization problems</li>
+                    <li>Game theory and decision making</li>
+                </ul>
+                
+                <h2>How to Use Dynamic Programming?</h2>
+                <div class="dp-steps">
+                    <div class="step">
+                        <div class="step-number">1</div>
+                        <div class="step-title">Identify Subproblems</div>
+                        <p>Break down the main problem into smaller, overlapping subproblems.</p>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">2</div>
+                        <div class="step-title">Define Recurrence Relation</div>
+                        <p>Express the solution of the main problem in terms of solutions to subproblems.</p>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">3</div>
+                        <div class="step-title">Implement Memoization/Tabulation</div>
+                        <p>Store solutions to subproblems to avoid redundant calculations.</p>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">4</div>
+                        <div class="step-title">Construct Solution</div>
+                        <p>Use stored solutions to build the solution to the original problem.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="content-section" id="parent-problems">
+            <h1 class="section-title">DP Parent Problems</h1>
+            <p class="intro-box">These are the fundamental DP problems that form the basis for many variations. Mastering these will help you solve a wide range of DP challenges.</p>
+            
+            <div class="problem-card">
+                <div class="problem-title">🧠 1. Fibonacci / Linear Recurrence DP</div>
+                <div class="problem-desc"><strong>Parent Concept:</strong> Problems where each state depends on one or more previous states.</div>
+                <div class="pattern-formula">dp[i] = dp[i-1] + dp[i-2]</div>
+                <a href="https://leetcode.com/problems/fibonacci-number/" class="leetcode-link" target="_blank">LeetCode #509 - Fibonacci Number</a>
+            </div>
+            
+            <div class="problem-card">
+                <div class="problem-title">💰 2. Knapsack (0/1 and Unbounded)</div>
+                <div class="problem-desc"><strong>Parent Concept:</strong> Problems where you must select items under capacity/limit constraints to maximize or minimize a result.</div>
+                <div class="pattern-formula">dp[i][j] = max(dp[i-1][j], value[i] + dp[i-1][j-weight[i]])</div>
+                <a href="https://leetcode.com/problems/partition-equal-subset-sum/" class="leetcode-link" target="_blank">LeetCode #416 - Partition Equal Subset Sum</a>
+            </div>
+            
+            <div class="problem-card">
+                <div class="problem-title">🔠 3. Longest Common Subsequence (LCS)</div>
+                <div class="problem-desc"><strong>Parent Concept:</strong> Compare two sequences and find relationships between their prefixes.</div>
+                <div class="pattern-formula">dp[i][j] = 1 + dp[i-1][j-1] if match, else max(dp[i-1][j], dp[i][j-1])</div>
+                <a href="https://leetcode.com/problems/longest-common-subsequence/" class="leetcode-link" target="_blank">LeetCode #1143 - Longest Common Subsequence</a>
+            </div>
+            
+            <div class="problem-card">
+                <div class="problem-title">🧱 4. Grid / Matrix DP</div>
+                <div class="problem-desc"><strong>Parent Concept:</strong> Move inside a 2D grid (top-down or left-right) to compute paths or minimal costs.</div>
+                <div class="pattern-formula">dp[i][j] = cell[i][j] + min(dp[i-1][j], dp[i][j-1])</div>
+                <a href="https://leetcode.com/problems/unique-paths/" class="leetcode-link" target="_blank">LeetCode #62 - Unique Paths</a>
+            </div>
+            
+            <div class="problem-card">
+                <div class="problem-title">🧩 5. Subsequence / LIS (Longest Increasing Subsequence)</div>
+                <div class="problem-desc"><strong>Parent Concept:</strong> Choose elements in a sequence that follow an order or relation (increasing, arithmetic, etc.)</div>
+                <div class="pattern-formula">dp[i] = max(dp[j] + 1) for all j < i satisfying condition</div>
+                <a href="https://leetcode.com/problems/longest-increasing-subsequence/" class="leetcode-link" target="_blank">LeetCode #300 - Longest Increasing Subsequence</a>
+            </div>
+            
+            <div class="problem-card">
+                <div class="problem-title">💫 6. Partition DP / Matrix Chain Multiplication (MCM)</div>
+                <div class="problem-desc"><strong>Parent Concept:</strong> Divide a sequence into subproblems (choose partition boundaries) to minimize cost.</div>
+                <div class="pattern-formula">dp[i][j] = min(dp[i][k] + dp[k+1][j] + cost[i][j])</div>
+                <a href="https://leetcode.com/problems/burst-balloons/" class="leetcode-link" target="_blank">LeetCode #312 - Burst Balloons</a>
+            </div>
+            
+            <div class="problem-card">
+                <div class="problem-title">🌳 7. DP on Trees</div>
+                <div class="problem-desc"><strong>Parent Concept:</strong> Compute results bottom-up on tree structure using postorder traversal.</div>
+                <div class="pattern-formula">dp[node] = combine(dp[left], dp[right])</div>
+                <a href="https://leetcode.com/problems/diameter-of-binary-tree/" class="leetcode-link" target="_blank">LeetCode #543 - Diameter of Binary Tree</a>
+            </div>
+            
+            <div class="problem-card">
+                <div class="problem-title">🧭 8. DP on Graphs</div>
+                <div class="problem-desc"><strong>Parent Concept:</strong> Compute shortest/longest paths or path counts in a DAG or weighted graph using topological order or memoization.</div>
+                <div class="pattern-formula">Shortest Path in DAG (classical base problem)</div>
+                <a href="https://leetcode.com/problems/shortest-path-visiting-all-nodes/" class="leetcode-link" target="_blank">LeetCode #847 - Shortest Path Visiting All Nodes</a>
+            </div>
+            
+            <div class="problem-card">
+                <div class="problem-title">🔢 9. Bitmask DP</div>
+                <div class="problem-desc"><strong>Parent Concept:</strong> Represent subsets or visited states using bitmasking; used in combinatorial search + optimization problems.</div>
+                <div class="pattern-formula">dp[mask][i] = min(dp[mask ^ (1 << i)][j] + cost[j][i])</div>
+                <a href="https://leetcode.com/problems/shortest-path-visiting-all-nodes/" class="leetcode-link" target="_blank">LeetCode #847 - Shortest Path Visiting All Nodes</a>
+            </div>
+            
+            <div class="problem-card">
+                <div class="problem-title">🔟 10. Digit DP</div>
+                <div class="problem-desc"><strong>Parent Concept:</strong> Count or calculate results based on the digits of a number under certain constraints.</div>
+                <div class="pattern-formula">dp[pos][tight][mask]</div>
+                <a href="https://leetcode.com/problems/count-numbers-with-unique-digits/" class="leetcode-link" target="_blank">LeetCode #357 - Count Numbers with Unique Digits</a>
+            </div>
+        </div>
+        
+        <div class="content-section" id="all-variations">
+            <h1 class="section-title">All DP Variation Problems</h1>
+            <p class="intro-box">These problems are variations of the parent DP problems. Understanding the connections helps in recognizing patterns and applying solutions effectively.</p>
+            
+            <table class="variations-table">
+                <thead>
+                    <tr>
+                        <th width="30%">Problem</th>
+                        <th width="45%">Description</th>
+                        <th width="25%">LeetCode</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="pattern-header">
+                        <td colspan="3">Fibonacci / Linear Recurrence Variations</td>
+                    </tr>
+                    <tr>
+                        <td class="problem-cell">Climbing Stairs</td>
+                        <td class="desc-cell">Number of ways to climb n stairs (1 or 2 steps)</td>
+                        <td><a href="https://leetcode.com/problems/climbing-stairs/" class="leetcode-link" target="_blank">#70</a></td>
+                    </tr>
+                    <tr>
+                        <td class="problem-cell">Min Cost Climbing Stairs</td>
+                        <td class="desc-cell">Cost attached to each stair</td>
+                        <td><a href="https://leetcode.com/problems/min-cost-climbing-stairs/" class="leetcode-link" target="_blank">#746</a></td>
+                    </tr>
+                    <tr>
+                        <td class="problem-cell">House Robber</td>
+                        <td class="desc-cell">Max sum without adjacent elements</td>
+                        <td><a href="https://leetcode.com/problems/house-robber/" class="leetcode-link" target="_blank">#198</a></td>
+                    </tr>
+                    <tr>
+                        <td class="problem-cell">House Robber II</td>
+                        <td class="desc-cell">Circular arrangement</td>
+                        <td><a href="https://leetcode.com/problems/house-robber-ii/" class="leetcode-link" target="_blank">#213</a></td>
+                    </tr>
+                    <tr>
+                        <td class="problem-cell">Decode Ways</td>
+                        <td class="desc-cell">Count valid string decodings</td>
+                        <td><a href="https://leetcode.com/problems/decode-ways/" class="leetcode-link" target="_blank">#91</a></td>
+                    </tr>
+                    
+                    <tr class="pattern-header">
+                        <td colspan="3">Knapsack / Subset / Coin Change Variations</td>
+                    </tr>
+                    <tr>
+                        <td class="problem-cell">Partition Equal Subset Sum</td>
+                        <td class="desc-cell">Check if array can be partitioned into two subsets with equal sum</td>
+                        <td><a href="https://leetcode.com/problems/partition-equal-subset-sum/" class="leetcode-link" target="_blank">#416</a></td>
+                    </tr>
+                    <tr>
+                        <td class="problem-cell">Target Sum</td>
+                        <td class="desc-cell">+/- to reach target</td>
+                        <td><a href="https://leetcode.com/problems/target-sum/" class="leetcode-link" target="_blank">#494</a></td>
+                    </tr>
+                    <tr>
+                        <td class="problem-cell">Last Stone Weight II</td>
+                        <td class="desc-cell">Partition difference minimization</td>
+                        <td><a href="https://leetcode.com/problems/last-stone-weight-ii/" class="leetcode-link" target="_blank">#1049</a></td>
+                    </tr>
+                    <tr>
+                        <td class="problem-cell">Coin Change</td>
+                        <td class="desc-cell">Minimum coins to reach amount</td>
+                        <td><a href="https://leetcode.com/problems/coin-change/" class="leetcode-link" target="_blank">#322</a></td>
+                    </tr>
+                    <tr>
+                        <td class="problem-cell">Coin Change II</td>
+                        <td class="desc-cell">Count combinations to form sum</td>
+                        <td><a href="https://leetcode.com/problems/coin-change-2/" class="leetcode-link" target="_blank">#518</a></td>
+                    </tr>
+                    
+                    <tr class="pattern-header">
+                        <td colspan="3">LCS / String Matching Variations</td>
+                    </tr>
+                    <tr>
+                        <td class="problem-cell">Edit Distance</td>
+                        <td class="desc-cell">Minimum operations to convert strings</td>
+                        <td><a href="https://leetcode.com/problems/edit-distance/" class="leetcode-link" target="_blank">#72</a></td>
+                    </tr>
+                    <tr>
+                        <td class="problem-cell">Delete Operation for Two Strings</td>
+                        <td class="desc-cell">Deletions to equalize strings</td>
+                        <td><a href="https://leetcode.com/problems/delete-operation-for-two-strings/" class="leetcode-link" target="_blank">#583</a></td>
+                    </tr>
+                    <tr>
+                        <td class="problem-cell">Minimum ASCII Delete Sum</td>
+                        <td class="desc-cell">Weighted variant</td>
+                        <td><a href="https://leetcode.com/problems/minimum-ascii-delete-sum-for-two-strings/" class="leetcode-link" target="_blank">#712</a></td>
+                    </tr>
+                    <tr>
+                        <td class="problem-cell">Longest Palindromic Subsequence</td>
+                        <td class="desc-cell">LCS of s and reverse(s)</td>
+                        <td><a href="https://leetcode.com/problems/longest-palindromic-subsequence/" class="leetcode-link" target="_blank">#516</a></td>
+                    </tr>
+                    
+                    <tr class="pattern-header">
+                        <td colspan="3">Grid / Matrix DP Variations</td>
+                    </tr>
+                    <tr>
+                        <td class="problem-cell">Unique Paths II</td>
+                        <td class="desc-cell">Grid with obstacles</td>
+                        <td><a href="https://leetcode.com/problems/unique-paths-ii/" class="leetcode-link" target="_blank">#63</a></td>
+                    </tr>
+                    <tr>
+                        <td class="problem-cell">Minimum Path Sum</td>
+                        <td class="desc-cell">Min cost path</td>
+                        <td><a href="https://leetcode.com/problems/minimum-path-sum/" class="leetcode-link" target="_blank">#64</a></td>
+                    </tr>
+                    <tr>
+                        <td class="problem-cell">Dungeon Game</td>
+                        <td class="desc-cell">Minimum health required</td>
+                        <td><a href="https://leetcode.com/problems/dungeon-game/" class="leetcode-link" target="_blank">#174</a></td>
+                    </tr>
+                    <tr>
+                        <td class="problem-cell">Minimum Falling Path Sum</td>
+                        <td class="desc-cell">From top to bottom</td>
+                        <td><a href="https://leetcode.com/problems/minimum-falling-path-sum/" class="leetcode-link" target="_blank">#931</a></td>
+                    </tr>
+                    
+                    <tr class="pattern-header">
+                        <td colspan="3">LIS / Subsequence Variations</td>
+                    </tr>
+                    <tr>
+                        <td class="problem-cell">Russian Doll Envelopes</td>
+                        <td class="desc-cell">2D LIS variant</td>
+                        <td><a href="https://leetcode.com/problems/russian-doll-envelopes/" class="leetcode-link" target="_blank">#354</a></td>
+                    </tr>
+                    <tr>
+                        <td class="problem-cell">Maximum Length of Pair Chain</td>
+                        <td class="desc-cell">Pair-based LIS</td>
+                        <td><a href="https://leetcode.com/problems/maximum-length-of-pair-chain/" class="leetcode-link" target="_blank">#646</a></td>
+                    </tr>
+                    <tr>
+                        <td class="problem-cell">Number of Longest Increasing Subsequences</td>
+                        <td class="desc-cell">Count LIS</td>
+                        <td><a href="https://leetcode.com/problems/number-of-longest-increasing-subsequence/" class="leetcode-link" target="_blank">#673</a></td>
+                    </tr>
+                    <tr>
+                        <td class="problem-cell">Longest Arithmetic Subsequence</td>
+                        <td class="desc-cell">Maintain difference state</td>
+                        <td><a href="https://leetcode.com/problems/longest-arithmetic-subsequence/" class="leetcode-link" target="_blank">#1027</a></td>
+                    </tr>
+                    
+                    <tr class="pattern-header">
+                        <td colspan="3">Partition DP / MCM Variations</td>
+                    </tr>
+                    <tr>
+                        <td class="problem-cell">Burst Balloons</td>
+                        <td class="desc-cell">Max coins by choosing partition order</td>
+                        <td><a href="https://leetcode.com/problems/burst-balloons/" class="leetcode-link" target="_blank">#312</a></td>
+                    </tr>
+                    <tr>
+                        <td class="problem-cell">Palindrome Partitioning II</td>
+                        <td class="desc-cell">Min cuts to form palindromes</td>
+                        <td><a href="https://leetcode.com/problems/palindrome-partitioning-ii/" class="leetcode-link" target="_blank">#132</a></td>
+                    </tr>
+                    <tr>
+                        <td class="problem-cell">Minimum Score Triangulation</td>
+                        <td class="desc-cell">Polygon DP</td>
+                        <td><a href="https://leetcode.com/problems/minimum-score-triangulation-of-polygon/" class="leetcode-link" target="_blank">#1039</a></td>
+                    </tr>
+                    <tr>
+                        <td class="problem-cell">Minimum Cost to Cut a Stick</td>
+                        <td class="desc-cell">Sort and partition cost</td>
+                        <td><a href="https://leetcode.com/problems/minimum-cost-to-cut-a-stick/" class="leetcode-link" target="_blank">#1547</a></td>
+                    </tr>
+                    
+                    <tr class="pattern-header">
+                        <td colspan="3">Tree DP Variations</td>
+                    </tr>
+                    <tr>
+                        <td class="problem-cell">Binary Tree Maximum Path Sum</td>
+                        <td class="desc-cell">Max path sum in binary tree</td>
+                        <td><a href="https://leetcode.com/problems/binary-tree-maximum-path-sum/" class="leetcode-link" target="_blank">#124</a></td>
+                    </tr>
+                    <tr>
+                        <td class="problem-cell">House Robber III</td>
+                        <td class="desc-cell">Tree version of house robber</td>
+                        <td><a href="https://leetcode.com/problems/house-robber-iii/" class="leetcode-link" target="_blank">#337</a></td>
+                    </tr>
+                    <tr>
+                        <td class="problem-cell">Longest Univalue Path</td>
+                        <td class="desc-cell">Same value path</td>
+                        <td><a href="https://leetcode.com/problems/longest-univalue-path/" class="leetcode-link" target="_blank">#687</a></td>
+                    </tr>
+                    
+                    <tr class="pattern-header">
+                        <td colspan="3">Bitmask DP Variations</td>
+                    </tr>
+                    <tr>
+                        <td class="problem-cell">Shortest Path Visiting All Nodes</td>
+                        <td class="desc-cell">TSP variant</td>
+                        <td><a href="https://leetcode.com/problems/shortest-path-visiting-all-nodes/" class="leetcode-link" target="_blank">#847</a></td>
+                    </tr>
+                    <tr>
+                        <td class="problem-cell">Partition to K Equal Sum Subsets</td>
+                        <td class="desc-cell">Subset masking</td>
+                        <td><a href="https://leetcode.com/problems/partition-to-k-equal-sum-subsets/" class="leetcode-link" target="_blank">#698</a></td>
+                    </tr>
+                    <tr>
+                        <td class="problem-cell">Matchsticks to Square</td>
+                        <td class="desc-cell">DP over subsets</td>
+                        <td><a href="https://leetcode.com/problems/matchsticks-to-square/" class="leetcode-link" target="_blank">#473</a></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="content-section" id="core-patterns">
+            <h1 class="section-title">Core DP Patterns</h1>
+            <p class="intro-box">Understanding these core patterns will help you recognize which DP approach to apply to new problems.</p>
+            
+            <div class="pattern-grid">
+                <div class="pattern-card">
+                    <div class="pattern-title">Linear Recurrence</div>
+                    <div class="pattern-desc">Each state depends on one or more previous states. Examples: Fibonacci, Climbing Stairs, House Robber.</div>
+                </div>
+                
+                <div class="pattern-card">
+                    <div class="pattern-title">Knapsack</div>
+                    <div class="pattern-desc">Select items under constraints to optimize value. Examples: 0/1 Knapsack, Coin Change, Subset Sum.</div>
+                </div>
+                
+                <div class="pattern-card">
+                    <div class="pattern-title">LCS</div>
+                    <div class="pattern-desc">Compare two sequences to find relationships. Examples: LCS, Edit Distance, String Matching.</div>
+                </div>
+                
+                <div class="pattern-card">
+                    <div class="pattern-title">Grid DP</div>
+                    <div class="pattern-desc">Navigate 2D grids to find optimal paths. Examples: Unique Paths, Minimum Path Sum.</div>
+                </div>
+                
+                <div class="pattern-card">
+                    <div class="pattern-title">LIS</div>
+                    <div class="pattern-desc">Find ordered subsequences in a sequence. Examples: LIS, Russian Doll Envelopes.</div>
+                </div>
+                
+                <div class="pattern-card">
+                    <div class="pattern-title">Partition DP</div>
+                    <div class="pattern-desc">Divide sequences optimally. Examples: MCM, Burst Balloons, Palindrome Partitioning.</div>
+                </div>
+                
+                <div class="pattern-card">
+                    <div class="pattern-title">Tree DP</div>
+                    <div class="pattern-desc">Compute results on tree structures. Examples: Diameter of Tree, Max Path Sum.</div>
+                </div>
+                
+                <div class="pattern-card">
+                    <div class="pattern-title">Bitmask DP</div>
+                    <div class="pattern-desc">Represent subsets using bitmasks. Examples: TSP, Partition Problems.</div>
+                </div>
+                
+                <div class="pattern-card">
+                    <div class="pattern-title">Digit DP</div>
+                    <div class="pattern-desc">Count numbers with digit constraints. Examples: Count Numbers with Unique Digits.</div>
+                </div>
+            </div>
+            
+            <div class="intro-box" style="margin-top: 30px;">
+                <h2>Summary of Core Patterns</h2>
+                <table style="width: 100%; border-collapse: collapse; margin-top: 15px;">
+                    <thead>
+                        <tr style="background-color: #f0f7ff;">
+                            <th style="padding: 10px; text-align: left; border-bottom: 1px solid #ddd;">Category</th>
+                            <th style="padding: 10px; text-align: left; border-bottom: 1px solid #ddd;">Parent Problem</th>
+                            <th style="padding: 10px; text-align: left; border-bottom: 1px solid #ddd;">Common Variations</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td style="padding: 10px; border-bottom: 1px solid #eee;">Linear Recurrence</td>
+                            <td style="padding: 10px; border-bottom: 1px solid #eee;">Fibonacci</td>
+                            <td style="padding: 10px; border-bottom: 1px solid #eee;">Climb Stairs, Robber, Decode Ways</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 10px; border-bottom: 1px solid #eee;">Knapsack</td>
+                            <td style="padding: 10px; border-bottom: 1px solid #eee;">0/1 Knapsack</td>
+                            <td style="padding: 10px; border-bottom: 1px solid #eee;">Coin Change, Subset Sum</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 10px; border-bottom: 1px solid #eee;">LCS</td>
+                            <td style="padding: 10px; border-bottom: 1px solid #eee;">LCS</td>
+                            <td style="padding: 10px; border-bottom: 1px solid #eee;">Edit Distance, Subsequence</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 10px; border-bottom: 1px solid #eee;">Grid</td>
+                            <td style="padding: 10px; border-bottom: 1px solid #eee;">Unique Paths</td>
+                            <td style="padding: 10px; border-bottom: 1px solid #eee;">Minimum Path Sum, Triangle</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 10px; border-bottom: 1px solid #eee;">LIS</td>
+                            <td style="padding: 10px; border-bottom: 1px solid #eee;">LIS</td>
+                            <td style="padding: 10px; border-bottom: 1px solid #eee;">Russian Dolls, Bitonic</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 10px; border-bottom: 1px solid #eee;">Partition</td>
+                            <td style="padding: 10px; border-bottom: 1px solid #eee;">MCM</td>
+                            <td style="padding: 10px; border-bottom: 1px solid #eee;">Burst Balloons, Palindrome Partition</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 10px; border-bottom: 1px solid #eee;">Tree</td>
+                            <td style="padding: 10px; border-bottom: 1px solid #eee;">Diameter</td>
+                            <td style="padding: 10px; border-bottom: 1px solid #eee;">Max Path, Robber III</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 10px; border-bottom: 1px solid #eee;">Bitmask</td>
+                            <td style="padding: 10px; border-bottom: 1px solid #eee;">TSP</td>
+                            <td style="padding: 10px; border-bottom: 1px solid #eee;">Equal Subsets, Connect Groups</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Toggle submenu
+            const dpConcept = document.getElementById('dp-concept');
+            const toggleIcon = dpConcept.querySelector('.toggle-icon');
+            const submenu = document.querySelector('.submenu');
+            
+            dpConcept.addEventListener('click', function() {
+                submenu.classList.toggle('show');
+                toggleIcon.classList.toggle('rotated');
+            });
+            
+            // Switch between content sections
+            const menuItems = document.querySelectorAll('.submenu-item');
+            const contentSections = document.querySelectorAll('.content-section');
+            
+            menuItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    // Remove active class from all menu items and content sections
+                    menuItems.forEach(i => i.classList.remove('active'));
+                    contentSections.forEach(section => section.classList.remove('active'));
+                    
+                    // Add active class to clicked menu item and corresponding content section
+                    this.classList.add('active');
+                    const targetId = this.getAttribute('data-target');
+                    document.getElementById(targetId).classList.add('active');
+                });
+            });
+        });
+    </script>
+</body>
+</html>
