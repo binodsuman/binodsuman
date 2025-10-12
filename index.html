@@ -491,40 +491,6 @@
             background: var(--primary-dark);
         }
 
-        /* Testimonial */
-        .testimonial {
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            color: white;
-            border-radius: var(--radius);
-            padding: 3rem;
-            text-align: center;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .testimonial::before {
-            content: '"';
-            position: absolute;
-            top: -30px;
-            left: 20px;
-            font-size: 10rem;
-            color: rgba(255, 255, 255, 0.1);
-            font-family: Georgia, serif;
-        }
-
-        .testimonial-text {
-            font-size: 1.5rem;
-            font-style: italic;
-            margin-bottom: 2rem;
-            position: relative;
-            z-index: 2;
-        }
-
-        .testimonial-author {
-            font-weight: 600;
-            font-size: 1.1rem;
-        }
-
         /* Testimonials Section Styles */
         .testimonials-container {
             display: flex;
@@ -543,9 +509,10 @@
             position: relative;
         }
 
+        /* FIXED Testimonial Card Styles */
         .testimonial-card {
             display: none;
-            padding: 3rem;
+            padding: 2rem;
             text-align: center;
             animation: fadeIn 0.8s ease-in-out;
         }
@@ -554,221 +521,349 @@
             display: block;
         }
 
-        .testimonial-image {
-            width: 120px;
-            height: 120px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 4px solid var(--primary);
-            margin: 0 auto 2rem;
-            box-shadow: var(--shadow-lg);
-        }
+        /* FIXED Testimonial Thumbnail Styles */
+      /* COMPLETELY FIXED Testimonials Section Styles */
+.testimonials-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 0;
+}
 
-        .testimonial-text {
-            font-size: 1.3rem;
-            line-height: 1.8;
-            color: var(--dark);
-            margin-bottom: 2rem;
-            font-style: italic;
-            position: relative;
-        }
+.testimonial-slider {
+    max-width: 1000px;
+    width: 100%;
+    background: white;
+    border-radius: 20px;
+    box-shadow: var(--shadow-lg);
+    overflow: hidden;
+    position: relative;
+}
 
-        .testimonial-text::before,
-        .testimonial-text::after {
-            content: '"';
-            font-size: 4rem;
-            color: var(--primary);
-            opacity: 0.3;
-            position: absolute;
-        }
+/* FIXED Testimonial Card Styles */
+.testimonial-card {
+    display: none !important;
+    padding: 2rem !important;
+    text-align: center;
+    animation: fadeIn 0.8s ease-in-out;
+}
 
-        .testimonial-text::before {
-            top: -20px;
-            left: -10px;
-        }
+.testimonial-card.active {
+    display: block !important;
+}
 
-        .testimonial-text::after {
-            bottom: -40px;
-            right: -10px;
-        }
+/* FIXED Testimonial Thumbnail Styles - COMPLETELY NEW */
+.testimonial-thumbnail {
+    position: relative !important;
+    width: 100% !important;
+    max-width: 280px !important;
+    height: 160px !important;
+    margin: 0 auto 1.25rem !important;
+    border-radius: 10px !important;
+    overflow: hidden !important;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1) !important;
+    cursor: pointer;
+    transition: var(--transition);
+    display: block !important;
+}
 
-        .testimonial-author {
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: var(--primary);
-            margin-bottom: 0.5rem;
-        }
+.testimonial-thumbnail:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15) !important;
+}
 
-        .testimonial-source {
-            color: var(--gray);
-            font-size: 0.9rem;
-        }
+.testimonial-thumbnail img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    transition: var(--transition);
+    display: block !important;
+}
 
-        /* Navigation Controls */
-        .testimonial-controls {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 2rem;
-            padding: 2rem;
-            background: var(--light);
-        }
+.testimonial-thumbnail:hover img {
+    transform: scale(1.02) !important;
+}
 
-        .control-btn {
-            background: var(--primary);
-            color: white;
-            border: none;
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: var(--transition);
-            font-size: 1.2rem;
-        }
+.testimonial-play-icon {
+    position: absolute !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    background: rgba(0, 0, 0, 0.8) !important;
+    width: 40px !important;
+    height: 40px !important;
+    border-radius: 50% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    color: white !important;
+    font-size: 1rem !important;
+    opacity: 0 !important;
+    transition: var(--transition) !important;
+}
 
-        .control-btn:hover {
-            background: var(--primary-dark);
-            transform: scale(1.1);
-        }
+.testimonial-thumbnail:hover .testimonial-play-icon {
+    opacity: 1 !important;
+}
 
-        .testimonial-dots {
-            display: flex;
-            gap: 0.5rem;
-        }
+/* FIXED Testimonial Text Styles */
+.testimonial-text {
+    font-size: 1.1rem !important;
+    line-height: 1.6 !important;
+    color: var(--dark) !important;
+    margin: 1rem 0 1.5rem !important;
+    font-style: italic !important;
+    position: relative !important;
+    padding: 0 1rem !important;
+}
 
-        .dot {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            background: var(--gray-light);
-            cursor: pointer;
-            transition: var(--transition);
-        }
+.testimonial-text::before,
+.testimonial-text::after {
+    content: '"' !important;
+    font-size: 3rem !important;
+    color: var(--primary) !important;
+    opacity: 0.2 !important;
+    position: absolute !important;
+}
 
-        .dot.active {
-            background: var(--primary);
-            transform: scale(1.2);
-        }
+.testimonial-text::before {
+    top: -15px !important;
+    left: -5px !important;
+}
 
-        .auto-play-toggle {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            color: var(--gray);
-            font-size: 0.9rem;
-            cursor: pointer;
-        }
+.testimonial-text::after {
+    bottom: -30px !important;
+    right: -5px !important;
+}
 
-        .toggle-switch {
-            width: 40px;
-            height: 20px;
-            background: var(--gray-light);
-            border-radius: 10px;
-            position: relative;
-            transition: var(--transition);
-        }
+/* FIXED Author Section */
+.testimonial-author-container {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 0.75rem !important;
+    margin-top: 1.5rem !important;
+}
 
-        .toggle-switch::before {
-            content: '';
-            position: absolute;
-            width: 16px;
-            height: 16px;
-            background: white;
-            border-radius: 50%;
-            top: 2px;
-            left: 2px;
-            transition: var(--transition);
-        }
+.testimonial-author-image {
+    width: 50px !important;
+    height: 50px !important;
+    border-radius: 50% !important;
+    object-fit: cover !important;
+    border: 2px solid var(--primary) !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+}
 
-        .auto-play-toggle.active .toggle-switch {
-            background: var(--primary);
-        }
+.testimonial-author-info {
+    text-align: left !important;
+}
 
-        .auto-play-toggle.active .toggle-switch::before {
-            transform: translateX(20px);
-        }
+.testimonial-author {
+    font-size: 1rem !important;
+    font-weight: 600 !important;
+    color: var(--primary) !important;
+    margin-bottom: 0.1rem !important;
+}
 
-        /* Stats Section */
-        .testimonial-stats {
-            background: white;
-            padding: 3rem 2rem;
-            text-align: center;
-            margin-top: 2rem;
-            border-radius: var(--radius);
-            box-shadow: var(--shadow);
-        }
+.testimonial-source {
+    color: var(--gray) !important;
+    font-size: 0.85rem !important;
+}
 
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 2rem;
-            max-width: 800px;
-            margin: 0 auto;
-        }
+/* Navigation Controls */
+.testimonial-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 2rem;
+    padding: 2rem;
+    background: var(--light);
+}
 
-        .stat-item {
-            text-align: center;
-        }
+.control-btn {
+    background: var(--primary);
+    color: white;
+    border: none;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: var(--transition);
+    font-size: 1.2rem;
+}
 
-        .stat-number {
-            font-size: 2.5rem;
-            font-weight: 700;
-            color: var(--primary);
-            margin-bottom: 0.5rem;
-        }
+.control-btn:hover {
+    background: var(--primary-dark);
+    transform: scale(1.1);
+}
 
-        .stat-label {
-            color: var(--gray);
-            font-size: 0.9rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
+.testimonial-dots {
+    display: flex;
+    gap: 0.5rem;
+}
 
-        /* Testimonials Animation */
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
+.dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--gray-light);
+    cursor: pointer;
+    transition: var(--transition);
+}
 
-        /* Responsive Design for Testimonials */
-        @media (max-width: 768px) {
-            .testimonial-card {
-                padding: 2rem 1.5rem;
-            }
+.dot.active {
+    background: var(--primary);
+    transform: scale(1.2);
+}
 
-            .testimonial-text {
-                font-size: 1.1rem;
-            }
+.auto-play-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--gray);
+    font-size: 0.9rem;
+    cursor: pointer;
+}
 
-            .testimonial-controls {
-                flex-direction: column;
-                gap: 1rem;
-            }
+.toggle-switch {
+    width: 40px;
+    height: 20px;
+    background: var(--gray-light);
+    border-radius: 10px;
+    position: relative;
+    transition: var(--transition);
+}
 
-            .stats-grid {
-                grid-template-columns: 1fr;
-            }
+.toggle-switch::before {
+    content: '';
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    background: white;
+    border-radius: 50%;
+    top: 2px;
+    left: 2px;
+    transition: var(--transition);
+}
 
-            .testimonial-image {
-                width: 80px;
-                height: 80px;
-            }
-        }
+.auto-play-toggle.active .toggle-switch {
+    background: var(--primary);
+}
 
-        @media (max-width: 480px) {
-            .testimonial-text {
-                font-size: 1rem;
-            }
-        }
+.auto-play-toggle.active .toggle-switch::before {
+    transform: translateX(20px);
+}
+
+/* Stats Section */
+.testimonial-stats {
+    background: white;
+    padding: 3rem 2rem;
+    text-align: center;
+    margin-top: 2rem;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 2rem;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.stat-item {
+    text-align: center;
+}
+
+.stat-number {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--primary);
+    margin-bottom: 0.5rem;
+}
+
+.stat-label {
+    color: var(--gray);
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* Testimonials Animation */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* FIXED Responsive Design for Testimonials */
+@media (max-width: 768px) {
+    .testimonial-card {
+        padding: 1.5rem !important;
+    }
+
+    .testimonial-thumbnail {
+        height: 140px !important;
+        max-width: 240px !important;
+        margin-bottom: 1rem !important;
+    }
+
+    .testimonial-text {
+        font-size: 1rem !important;
+        padding: 0 0.5rem !important;
+    }
+
+    .testimonial-author-container {
+        gap: 0.5rem !important;
+    }
+
+    .testimonial-author-image {
+        width: 45px !important;
+        height: 45px !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .testimonial-card {
+        padding: 1.25rem !important;
+    }
+
+    .testimonial-thumbnail {
+        height: 120px !important;
+        max-width: 200px !important;
+        margin-bottom: 0.75rem !important;
+    }
+
+    .testimonial-text {
+        font-size: 0.95rem !important;
+        margin: 0.75rem 0 1.25rem !important;
+    }
+
+    .testimonial-play-icon {
+        width: 35px !important;
+        height: 35px !important;
+        font-size: 0.9rem !important;
+    }
+
+    .testimonial-author-container {
+        flex-direction: column !important;
+        text-align: center !important;
+        gap: 0.5rem !important;
+    }
+
+    .testimonial-author-info {
+        text-align: center !important;
+    }
+}
 
         /* Footer */
         footer {
@@ -950,14 +1045,6 @@
 
             .section-title {
                 font-size: 1.8rem;
-            }
-
-            .testimonial {
-                padding: 2rem 1.5rem;
-            }
-
-            .testimonial-text {
-                font-size: 1.2rem;
             }
         }
     </style>
@@ -1627,6 +1714,15 @@
             }
         });
 
+        // Fixed back-to-top functionality
+        backToTop.addEventListener('click', (e) => {
+            e.preventDefault();
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+
         // Smooth scrolling for anchor links
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function (e) {
@@ -1645,178 +1741,197 @@
             });
         });
 
-        // Testimonials Data and Slider
-const testimonials = [
-    {
-        image: "image/testimonial_Images/comment1.jpg",
-        text: "Your explanation of dynamic programming made complex concepts so simple! Finally understand how to approach these problems.",
-        author: "Rajesh Kumar",
-        source: "YouTube Comment"
-    },
-    {
-        image: "image/testimonial_Images/comment2.jpg",
-        text: "The way you break down system design concepts is phenomenal. Your videos helped me crack my FAANG interview!",
-        author: "Priya Sharma",
-        source: "YouTube Comment"
-    },
-    {
-        image: "image/testimonial_Images/comment3.jpg",
-        text: "Best DSA tutorials on YouTube! Your teaching style is engaging and the examples are perfectly chosen.",
-        author: "Amit Patel",
-        source: "YouTube Comment"
-    },
-    {
-        image: "image/testimonial_Images/comment4.jpg",
-        text: "Your microservices series transformed my understanding of distributed systems. Thank you for the quality content!",
-        author: "Neha Gupta",
-        source: "YouTube Comment"
-    },
-    {
-        image: "image/testimonial_Images/comment5.jpg",
-        text: "The real-world examples you provide make all the difference. Finally someone who explains why we need these concepts!",
-        author: "Sanjay Verma",
-        source: "YouTube Comment"
-    }
-    // Add more testimonials as needed...
-];
-
-// Initialize Testimonials when page loads
-document.addEventListener('DOMContentLoaded', function() {
-    initializeTestimonials();
-});
-
-function initializeTestimonials() {
-    const cardsContainer = document.getElementById('testimonial-cards');
-    const dotsContainer = document.getElementById('testimonial-dots');
-
-    // Create testimonial cards
-    testimonials.forEach((testimonial, index) => {
-        const card = document.createElement('div');
-        card.className = `testimonial-card ${index === 0 ? 'active' : ''}`;
-        card.innerHTML = `
-            <img src="${testimonial.image}" alt="${testimonial.author}" class="testimonial-image" onerror="this.src='image/default-avatar.jpg'">
-            <div class="testimonial-text">${testimonial.text}</div>
-            <div class="testimonial-author">${testimonial.author}</div>
-            <div class="testimonial-source">${testimonial.source}</div>
-        `;
-        cardsContainer.appendChild(card);
-
-        // Create dots
-        const dot = document.createElement('div');
-        dot.className = `dot ${index === 0 ? 'active' : ''}`;
-        dot.addEventListener('click', () => goToSlide(index));
-        dotsContainer.appendChild(dot);
-    });
-
-    // Add event listeners
-    document.querySelector('.prev-btn').addEventListener('click', prevSlide);
-    document.querySelector('.next-btn').addEventListener('click', nextSlide);
-    
-    // Auto-play toggle
-    const autoPlayToggle = document.getElementById('auto-play-toggle');
-    autoPlayToggle.addEventListener('click', toggleAutoPlay);
-
-    // Start auto-play
-    startAutoPlay();
-}
-
-let currentTestimonialIndex = 0;
-let autoPlayInterval = null;
-let autoPlayEnabled = true;
-const autoPlayDelay = 5000; // 5 seconds
-
-function goToSlide(index) {
-    currentTestimonialIndex = index;
-    updateTestimonialSlider();
-}
-
-function nextSlide() {
-    currentTestimonialIndex = (currentTestimonialIndex + 1) % testimonials.length;
-    updateTestimonialSlider();
-}
-
-function prevSlide() {
-    currentTestimonialIndex = (currentTestimonialIndex - 1 + testimonials.length) % testimonials.length;
-    updateTestimonialSlider();
-}
-
-function updateTestimonialSlider() {
-    // Update cards
-    document.querySelectorAll('.testimonial-card').forEach((card, index) => {
-        card.classList.toggle('active', index === currentTestimonialIndex);
-    });
-
-    // Update dots
-    document.querySelectorAll('.dot').forEach((dot, index) => {
-        dot.classList.toggle('active', index === currentTestimonialIndex);
-    });
-}
-
-function startAutoPlay() {
-    if (autoPlayEnabled) {
-        autoPlayInterval = setInterval(() => {
-            nextSlide();
-        }, autoPlayDelay);
-    }
-}
-
-function stopAutoPlay() {
-    if (autoPlayInterval) {
-        clearInterval(autoPlayInterval);
-        autoPlayInterval = null;
-    }
-}
-
-function toggleAutoPlay() {
-    autoPlayEnabled = !autoPlayEnabled;
-    const toggle = document.getElementById('auto-play-toggle');
-    toggle.classList.toggle('active', autoPlayEnabled);
-
-    if (autoPlayEnabled) {
-        startAutoPlay();
-    } else {
-        stopAutoPlay();
-    }
-}
-
-// Stats animation
-function animateStats() {
-    const stats = {
-        'total-videos':258,
-        'total-testimonials': 2000,
-        'happy-students': 32000,
-        'video-views': 3856953,
-        'countries': 50,
-        'total-playlist':30
-    };
-
-    Object.keys(stats).forEach(statId => {
-        const element = document.getElementById(statId);
-        const target = stats[statId];
-        let current = 0;
-        const increment = target / 50;
-        const timer = setInterval(() => {
-            current += increment;
-            if (current >= target) {
-                current = target;
-                clearInterval(timer);
+        // FIXED Testimonials Data and Slider
+        const testimonials = [
+            {
+                thumbnail: "image/vector_db.png",
+                videoUrl: "https://youtu.be/612Y0jXmWKk",
+                text: "Your explanation of dynamic programming made complex concepts so simple! Finally understand how to approach these problems.",
+                author: "Rajesh Kumar",
+                authorImage: "image/testimonial_Images/comment1.jpg",
+                source: "YouTube Comment"
+            },
+            {
+                thumbnail: "image/chat_system.png", // FIXED path
+                videoUrl: "https://youtu.be/yE3O28E38_E",
+                text: "The way you break down system design concepts is phenomenal. Your videos helped me crack my FAANG interview!",
+                author: "Priya Sharma",
+                authorImage: "image/testimonial_Images/comment2.jpg",
+                source: "YouTube Comment"
+            },
+            {
+                thumbnail: "image/house_robber.png",
+                videoUrl: "https://youtu.be/qcIQKYGvdgk",
+                text: "Best DSA tutorials on YouTube! Your teaching style is engaging and the examples are perfectly chosen.",
+                author: "Amit Patel",
+                authorImage: "image/testimonial_Images/comment3.jpg",
+                source: "YouTube Comment"
+            },
+            {
+                thumbnail: "image/binod_suman_NLP_word2vec.png",
+                videoUrl: "https://youtu.be/9Ppg8NLk4NE",
+                text: "Your microservices series transformed my understanding of distributed systems. Thank you for the quality content!",
+                author: "Neha Gupta",
+                authorImage: "image/testimonial_Images/comment4.jpg",
+                source: "YouTube Comment"
+            },
+            {
+                thumbnail: "image/binod_suman_scheduler.jpg",
+                videoUrl: "https://youtu.be/cTMomjk1iRc",
+                text: "The real-world examples you provide make all the difference. Finally someone who explains why we need these concepts!",
+                author: "Sanjay Verma",
+                authorImage: "image/testimonial_Images/comment5.jpg",
+                source: "YouTube Comment"
             }
-            element.textContent = Math.floor(current).toLocaleString() + (statId === 'total-testimonials' ? '+' : '+');
-        }, 50);
-    });
-}
+        ];
 
-// Start stats animation when testimonials section is in view
-const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-        if (entry.isIntersecting) {
-            animateStats();
-            observer.unobserve(entry.target);
+        // Initialize Testimonials when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeTestimonials();
+        });
+
+        function initializeTestimonials() {
+            const cardsContainer = document.getElementById('testimonial-cards');
+            const dotsContainer = document.getElementById('testimonial-dots');
+
+            // Create testimonial cards
+            testimonials.forEach((testimonial, index) => {
+                const card = document.createElement('div');
+                card.className = `testimonial-card ${index === 0 ? 'active' : ''}`;
+                card.innerHTML = `
+                    <a href="${testimonial.videoUrl}" target="_blank" class="testimonial-thumbnail">
+                        <img src="${testimonial.thumbnail}" alt="Video Thumbnail">
+                        <div class="testimonial-play-icon">
+                            <i class="fas fa-play"></i>
+                        </div>
+                    </a>
+                    <div class="testimonial-text">${testimonial.text}</div>
+                    <div class="testimonial-author-container">
+                        <img src="${testimonial.authorImage}" alt="${testimonial.author}" class="testimonial-author-image" onerror="this.src='image/default-avatar.jpg'">
+                        <div class="testimonial-author-info">
+                            <div class="testimonial-author">${testimonial.author}</div>
+                            <div class="testimonial-source">${testimonial.source}</div>
+                        </div>
+                    </div>
+                `;
+                cardsContainer.appendChild(card);
+
+                // Create dots
+                const dot = document.createElement('div');
+                dot.className = `dot ${index === 0 ? 'active' : ''}`;
+                dot.addEventListener('click', () => goToSlide(index));
+                dotsContainer.appendChild(dot);
+            });
+
+            // Add event listeners
+            document.querySelector('.prev-btn').addEventListener('click', prevSlide);
+            document.querySelector('.next-btn').addEventListener('click', nextSlide);
+            
+            // Auto-play toggle
+            const autoPlayToggle = document.getElementById('auto-play-toggle');
+            autoPlayToggle.addEventListener('click', toggleAutoPlay);
+
+            // Start auto-play
+            startAutoPlay();
         }
-    });
-});
 
-observer.observe(document.getElementById('testimonials'));
+        let currentTestimonialIndex = 0;
+        let autoPlayInterval = null;
+        let autoPlayEnabled = true;
+        const autoPlayDelay = 5000; // 5 seconds
+
+        function goToSlide(index) {
+            currentTestimonialIndex = index;
+            updateTestimonialSlider();
+        }
+
+        function nextSlide() {
+            currentTestimonialIndex = (currentTestimonialIndex + 1) % testimonials.length;
+            updateTestimonialSlider();
+        }
+
+        function prevSlide() {
+            currentTestimonialIndex = (currentTestimonialIndex - 1 + testimonials.length) % testimonials.length;
+            updateTestimonialSlider();
+        }
+
+        function updateTestimonialSlider() {
+            // Update cards
+            document.querySelectorAll('.testimonial-card').forEach((card, index) => {
+                card.classList.toggle('active', index === currentTestimonialIndex);
+            });
+
+            // Update dots
+            document.querySelectorAll('.dot').forEach((dot, index) => {
+                dot.classList.toggle('active', index === currentTestimonialIndex);
+            });
+        }
+
+        function startAutoPlay() {
+            if (autoPlayEnabled) {
+                autoPlayInterval = setInterval(() => {
+                    nextSlide();
+                }, autoPlayDelay);
+            }
+        }
+
+        function stopAutoPlay() {
+            if (autoPlayInterval) {
+                clearInterval(autoPlayInterval);
+                autoPlayInterval = null;
+            }
+        }
+
+        function toggleAutoPlay() {
+            autoPlayEnabled = !autoPlayEnabled;
+            const toggle = document.getElementById('auto-play-toggle');
+            toggle.classList.toggle('active', autoPlayEnabled);
+
+            if (autoPlayEnabled) {
+                startAutoPlay();
+            } else {
+                stopAutoPlay();
+            }
+        }
+
+        // Stats animation
+        function animateStats() {
+            const stats = {
+                'total-videos':258,
+                'total-testimonials': 2000,
+                'happy-students': 32000,
+                'video-views': 3856953,
+                'countries': 50,
+                'total-playlist':30
+            };
+
+            Object.keys(stats).forEach(statId => {
+                const element = document.getElementById(statId);
+                const target = stats[statId];
+                let current = 0;
+                const increment = target / 50;
+                const timer = setInterval(() => {
+                    current += increment;
+                    if (current >= target) {
+                        current = target;
+                        clearInterval(timer);
+                    }
+                    element.textContent = Math.floor(current).toLocaleString() + (statId === 'total-testimonials' ? '+' : '+');
+                }, 50);
+            });
+        }
+
+        // Start stats animation when testimonials section is in view
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    animateStats();
+                    observer.unobserve(entry.target);
+                }
+            });
+        });
+
+        observer.observe(document.getElementById('testimonials'));
 
         // Start typewriter effect
         typeWriter();
