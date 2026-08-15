@@ -20,29 +20,63 @@
         <p class="cs-subtitle">Chat Completions, responses API, tools, embeddings, and billing gotchas.</p>
     </header>
     <div class="cs-interview-tip"><strong>Interview tip</strong> Know message roles (system/user/assistant), token limits, structured outputs, and function calling flow.</div>
+    <nav class="cs-toc" aria-label="On this page">
+    <div class="cs-toc-title">On this page</div>
+    <ol><li><a href="#cs-section-0">① What you must know (30 sec)</a></li><li><a href="#cs-section-1">② How it works</a></li><li><a href="#cs-section-2">③ Step-by-step (hands-on)</a></li><li><a href="#cs-section-3">④ Code / config patterns</a></li><li><a href="#cs-section-4">⑤ Production & pitfalls</a></li><li><a href="#cs-section-5">⑥ Interview / on-the-job Q&A</a></li><li><a href="#cs-section-6">⑦ Tools & ecosystem</a></li><li><a href="#cs-section-7">⑧ Revision checklist</a></li></ol>
+  </nav>
     
-    <div class="cs-paper">
-        <h2 class="cs-section-title">API surfaces</h2>
-        <div class="cs-note"><ul>
-        <li><strong>Chat / Responses</strong> — conversational apps</li>
-        <li><strong>Embeddings</strong> — text-embedding-3-small/large</li>
-        <li><strong>Images / Audio</strong> — separate endpoints</li>
-        <li><strong>Batch API</strong> — 50% cost, 24h window</li>
-        </ul></div>
+    <div class="cs-paper" id="cs-section-0">
+        <h2 class="cs-section-title">① What you must know (30 sec)</h2>
+        <div class="cs-note">The <strong>OpenAI API</strong> provides programmatic access to GPT models via <strong>Chat Completions</strong> (and newer <strong>Responses API</strong>), plus <strong>Embeddings</strong>, <strong>Images</strong>, <strong>Audio</strong>, and <strong>Batch</strong> endpoints. Core concepts: <strong>message roles</strong> (system, user, assistant, tool), <strong>token limits</strong>, <strong>function/tool calling</strong>, and <strong>structured outputs</strong> for reliable JSON.</div><div class="cs-note"><strong>Analogy:</strong> The API is a vending machine for intelligence — you insert tokens (paid), select the model SKU, and get formatted output if you specify the slot correctly.</div>
     </div>
-    <div class="cs-paper">
-        <h2 class="cs-section-title">Function calling</h2>
-        <div class="cs-flow"><span class="cs-box">User</span><span class="cs-arrow">→</span>
-        <span class="cs-box purple">Model</span><span class="cs-arrow">→</span>
-        <span class="cs-box green">tool_call JSON</span><span class="cs-arrow">→</span>
-        <span class="cs-box orange">Your function</span><span class="cs-arrow">→</span>
-        <span class="cs-box">Final reply</span></div>
+    <div class="cs-paper" id="cs-section-1">
+        <h2 class="cs-section-title">② How it works</h2>
+        <div class="cs-diagram"><div class="cs-diagram-title">Function calling flow</div><div class="cs-flow"><span class="cs-box gray">User message</span><span class="cs-arrow">→</span><span class="cs-box purple">Model</span><span class="cs-arrow">→</span><span class="cs-box green">tool_calls JSON</span><span class="cs-arrow">→</span><span class="cs-box orange">Your function</span><span class="cs-arrow">→</span><span class="cs-box">Tool result → final reply</span></div></div><div class="cs-layer-diagram"><div class="cs-layer l1">Authentication — Bearer API key from platform.openai.com</div><div class="cs-layer l2">Chat Completions — POST /v1/chat/completions with model + messages</div><div class="cs-layer l3">Streaming — stream: true yields SSE token deltas for UX</div><div class="cs-layer l4">Tools — pass tools[] schema; model may return tool_calls to execute</div><div class="cs-layer l1">Embeddings — separate endpoint for vector generation; Batch API for async 50% off</div></div><div class="cs-note">gpt-4o and gpt-4o-mini are default choices in 2025 — verify current model IDs in OpenAI docs before hardcoding.</div>
+    </div>
+    <div class="cs-paper" id="cs-section-2">
+        <h2 class="cs-section-title">③ Step-by-step (hands-on)</h2>
+        <div class="cs-roadmap"><div class="cs-roadmap-step"><div><h4>Step 1 — Get API key and set env</h4><p>export OPENAI_API_KEY=sk-... — use secrets manager in production. Set usage limits and alerts on dashboard.</p></div></div><div class="cs-roadmap-step"><div><h4>Step 2 — First chat completion</h4><p>messages=[{role:"system",...},{role:"user",...}]. Parse choices[0].message.content.</p></div></div><div class="cs-roadmap-step"><div><h4>Step 3 — Add streaming</h4><p>stream=True; iterate chunks for choices[0].delta.content. Handle [DONE] and connection drops.</p></div></div><div class="cs-roadmap-step"><div><h4>Step 4 — Implement tool calling</h4><p>Define tools array; if message.tool_calls, run functions, append role:"tool" messages, call API again.</p></div></div><div class="cs-roadmap-step"><div><h4>Step 5 — Structured outputs</h4><p>Use response_format json_schema for guaranteed schema compliance on supported models.</p></div></div><div class="cs-roadmap-step"><div><h4>Step 6 — Monitor usage</h4><p>Log response.usage.prompt_tokens and completion_tokens. Aggregate daily cost per feature.</p></div></div></div>
+    </div>
+    <div class="cs-paper" id="cs-section-3">
+        <h2 class="cs-section-title">④ Code / config patterns</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Endpoint</th><th>Use case</th><th>Cost note</th></tr><tr><td>Chat Completions</td><td>Interactive chat, agents</td><td>Per input + output token</td></tr><tr><td>Embeddings</td><td>RAG indexing</td><td>Cheaper per token than chat</td></tr><tr><td>Batch API</td><td>Offline eval, bulk jobs</td><td>~50% discount, 24h window</td></tr><tr><td>Images / Audio</td><td>Multimodal products</td><td>Separate pricing table</td></tr><tr><td>Fine-tuning</td><td>Custom model weights</td><td>Training + inference premium</td></tr></table></div><div class="cs-code-block"><pre>from openai import OpenAI
+client = OpenAI()
+response = client.chat.completions.create(
+    model="gpt-4o-mini",
+    messages=[
+        {"role": "system", "content": "You are helpful."},
+        {"role": "user", "content": user_input}
+    ],
+    tools=TOOLS,  # optional
+    response_format={"type": "json_schema", "json_schema": SCHEMA},
+    max_tokens=1024,
+    temperature=0.2
+)
+text = response.choices[0].message.content
+usage = response.usage</pre></div>
+    </div>
+    <div class="cs-paper" id="cs-section-4">
+        <h2 class="cs-section-title">⑤ Production & pitfalls</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Pitfall</th><th>Why it hurts</th><th>Fix</th></tr><tr><td>Exposed API key</td><td>Account drained by bots</td><td>Backend only; rotate key if leaked</td></tr><tr><td>No max_tokens cap</td><td>Runaway completion cost</td><td>Set max_tokens per request type</td></tr><tr><td>Ignoring 429 errors</td><td>Cascading failures</td><td>Exponential backoff; request queue</td></tr><tr><td>Wrong message role order</td><td>Confused multi-turn context</td><td>Alternate user/assistant; tool after assistant tool_calls</td></tr><tr><td>Parsing JSON from free text</td><td>Fragile pipelines</td><td>Use structured outputs / json_schema mode</td></tr><tr><td>Not counting tokens pre-call</td><td>Context overflow errors</td><td>tiktoken estimate; trim or summarize history</td></tr></table></div><div class="cs-note"><strong>Production tips:</strong><ul><li>Organization-level API keys per environment</li><li>Idempotency keys for payment-critical flows if supported</li><li>Fallback model (4o-mini) when flagship model overloaded</li><li>Redact PII before sending to API</li></ul></div>
+    </div>
+    <div class="cs-paper" id="cs-section-5">
+        <h2 class="cs-section-title">⑥ Interview / on-the-job Q&A</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Question</th><th>Answer</th></tr><tr><td>Message roles?</td><td>system (instructions), user, assistant (model), tool (function results).</td></tr><tr><td>What is max_tokens?</td><td>Cap on tokens the model generates in the response — controls cost and length.</td></tr><tr><td>Function calling flow?</td><td>Model returns tool_calls → you execute → send tool message → model final answer.</td></tr><tr><td>Batch API benefit?</td><td>~50% cheaper for non-urgent jobs completed within 24 hours.</td></tr><tr><td>Structured outputs?</td><td>JSON schema enforcement so output always matches your schema.</td></tr><tr><td>How estimate cost?</td><td>prompt_tokens + completion_tokens × price per 1M tokens for model tier.</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-6">
+        <h2 class="cs-section-title">⑦ Tools & ecosystem</h2>
+        <div class="cs-note"><ul><li><strong>SDK:</strong> openai Python/Node official library</li><li><strong>Token counting:</strong> tiktoken</li><li><strong>Proxies:</strong> LiteLLM, Portkey</li><li><strong>Dashboard:</strong> platform.openai.com usage & limits</li></ul></div><div class="cs-tags"><span class="cs-tag">openai</span><span class="cs-tag">api</span><span class="cs-tag">function-calling</span><span class="cs-tag">tokens</span><span class="cs-tag">structured-output</span></div>
+    </div>
+    <div class="cs-paper" id="cs-section-7">
+        <h2 class="cs-section-title">⑧ Revision checklist</h2>
+        <ul class="cs-checklist"><li>API key in env var, not source code</li><li>Usage limits and billing alerts set</li><li>max_tokens configured per endpoint</li><li>Streaming implemented for user-facing chat</li><li>429/5xx retry with backoff</li><li>Token usage logged per request</li><li>Structured outputs for JSON pipelines</li><li>Tool calling loop tested end-to-end</li><li>Model IDs verified against current docs</li></ul>
     </div>
     <div class="cs-related"><h3>More in this category</h3><div class="cs-related-links"><a href="/cheat-sheets/ai/">All AI cheat sheets</a><a href="/cheat-sheets/ai/rag">RAG</a><a href="/cheat-sheets/ai/agents-intro">What is an Agent?</a></div></div>
 
 </div>
 </main>
 <script src="/js/cheat-sheet-videos.js"></script>
+<script src="/js/cheat-sheet-prompts.js"></script>
 <script src="/js/cheat-sheet.js"></script>
 <script src="/js/site-nav.js"></script>
 </body>

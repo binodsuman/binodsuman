@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Design Twitter Timeline | Binod Suman Cheat Sheet</title>
-    <meta name="description" content="Home timeline, tweets, retweets, trending — hybrid fan-out and search.">
+    <meta name="description" content="Home timeline, tweets, retweets, search, and trending — hybrid fan-out with Snowflake IDs and real-time search.">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Kalam:wght@400;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/css/site-nav.css">
@@ -17,30 +17,60 @@
     <header class="cs-hero">
         <span class="cs-category-badge system-design">System Design</span>
         <h1 class="cs-title">Design Twitter Timeline</h1>
-        <p class="cs-subtitle">Home timeline, tweets, retweets, trending — hybrid fan-out and search.</p>
+        <p class="cs-subtitle">Home timeline, tweets, retweets, search, and trending — hybrid fan-out with Snowflake IDs and real-time search.</p>
     </header>
-    <div class="cs-interview-tip"><strong>Interview tip</strong> Same fan-out hybrid as news feed. Add tweet ID as snowflake, search index for @mentions and hashtags.</div>
+    <div class="cs-interview-tip"><strong>Interview tip</strong> Same fan-out hybrid as news feed. Add tweet ID as Snowflake, separate search index for @mentions and hashtags, and retweet deduplication in timeline.</div>
+    <nav class="cs-toc" aria-label="On this page">
+    <div class="cs-toc-title">On this page</div>
+    <ol><li><a href="#cs-section-0">① Clarify requirements</a></li><li><a href="#cs-section-1">② Back-of-the-envelope scale</a></li><li><a href="#cs-section-2">③ High-level architecture</a></li><li><a href="#cs-section-3">④ API & interfaces</a></li><li><a href="#cs-section-4">⑤ Data model & storage</a></li><li><a href="#cs-section-5">⑥ Deep dive — core components</a></li><li><a href="#cs-section-6">⑦ Trade-offs & alternatives</a></li><li><a href="#cs-section-7">⑧ 45-minute interview script</a></li><li><a href="#cs-section-8">⑨ Likely follow-up questions</a></li><li><a href="#cs-section-9">⑩ Revision checklist</a></li></ol>
+  </nav>
     
-    <div class="cs-paper">
-        <h2 class="cs-section-title">Entities</h2>
-        <div class="cs-note">User, Tweet, Follow graph, Timeline cache, Social graph service, Search index (Elasticsearch).</div>
+    <div class="cs-paper" id="cs-section-0">
+        <h2 class="cs-section-title">① Clarify requirements</h2>
+        <div class="cs-note"><strong>Functional</strong><ul><li>Post tweet (text, optional media, reply_to tweet_id)</li><li>Retweet and quote-tweet</li><li>Home timeline: tweets from followed users, ranked by recency + engagement</li><li>User profile timeline (all tweets by user)</li><li>Search tweets by keyword, hashtag, @mention</li><li>Trending topics (top hashtags by velocity in last hour)</li><li>Like, reply counts on tweet cards</li></ul><strong>Non-functional</strong><ul><li>Timeline load &lt; 2s p99</li><li>Tweet post acknowledged &lt; 500ms</li><li>Search results &lt; 500ms for recent tweets</li><li>500M tweets/day write throughput</li><li>Durable — tweets never lost after ack</li></ul></div><div class="cs-note"><strong>Out of scope (say in interview)</strong><ul><li>Direct messages (separate system)</li><li>Ads and promoted tweets</li><li>Spaces / live audio</li><li>Algorithmic "For You" feed ML (mention only)</li></ul></div>
     </div>
-    <div class="cs-paper">
-        <h2 class="cs-section-title">Tweet write path</h2>
-        <div class="cs-flow"><span class="cs-box">Post tweet</span><span class="cs-arrow">→</span>
-        <span class="cs-box purple">Tweet DB</span><span class="cs-arrow">→</span>
-        <span class="cs-box green">Fan-out workers</span><span class="cs-arrow">→</span>
-        <span class="cs-box orange">Follower timeline caches</span></div>
+    <div class="cs-paper" id="cs-section-1">
+        <h2 class="cs-section-title">② Back-of-the-envelope scale</h2>
+        <div class="cs-note"><strong>Assumptions</strong><ul><li>500M tweets/day → ~5.8K tweets/sec avg, ~30K/sec peak</li><li>Avg 200 followers → 5.8K × 200 = 1.16M timeline writes/sec (push fan-out)</li><li>Timeline reads: 400M MAU × 10 sessions/day × 3 timeline loads = 12B/day → ~140K/sec</li><li>Search index: 500M new docs/day; index size ~500GB/year compressed</li><li>Trending: aggregate 50M unique hashtags/hour from stream</li><li>Snowflake IDs: 64-bit, time-sortable, 4096 IDs/ms per machine</li></ul></div><div class="cs-note">Users with &gt; 1M followers skip push fan-out (pull at read). Timeline cache stores tweet IDs in Redis; hydrate tweet bodies from tweet store on read. Retweets stored as lightweight reference, not full copy.</div>
     </div>
-    <div class="cs-paper">
-        <h2 class="cs-section-title">Scale notes</h2>
-        <div class="cs-note">Celebrity problem → don't fan-out to millions; merge on read. Rate limit tweets. CDN for media.</div>
+    <div class="cs-paper" id="cs-section-2">
+        <h2 class="cs-section-title">③ High-level architecture</h2>
+        <div class="cs-diagram"><div class="cs-diagram-title">Twitter Architecture</div><div class="cs-arch-grid"><div class="cs-arch-row"><div class="cs-arch-cell gray">Clients</div></div><div class="cs-arch-row"><div class="cs-arch-cell ">API Layer</div></div><div class="cs-arch-row"><div class="cs-arch-cell green">Tweet Service</div><div class="cs-arch-cell green">Timeline Service</div><div class="cs-arch-cell purple">Search Service (Elasticsearch)</div><div class="cs-arch-cell orange">Graph Service</div></div><div class="cs-arch-row"><div class="cs-arch-cell orange">Fan-out Workers</div><div class="cs-arch-cell purple">Trending Aggregator (Flink)</div></div><div class="cs-arch-row"><div class="cs-arch-cell green">Tweet Store (MySQL/Cassandra)</div><div class="cs-arch-cell orange">Timeline Cache (Redis)</div><div class="cs-arch-cell gray">Media CDN</div></div></div></div><div class="cs-flow"><span class="cs-box gray">Post tweet</span><span class="cs-arrow">→</span><span class="cs-box">Snowflake ID</span><span class="cs-arrow">→</span><span class="cs-box purple">Store + index</span><span class="cs-arrow">→</span><span class="cs-box green">Fan-out timelines</span></div><div class="cs-note">Tweet service owns tweet CRUD. Timeline service owns fan-out and read merge. Search is async index via Kafka → Elasticsearch. Graph service stores follow edges and follower counts for celebrity detection.</div>
+    </div>
+    <div class="cs-paper" id="cs-section-3">
+        <h2 class="cs-section-title">④ API & interfaces</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Endpoint / flow</th><th>Purpose</th><th>Notes</th></tr><tr><td>POST /v1/tweets</td><td>Create tweet</td><td>{text, mediaIds?, replyTo?, quoteOf?} → tweetId</td></tr><tr><td>POST /v1/tweets/{id}/retweet</td><td>Retweet</td><td>Creates retweet reference; fan-out retweet ID to followers</td></tr><tr><td>GET /v1/timeline/home?cursor=</td><td>Home timeline</td><td>Merged push+pull; cursor = last tweetId</td></tr><tr><td>GET /v1/users/{id}/tweets</td><td>Profile timeline</td><td>Chronological tweets by user</td></tr><tr><td>GET /v1/search?q=&type=</td><td>Search</td><td>Full-text + hashtag + mention filters</td></tr><tr><td>GET /v1/trends</td><td>Trending</td><td>Top 20 hashtags by velocity; cached 60s</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-4">
+        <h2 class="cs-section-title">⑤ Data model & storage</h2>
+        <div class="cs-note"><strong>tweets</strong>: <code>tweet_id</code> (Snowflake PK), <code>user_id</code>, <code>text</code>, <code>type</code> (original|retweet|reply|quote), <code>ref_tweet_id</code>, <code>created_at</code><br><br><strong>timeline</strong> (Redis list per user): ordered tweet_ids, max 800 entries<br><br><strong>follows</strong>: <code>follower_id</code>, <code>followee_id</code>, <code>followee_follower_count</code> (denormalized)</div><div class="cs-table-wrap"><table class="cs-table"><tr><th>Store</th><th>What</th><th>Why</th></tr><tr><td>MySQL / Cassandra</td><td>Tweet bodies</td><td>Snowflake PK; secondary index by user_id + time</td></tr><tr><td>Redis Lists / Sorted Sets</td><td>Home timelines</td><td>LPUSH on fan-out; LRU trim to 800 tweets</td></tr><tr><td>Elasticsearch</td><td>Search index</td><td>Inverted index on text, hashtags, mentions; near-real-time</td></tr><tr><td>Kafka + Flink</td><td>Trending pipeline</td><td>Windowed count of hashtags; top-K every minute</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-5">
+        <h2 class="cs-section-title">⑥ Deep dive — core components</h2>
+        <h3 class="cs-subheading">Snowflake tweet IDs</h3><div class="cs-note">64-bit ID: 41 bits timestamp (ms) + 10 bits machine ID + 12 bits sequence. Time-sortable — timeline pagination by tweet_id works as cursor. 4096 tweets/ms per machine; scale machines horizontally. Clock rollback handling: wait or use spare bits.</div><h3 class="cs-subheading">Hybrid timeline fan-out</h3><div class="cs-note">On tweet: if author has &lt; 1M followers, fan-out worker LPUSH tweet_id to each follower's Redis timeline. If ≥ 1M, skip fan-out — mark author as "celebrity".</div><div class="cs-note">On home timeline read: (1) LRANGE follower Redis timeline (800 ids). (2) For each celebrity followed, fetch last 20 tweets from celebrity timeline. (3) Merge by tweet_id desc, dedupe retweets, return page.</div><h3 class="cs-subheading">Search & trending</h3><div class="cs-note">Tweet creation event → Kafka → Elasticsearch indexer. Index fields: text (analyzed), hashtags (keyword), mentions (keyword), user_id, created_at. Search within 5s of tweet post (near-real-time ES refresh).</div><div class="cs-note">Trending: Flink tumbling 5-min window counts hashtag occurrences; score = count × velocity_boost; top 20 stored in Redis; global + per-location trends.</div><h3 class="cs-subheading">Retweet handling</h3><div class="cs-note">Retweet stores only <code>ref_tweet_id</code> + retweeter user_id — no text duplication. Fan-out pushes retweet's Snowflake ID to followers. On display, hydrate original tweet. Dedupe: if follower already has original in timeline, optionally skip retweet (product decision).</div>
+    </div>
+    <div class="cs-paper" id="cs-section-6">
+        <h2 class="cs-section-title">⑦ Trade-offs & alternatives</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Decision</th><th>Option A</th><th>Option B</th><th>Pick when</th></tr><tr><td>Timeline</td><td>Push fan-out</td><td>Pull on read</td><td>Push for normal; pull celebrities only</td></tr><tr><td>Tweet store</td><td>MySQL sharded</td><td>Cassandra</td><td>MySQL to ~50K writes/sec/shard; Cassandra beyond</td></tr><tr><td>Search</td><td>Elasticsearch</td><td>Custom inverted index</td><td>ES standard; custom only at extreme scale</td></tr><tr><td>Retweet storage</td><td>Reference only</td><td>Full copy</td><td>Reference saves storage; copy faster read</td></tr><tr><td>Trending</td><td>Stream (Flink)</td><td>Batch hourly</td><td>Stream for real-time trends; batch cheaper</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-7">
+        <h2 class="cs-section-title">⑧ 45-minute interview script</h2>
+        <div class="cs-note"><ol><li>0–5 min: Clarify tweet types, timeline vs search, trending</li><li>5–12 min: Scale — 500M/day, fan-out math, celebrity threshold</li><li>12–22 min: Architecture — tweet, timeline, search, graph services</li><li>22–30 min: Snowflake IDs and hybrid fan-out deep dive</li><li>30–36 min: Search indexing path; trending pipeline</li><li>36–42 min: Retweet model, timeline pagination</li><li>42–45 min: Viral tweet hot key mitigation</li></ol></div>
+    </div>
+    <div class="cs-paper" id="cs-section-8">
+        <h2 class="cs-section-title">⑨ Likely follow-up questions</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Question</th><th>Short answer</th></tr><tr><td>Delete tweet propagation?</td><td>Tombstone in tweet store; async purge from timelines; search index delete</td></tr><tr><td>@mention notification?</td><td>Parse mentions on write; async notify mentioned users via notification service</td></tr><tr><td>Timeline for user following 5000 accounts?</td><td>Cap pull celebrities; sample; or rank follows by engagement</td></tr><tr><td>Elasticsearch falls behind?</td><td>Degrade search to recent-only from tweet DB; alert ops; scale indexers</td></tr><tr><td>Quote tweet in timeline?</td><td>Fan-out quote tweet ID; display embeds original with quoted context</td></tr><tr><td>Rate limit tweets?</td><td>Per user 100/day API limit; 2400/day for verified; token bucket in tweet service</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-9">
+        <h2 class="cs-section-title">⑩ Revision checklist</h2>
+        <ul class="cs-checklist"><li>Snowflake ID for tweets explained</li><li>Hybrid push/pull fan-out</li><li>Celebrity threshold (~1M followers)</li><li>Separate search index (Elasticsearch)</li><li>Trending via stream aggregation</li><li>Retweet as reference not copy</li><li>Timeline stores IDs not bodies</li><li>500M tweets/day scale math</li><li>Graph service for follow edges</li><li>Kafka for async indexing + fan-out</li></ul><div class="cs-tags"><span class="cs-tag">fan-out</span><span class="cs-tag">Snowflake</span><span class="cs-tag">search</span><span class="cs-tag">Elasticsearch</span><span class="cs-tag">social</span></div>
     </div>
     <div class="cs-related"><h3>More in this category</h3><div class="cs-related-links"><a href="/cheat-sheets/system-design/">All SD cheat sheets</a><a href="/cheat-sheets/system-design/fundamentals">SD Fundamentals</a><a href="/cheat-sheets/system-design/url-shortener">URL Shortener</a></div></div>
 
 </div>
 </main>
 <script src="/js/cheat-sheet-videos.js"></script>
+<script src="/js/cheat-sheet-prompts.js"></script>
 <script src="/js/cheat-sheet.js"></script>
 <script src="/js/site-nav.js"></script>
 </body>

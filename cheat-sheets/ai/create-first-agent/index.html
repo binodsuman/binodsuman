@@ -20,37 +20,66 @@
         <p class="cs-subtitle">Hands-on path: one tool, one loop, one success criteria — then add complexity.</p>
     </header>
     <div class="cs-interview-tip"><strong>Interview tip</strong> Demo: agent that answers "What's the weather in X?" using a weather API tool. Shows plan + tool + parse.</div>
+    <nav class="cs-toc" aria-label="On this page">
+    <div class="cs-toc-title">On this page</div>
+    <ol><li><a href="#cs-section-0">① What you must know (30 sec)</a></li><li><a href="#cs-section-1">② How it works</a></li><li><a href="#cs-section-2">③ Step-by-step (hands-on)</a></li><li><a href="#cs-section-3">④ Code / config patterns</a></li><li><a href="#cs-section-4">⑤ Production & pitfalls</a></li><li><a href="#cs-section-5">⑥ Interview / on-the-job Q&A</a></li><li><a href="#cs-section-6">⑦ Tools & ecosystem</a></li><li><a href="#cs-section-7">⑧ Revision checklist</a></li></ol>
+  </nav>
     
-    <div class="cs-paper">
-        <h2 class="cs-section-title">Step-by-step build</h2>
-        <div class="cs-roadmap">
-        <div class="cs-roadmap-step"><div><h4>Step 1 — Define tools</h4><p>JSON schema: name, description, parameters. One tool only first.</p></div></div>
-        <div class="cs-roadmap-step"><div><h4>Step 2 — Prompt the planner</h4><p>"You have tools: … Return JSON action or final answer."</p></div></div>
-        <div class="cs-roadmap-step"><div><h4>Step 3 — Run loop</h4><p>Parse action → invoke tool → append observation to context.</p></div></div>
-        <div class="cs-roadmap-step"><div><h4>Step 4 — Stop conditions</h4><p>Final answer OR max 5 steps OR timeout.</p></div></div></div>
+    <div class="cs-paper" id="cs-section-0">
+        <h2 class="cs-section-title">① What you must know (30 sec)</h2>
+        <div class="cs-note">Build your first agent by combining <strong>one LLM</strong>, <strong>one tool</strong>, and a <strong>simple while-loop</strong>. The weather-bot pattern — user asks a question, model calls <code>get_weather(city)</code>, result returns to the model, model answers — teaches everything you need before scaling to multi-tool agents.</div><div class="cs-note"><strong>Analogy:</strong> Training wheels: one tool is like learning to ride with stabilizers before tackling a multi-tool BMX course.</div>
     </div>
-    <div class="cs-paper">
-        <h2 class="cs-section-title">Pseudo-code sketch</h2>
-        <div class="cs-note cs-handwritten">while not done and steps &lt; 5:<br>
-        &nbsp;&nbsp;response = llm(messages + tool_defs)<br>
-        &nbsp;&nbsp;if response.is_final: return response.text<br>
-        &nbsp;&nbsp;result = run_tool(response.tool, response.args)<br>
-        &nbsp;&nbsp;messages.append(observation=result)</div>
+    <div class="cs-paper" id="cs-section-1">
+        <h2 class="cs-section-title">② How it works</h2>
+        <div class="cs-diagram"><div class="cs-diagram-title">First agent architecture</div><div class="cs-flow"><span class="cs-box gray">User: weather in Paris?</span><span class="cs-arrow">→</span><span class="cs-box purple">LLM → get_weather</span><span class="cs-arrow">→</span><span class="cs-box green">API returns 18°C</span><span class="cs-arrow">→</span><span class="cs-box orange">LLM final reply</span></div></div><div class="cs-note"><strong>Minimum viable agent:</strong> tool definitions in the API call, loop until <code>stop_reason</code> is final or step limit hit.</div><div class="cs-note">Test the tool function independently before wiring it to the LLM — unit test the API wrapper first.</div>
     </div>
-    <div class="cs-paper">
-        <h2 class="cs-section-title">Safety checklist</h2>
-        <div class="cs-note"><ul>
-        <li>Allowlist tools — no arbitrary shell</li>
-        <li>Validate tool args (types, ranges)</li>
-        <li>Audit log every tool call</li>
-        <li>Sandbox code execution</li>
-        </ul></div>
+    <div class="cs-paper" id="cs-section-2">
+        <h2 class="cs-section-title">③ Step-by-step (hands-on)</h2>
+        <div class="cs-roadmap"><div class="cs-roadmap-step"><div><h4>Step 1 — Pick one concrete tool</h4><p>Weather API, stock price, or internal "get_user_by_email" — something with a clear JSON request/response you can mock.</p></div></div><div class="cs-roadmap-step"><div><h4>Step 2 — Write the tool schema</h4><p>{"name":"get_weather","description":"Current weather for a city","parameters":{"type":"object","properties":{"city":{"type":"string"}},"required":["city"]}}</p></div></div><div class="cs-roadmap-step"><div><h4>Step 3 — Implement the function</h4><p>Python def get_weather(city) -> str that calls the API, handles 404, returns a short string the LLM can read.</p></div></div><div class="cs-roadmap-step"><div><h4>Step 4 — Craft the planner prompt</h4><p>"You have get_weather. Return a tool call to answer weather questions. For greetings, reply directly without tools."</p></div></div><div class="cs-roadmap-step"><div><h4>Step 5 — Build the loop</h4><p>messages = [system, user]; while steps < 5: response = llm(messages, tools); if no tool: return text; else run tool, append tool result.</p></div></div><div class="cs-roadmap-step"><div><h4>Step 6 — Test edge cases</h4><p>Invalid city, API timeout, ambiguous "here" without location — verify graceful errors in observations.</p></div></div><div class="cs-roadmap-step"><div><h4>Step 7 — Add logging and limits</h4><p>Print each step; set timeout; track total tokens. Only then add a second tool.</p></div></div></div>
+    </div>
+    <div class="cs-paper" id="cs-section-3">
+        <h2 class="cs-section-title">④ Code / config patterns</h2>
+        <div class="cs-note"><strong>Tool schema tips:</strong> Description is what the model reads — be explicit: "City name in English, e.g. London, UK. Do not pass coordinates." Include <code>enum</code> for fixed choices. Mark required fields. Bad descriptions cause wrong tool selection more than bad code.</div><div class="cs-code-block"><pre>TOOLS = [{"type": "function", "function": {
+  "name": "get_weather",
+  "description": "Get current weather for a city name",
+  "parameters": {"type":"object","properties":{"city":{"type":"string"}},"required":["city"]}
+}}]
+
+def run_agent(user_msg):
+    messages = [{"role":"system","content":PLANNER_PROMPT},
+                {"role":"user","content":user_msg}]
+    for _ in range(5):
+        r = client.chat.completions.create(model="gpt-4o-mini", messages=messages, tools=TOOLS)
+        msg = r.choices[0].message
+        if not msg.tool_calls:
+            return msg.content
+        for tc in msg.tool_calls:
+            result = get_weather(**json.loads(tc.function.arguments))
+            messages.append({"role":"tool","tool_call_id":tc.id,"content":result})
+    return "Sorry, I could not complete that."</pre></div>
+    </div>
+    <div class="cs-paper" id="cs-section-4">
+        <h2 class="cs-section-title">⑤ Production & pitfalls</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Pitfall</th><th>Why it hurts</th><th>Fix</th></tr><tr><td>Too many tools on day one</td><td>Confused planner, flaky demos</td><td>Start with one tool; add second only when first is reliable</td></tr><tr><td>Vague tool descriptions</td><td>Model calls wrong tool or bad args</td><td>Examples in description; test with 20 prompts</td></tr><tr><td>No independent tool tests</td><td>Cannot tell if bug is LLM or API</td><td>Unit test tool functions with mocks first</td></tr><tr><td>Parsing free-text actions</td><td>Fragile JSON extraction</td><td>Use native tool/function calling API</td></tr><tr><td>Missing error in observation</td><td>Model hallucinates success</td><td>Return "Error: city not found" as tool output</td></tr><tr><td>No step limit</td><td>Infinite loop on stuck task</td><td>Hard cap at 5 steps for first agent</td></tr></table></div><div class="cs-note"><strong>Production tips:</strong><ul><li>Wrap external API calls with circuit breaker and caching</li><li>Return structured tool errors the model can relay to users</li><li>Version tool schemas; breaking changes need migration</li></ul></div>
+    </div>
+    <div class="cs-paper" id="cs-section-5">
+        <h2 class="cs-section-title">⑥ Interview / on-the-job Q&A</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Question</th><th>Answer</th></tr><tr><td>First tool to build?</td><td>Read-only lookup with clear params — weather, stock, or internal GET endpoint.</td></tr><tr><td>Why JSON schema?</td><td>Provider validates structure; model knows required fields and types.</td></tr><tr><td>What goes in observation?</td><td>Concise tool output string or JSON — not raw HTTP dumps.</td></tr><tr><td>How many steps for v1?</td><td>5 is enough for weather; increase only with eval evidence.</td></tr><tr><td>Framework or raw loop?</td><td>Raw loop teaches fundamentals; framework when you need persistence and branching.</td></tr><tr><td>How test the agent?</td><td>Script of 15 prompts: happy path, invalid input, no-tool chitchat, API failure.</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-6">
+        <h2 class="cs-section-title">⑦ Tools & ecosystem</h2>
+        <div class="cs-note"><ul><li><strong>APIs for practice:</strong> OpenWeatherMap, exchangerate-api</li><li><strong>Frameworks:</strong> LangGraph, OpenAI function calling, Anthropic tool use</li><li><strong>Testing:</strong> pytest with mocked HTTP responses</li></ul></div><div class="cs-tags"><span class="cs-tag">hands-on</span><span class="cs-tag">function-calling</span><span class="cs-tag">weather-api</span><span class="cs-tag">loop</span><span class="cs-tag">beginner</span></div>
+    </div>
+    <div class="cs-paper" id="cs-section-7">
+        <h2 class="cs-section-title">⑧ Revision checklist</h2>
+        <ul class="cs-checklist"><li>One tool with tested API wrapper</li><li>JSON schema with clear description and required fields</li><li>Planner system prompt explains when to use tool vs answer directly</li><li>Loop with max 5 steps implemented</li><li>Tool errors returned as observations, not exceptions</li><li>Each step logged (tool name, args, result length)</li><li>15-prompt manual test script passes</li><li>Timeout on external API calls</li><li>Second tool deferred until first is stable</li></ul>
     </div>
     <div class="cs-related"><h3>More in this category</h3><div class="cs-related-links"><a href="/cheat-sheets/ai/">All AI cheat sheets</a><a href="/cheat-sheets/ai/rag">RAG</a><a href="/cheat-sheets/ai/agents-intro">What is an Agent?</a></div></div>
 
 </div>
 </main>
 <script src="/js/cheat-sheet-videos.js"></script>
+<script src="/js/cheat-sheet-prompts.js"></script>
 <script src="/js/cheat-sheet.js"></script>
 <script src="/js/site-nav.js"></script>
 </body>

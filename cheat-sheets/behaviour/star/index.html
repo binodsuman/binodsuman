@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>STAR Method Cheat Sheet | Binod Suman Cheat Sheet</title>
-    <meta name="description" content="STAR method for behavioral interviews — structure answers for leadership, conflict, and failure questions.">
+    <title>STAR Method — Behavioral Interview Guide | Binod Suman Cheat Sheet</title>
+    <meta name="description" content="Structure every behavioral answer: Situation, Task, Action, Result — with examples and senior-level dos and donts.">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Kalam:wght@400;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/css/site-nav.css">
@@ -13,45 +13,64 @@
 <body class="cheat-sheet-page">
 <main class="cheat-sheet-page">
 <div class="cs-container">
-    <nav class="cs-breadcrumb"><a href="/">Home</a> · <a href="/cheat-sheets/">Cheat Sheets</a> · Behaviour · STAR</nav>
+    <nav class="cs-breadcrumb"><a href="/">Home</a> · <a href="/cheat-sheets/">Cheat Sheets</a> · <a href="/cheat-sheets/behaviour/">Behaviour</a> · STAR Method</nav>
     <header class="cs-hero">
         <span class="cs-category-badge behaviour">Behaviour</span>
-        <h1 class="cs-title">STAR Method — Master Behavioral Answers</h1>
-        <p class="cs-subtitle">Structure every story in 2 minutes: Situation, Task, Action, Result — with examples for tech roles.</p>
+        <h1 class="cs-title">STAR Method — Behavioral Interview Guide</h1>
+        <p class="cs-subtitle">Structure every behavioral answer: Situation, Task, Action, Result — with examples and senior-level dos and donts.</p>
     </header>
+    <div class="cs-interview-tip"><strong>Interview tip</strong> Spend 20% on Situation/Task, 60% on Action (what YOU did), 20% on Result with numbers.</div>
+    <nav class="cs-toc" aria-label="On this page">
+    <div class="cs-toc-title">On this page</div>
+    <ol><li><a href="#cs-section-0">① STAR framework explained</a></li><li><a href="#cs-section-1">② Strong example — production incident</a></li><li><a href="#cs-section-2">③ Strong example — conflict with stakeholder</a></li><li><a href="#cs-section-3">④ Strong example — failure and learning</a></li><li><a href="#cs-section-4">⑤ Dos — senior engineer signals</a></li><li><a href="#cs-section-5">⑥ Donts — instant red flags</a></li><li><a href="#cs-section-6">⑦ Story bank — themes to prepare</a></li><li><a href="#cs-section-7">⑧ Follow-up handling</a></li><li><a href="#cs-section-8">⑨ Self-scoring rubric</a></li><li><a href="#cs-section-9">⑩ Revision checklist</a></li></ol>
+  </nav>
     
-    <div class="cs-interview-tip"><strong>Interview tip</strong> Spend 10% on Situation, 10% Task, 60% Action (what YOU did), 20% Result (numbers if possible).</div>
-    <div class="cs-paper">
-        <h2 class="cs-section-title">STAR framework</h2>
-        <div class="cs-layer-diagram">
-            <div class="cs-layer l1"><strong>S</strong> — Situation: 1–2 sentences context</div>
-            <div class="cs-layer l2"><strong>T</strong> — Task: your responsibility</div>
-            <div class="cs-layer l3"><strong>A</strong> — Action: steps YOU took (bulk of answer)</div>
-            <div class="cs-layer l4"><strong>R</strong> — Result: outcome + learning</div>
-        </div>
+    <div class="cs-paper" id="cs-section-0">
+        <h2 class="cs-section-title">① STAR framework explained</h2>
+        <div class="cs-diagram"><div class="cs-diagram-title">STAR flow</div><div class="cs-flow"><span class="cs-box gray">Situation</span><span class="cs-arrow">→</span><span class="cs-box">Task</span><span class="cs-arrow">→</span><span class="cs-box purple">Action</span><span class="cs-arrow">→</span><span class="cs-box green">Result</span></div></div><div class="cs-table-wrap"><table class="cs-table"><tr><th>Letter</th><th>What to include</th><th>Time %</th></tr><tr><td>S — Situation</td><td>Brief context — team, company, stakes (2–3 sentences)</td><td>~15%</td></tr><tr><td>T — Task</td><td>Your specific responsibility or goal</td><td>~10%</td></tr><tr><td>A — Action</td><td>Steps YOU took — decisions, trade-offs, influence</td><td>~55%</td></tr><tr><td>R — Result</td><td>Outcome with metrics; what you learned</td><td>~20%</td></tr></table></div><div class="cs-note">Interviewers remember <strong>Action + Result</strong>. Skip long backstory — they will ask follow-ups if needed.</div>
     </div>
-    <div class="cs-paper">
-        <h2 class="cs-section-title">Example (technical leadership)</h2>
-        <div class="cs-note"><strong>S:</strong> Kafka consumer lag spiked during peak traffic.<br>
-        <strong>T:</strong> I owned the streaming pipeline as senior engineer.<br>
-        <strong>A:</strong> Profiled consumers, found slow deserialization, added parallel processing, tuned partition count, added lag alerts.<br>
-        <strong>R:</strong> Lag dropped 95%, zero missed SLA for 6 months; runbook shared with team.</div>
+    <div class="cs-paper" id="cs-section-1">
+        <h2 class="cs-section-title">② Strong example — production incident</h2>
+        <div class="cs-note"><strong>S:</strong> E-commerce checkout API p99 latency jumped from 200ms to 3s during Black Friday — $50K/hour revenue at risk.<br><br><strong>T:</strong> As on-call senior, I led triage and coordinated fix without full outage.<br><br><strong>A:</strong> I pulled dashboards, identified Redis hot key on promo banner cache, implemented singleflight + local cache on redirect service, rolled canary to 10% then 100%, wrote postmortem with 3 action items.<br><br><strong>R:</strong> Latency back to 180ms p99 within 45 min; zero customer-facing downtime; hot-key guard added to CI load tests — no repeat next quarter.</div>
     </div>
-    <div class="cs-paper">
-        <h2 class="cs-section-title">Prepare 5 core stories</h2>
-        <div class="cs-tags">
-            <span class="cs-tag">Leadership</span><span class="cs-tag">Conflict</span><span class="cs-tag">Failure</span>
-            <span class="cs-tag">Ambiguity</span><span class="cs-tag">Above & beyond</span>
-        </div>
-        <div class="cs-note">Reuse stories — map same story to different questions by emphasizing different STAR parts.</div>
+    <div class="cs-paper" id="cs-section-2">
+        <h2 class="cs-section-title">③ Strong example — conflict with stakeholder</h2>
+        <div class="cs-note"><strong>S:</strong> Product wanted 6 features in one sprint; team capacity allowed 3.<br><br><strong>T:</strong> I needed to align scope with engineering reality without damaging trust.<br><br><strong>A:</strong> I built RICE score sheet with PM, mapped dependencies, proposed MVP slice shipping 2 high-impact features + tech debt for flaky pipeline; offered phased rollout dates with risk flags.<br><br><strong>R:</strong> Shipped MVP on time; NPS +8 on shipped features; PM adopted RICE for future planning; team overtime dropped from 20% to 5% that quarter.</div>
     </div>
-    <div class="cs-related">
-        <h3>More in this category</h3>
-        <div class="cs-related-links"><a href="/cheat-sheets/behaviour/questions">Top Behavioral Questions</a></div>
+    <div class="cs-paper" id="cs-section-3">
+        <h2 class="cs-section-title">④ Strong example — failure and learning</h2>
+        <div class="cs-note"><strong>S:</strong> I led migration to new auth provider; underestimated session edge cases.<br><br><strong>T:</strong> Own rollback decision and communication during partial login failures affecting 2% users.<br><br><strong>A:</strong> Triggered feature flag rollback within 20 min, posted status page update, paired with support on user comms, added integration test suite for session refresh paths before retry.<br><br><strong>R:</strong> Full recovery in 1 hour; zero data loss; retry succeeded with 100% test coverage on auth paths; I now require dark-launch checklist for identity changes.</div>
     </div>
+    <div class="cs-paper" id="cs-section-4">
+        <h2 class="cs-section-title">⑤ Dos — senior engineer signals</h2>
+        <ul class="cs-checklist"><li>Use "I" for your decisions — clarify team context separately</li><li>Quantify: latency, revenue, users, time saved, error rate</li><li>Show trade-offs considered before action</li><li>Mention stakeholders: PM, design, ops, leadership</li><li>End with reflection or process improvement</li><li>Prepare 8–10 stories mapping to common themes</li><li>Keep answers 2–3 minutes — pause for follow-ups</li></ul>
+    </div>
+    <div class="cs-paper" id="cs-section-5">
+        <h2 class="cs-section-title">⑥ Donts — instant red flags</h2>
+        <ul class="cs-checklist"><li>Blame teammates or " toxic manager " without ownership</li><li>No result — story trails off at "and then we fixed it"</li><li>Hypothetical — "I would…" without real example</li><li>Too much Situation — 2 minutes of context, 30 seconds of action</li><li>Confidential details — use anonymized metrics</li><li>Humble-bragging without substance</li><li>Same story for every question — show range</li></ul>
+    </div>
+    <div class="cs-paper" id="cs-section-6">
+        <h2 class="cs-section-title">⑦ Story bank — themes to prepare</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Theme</th><th>What they probe</th><th>Story angle</th></tr><tr><td>Leadership</td><td>Influence without authority</td><td>Led initiative across teams</td></tr><tr><td>Conflict</td><td>Disagreement resolution</td><td>Data-driven scope negotiation</td></tr><tr><td>Failure</td><td>Accountability + learning</td><td>Rollback, postmortem, prevention</td></tr><tr><td>Ambiguity</td><td>Undefined problem</td><td>Clarified requirements, shipped MVP</td></tr><tr><td>Impact</td><td>Business outcome</td><td>Metric improvement you drove</td></tr><tr><td>Mentoring</td><td>Growing others</td><td>Junior promoted after your coaching</td></tr><tr><td>Deadline pressure</td><td>Prioritization</td><td>Cut scope, communicated early</td></tr><tr><td>Ethics / integrity</td><td>Hard choice</td><td>Pushed back on shady shortcut</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-7">
+        <h2 class="cs-section-title">⑧ Follow-up handling</h2>
+        <div class="cs-note"><strong>"What would you do differently?"</strong> — honest improvement, not fake perfection.<br><br><strong>"What did others do?"</strong> — credit team, restate your specific contribution.<br><br><strong>"Why that decision?"</strong> — trade-offs, constraints, data at the time.<br><br><strong>Deeper drill:</strong> interviewer zooms into Action — have technical detail ready without jargon dump.</div>
+    </div>
+    <div class="cs-paper" id="cs-section-8">
+        <h2 class="cs-section-title">⑨ Self-scoring rubric</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Score</th><th>Structure</th><th>Specificity</th><th>Ownership</th></tr><tr><td>5</td><td>Clear STAR, timed well</td><td>Metrics, names, tools</td><td>Clear I decisions + team context</td></tr><tr><td>3</td><td>Some STAR, rambles</td><td>Generic outcomes</td><td>Mostly "we"</td></tr><tr><td>1</td><td>No structure</td><td>Vague, hypothetical</td><td>Blame or no role clarity</td></tr></table></div><div class="cs-note">Record yourself answering 3 stories — most candidates overestimate clarity.</div>
+    </div>
+    <div class="cs-paper" id="cs-section-9">
+        <h2 class="cs-section-title">⑩ Revision checklist</h2>
+        <ul class="cs-checklist"><li>Prepared 8+ STAR stories across themes</li><li>Each story has at least one metric in Result</li><li>Action section names YOUR decisions explicitly</li><li>Answers fit 2–3 minutes spoken</li><li>Practiced follow-ups: differently, others role, lessons</li><li>Removed blame and confidential details</li></ul><div class="cs-tags"><span class="cs-tag">STAR</span><span class="cs-tag">behavioral</span><span class="cs-tag">leadership</span><span class="cs-tag">interview</span></div>
+    </div>
+    <div class="cs-related"><h3>More in this category</h3><div class="cs-related-links"><a href="/cheat-sheets/behaviour/questions">Top Behavioral Questions</a></div></div>
+
 </div>
 </main>
 <script src="/js/cheat-sheet-videos.js"></script>
+<script src="/js/cheat-sheet-prompts.js"></script>
 <script src="/js/cheat-sheet.js"></script>
 <script src="/js/site-nav.js"></script>
 </body>

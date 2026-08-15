@@ -20,42 +20,57 @@
         <p class="cs-subtitle">Give your LLM a memory: retrieve facts from your data, then generate accurate answers.</p>
     </header>
     <div class="cs-interview-tip"><strong>Interview tip</strong> Say: "RAG = retrieve relevant chunks → stuff into prompt → LLM answers with grounded context." Mention vector DB + chunking + evaluation.</div>
+    <nav class="cs-toc" aria-label="On this page">
+    <div class="cs-toc-title">On this page</div>
+    <ol><li><a href="#cs-section-0">① What you must know (30 sec)</a></li><li><a href="#cs-section-1">② How it works</a></li><li><a href="#cs-section-2">③ Step-by-step (hands-on)</a></li><li><a href="#cs-section-3">④ Code / config patterns</a></li><li><a href="#cs-section-4">⑤ Production & pitfalls</a></li><li><a href="#cs-section-5">⑥ Interview / on-the-job Q&A</a></li><li><a href="#cs-section-6">⑦ Tools & ecosystem</a></li><li><a href="#cs-section-7">⑧ Revision checklist</a></li></ol>
+  </nav>
     
-    <div class="cs-paper">
-        <h2 class="cs-section-title">What is RAG? (30-second version)</h2>
-        <div class="cs-note">Plain LLMs only know training data. <strong>RAG</strong> fetches fresh documents at query time, so answers cite your wiki, tickets, or codebase — fewer hallucinations.</div>
-        <div class="cs-diagram"><div class="cs-diagram-title">RAG pipeline</div>
-        <div class="cs-flow"><span class="cs-box gray">User question</span><span class="cs-arrow">→</span>
-        <span class="cs-box">Embed query</span><span class="cs-arrow">→</span>
-        <span class="cs-box purple">Vector search</span><span class="cs-arrow">→</span>
-        <span class="cs-box green">Top-k chunks</span><span class="cs-arrow">→</span>
-        <span class="cs-box orange">LLM + prompt</span><span class="cs-arrow">→</span>
-        <span class="cs-box">Answer</span></div></div>
+    <div class="cs-paper" id="cs-section-0">
+        <h2 class="cs-section-title">① What you must know (30 sec)</h2>
+        <div class="cs-note"><strong>RAG</strong> augments an LLM at query time by retrieving relevant document chunks from your knowledge base, injecting them into the prompt, and asking the model to answer using only that context. Plain LLMs only know training data; RAG grounds answers in <em>your</em> wiki, tickets, codebase, or policies — reducing hallucinations and enabling fresh, citeable responses.</div><div class="cs-note"><strong>Analogy:</strong> Like an open-book exam: the LLM is the student, your vector DB is the textbook index, and retrieval finds the right pages before answering.</div>
     </div>
-    <div class="cs-paper">
-        <h2 class="cs-section-title">Build steps (beginner)</h2>
-        <div class="cs-note"><ol>
-        <li><strong>Chunk docs</strong> — 300–800 tokens, overlap 50–100</li>
-        <li><strong>Embed</strong> — OpenAI, Cohere, or open models</li>
-        <li><strong>Store</strong> — Pinecone, pgvector, Chroma, Milvus</li>
-        <li><strong>Retrieve</strong> — cosine similarity, top 3–8 chunks</li>
-        <li><strong>Prompt</strong> — "Use only context below…" + cite sources</li>
-        </ol></div>
-        <div class="cs-tags"><span class="cs-tag">embeddings</span><span class="cs-tag">vector DB</span><span class="cs-tag">chunking</span></div>
+    <div class="cs-paper" id="cs-section-1">
+        <h2 class="cs-section-title">② How it works</h2>
+        <div class="cs-diagram"><div class="cs-diagram-title">RAG pipeline</div><div class="cs-flow"><span class="cs-box gray">User question</span><span class="cs-arrow">→</span><span class="cs-box">Embed query</span><span class="cs-arrow">→</span><span class="cs-box purple">Vector search</span><span class="cs-arrow">→</span><span class="cs-box green">Top-k chunks</span><span class="cs-arrow">→</span><span class="cs-box orange">LLM + prompt</span><span class="cs-arrow">→</span><span class="cs-box">Answer + cites</span></div></div><div class="cs-layer-diagram"><div class="cs-layer l1">Ingestion — load docs (PDF, HTML, tickets), clean text, attach metadata</div><div class="cs-layer l2">Chunking — split into 300–800 token segments with 50–100 overlap</div><div class="cs-layer l3">Embedding — convert chunks to vectors; store in vector DB with IDs</div><div class="cs-layer l4">Retrieval — embed query, cosine similarity, optional BM25 hybrid + rerank</div><div class="cs-layer l1">Generation — system prompt: "Answer only from context below; cite sources"</div></div><div class="cs-note">Offline indexing (batch) is separate from online query path (real-time). Re-run ingestion when source docs change.</div>
     </div>
-    <div class="cs-paper">
-        <h2 class="cs-section-title">Gotchas & trade-offs</h2>
-        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Problem</th><th>Fix</th></tr>
-        <tr><td>Wrong chunks retrieved</td><td>Better chunking, hybrid search (BM25 + vectors)</td></tr>
-        <tr><td>Stale data</td><td>Re-index pipeline, TTL on embeddings</td></tr>
-        <tr><td>Huge context</td><td>Rerankers, MMR diversity, summarize chunks</td></tr>
-        <tr><td>No citations</td><td>Force source IDs in prompt + UI</td></tr></table></div>
+    <div class="cs-paper" id="cs-section-2">
+        <h2 class="cs-section-title">③ Step-by-step (hands-on)</h2>
+        <div class="cs-roadmap"><div class="cs-roadmap-step"><div><h4>Step 1 — Prepare documents</h4><p>Collect sources (Notion export, Confluence, GitHub markdown). Strip boilerplate, preserve headings as metadata, and tag by team or product area for filtered retrieval.</p></div></div><div class="cs-roadmap-step"><div><h4>Step 2 — Chunk intelligently</h4><p>Use recursive character splitting on headings first, then paragraphs. Target 400–600 tokens with overlap so sentences are not cut mid-thought. Store source URL, page, and section in metadata.</p></div></div><div class="cs-roadmap-step"><div><h4>Step 3 — Embed and index</h4><p>Batch-embed chunks with text-embedding-3-small (or open alternative). Upsert into Pinecone, pgvector, Chroma, or Milvus. Verify dimension matches model output.</p></div></div><div class="cs-roadmap-step"><div><h4>Step 4 — Build retrieval</h4><p>Embed user query with the same model. Fetch top 5–8 by cosine similarity. Optionally merge BM25 keyword hits and rerank with cross-encoder for precision.</p></div></div><div class="cs-roadmap-step"><div><h4>Step 5 — Craft the prompt</h4><p>System: role + "use only provided context; say I don't know if missing." User: question + numbered context blocks with source IDs. Require citations in the answer format.</p></div></div><div class="cs-roadmap-step"><div><h4>Step 6 — Evaluate and iterate</h4><p>Create 30–50 labeled question→expected-doc pairs. Measure recall@k and answer faithfulness. Tune chunk size, k, and prompts until metrics plateau.</p></div></div></div>
+    </div>
+    <div class="cs-paper" id="cs-section-3">
+        <h2 class="cs-section-title">④ Code / config patterns</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Pattern</th><th>When to use</th><th>Trade-off</th></tr><tr><td>Naive top-k</td><td>POC, small corpus</td><td>Fast; may miss nuance</td></tr><tr><td>Hybrid (BM25 + vector)</td><td>Technical docs with exact terms</td><td>More infra; better recall</td></tr><tr><td>Reranker (Cohere, bge)</td><td>High-stakes answers</td><td>+latency, +cost</td></tr><tr><td>Parent-child chunks</td><td>Long docs</td><td>Retrieve small, feed large parent</td></tr><tr><td>Query rewriting</td><td>Vague user questions</td><td>Extra LLM call</td></tr></table></div><div class="cs-code-block"><pre>// Minimal RAG query path
+query_vec = embed(user_question)
+chunks = vector_db.search(query_vec, top_k=6)
+context = format_chunks(chunks)  // include source_id per chunk
+messages = [
+  { role: "system", content: "Answer only from context. Cite [source_id]." },
+  { role: "user", content: f"Context:\n{context}\n\nQ: {user_question}" }
+]
+answer = llm.chat(messages)</pre></div>
+    </div>
+    <div class="cs-paper" id="cs-section-4">
+        <h2 class="cs-section-title">⑤ Production & pitfalls</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Pitfall</th><th>Why it hurts</th><th>Fix</th></tr><tr><td>Wrong chunks retrieved</td><td>Confident but incorrect answers</td><td>Tune chunking, hybrid search, reranker, metadata filters</td></tr><tr><td>Stale index</td><td>Outdated policies or APIs cited</td><td>Scheduled re-index; webhook on doc publish</td></tr><tr><td>Context overflow</td><td>Truncated prompt, missed facts</td><td>Lower k, summarize chunks, parent-child retrieval</td></tr><tr><td>No citations enforced</td><td>Users cannot verify claims</td><td>Require source IDs in prompt + UI links</td></tr><tr><td>Mixed embedding models</td><td>Similarity scores meaningless</td><td>Re-embed entire index on model change</td></tr><tr><td>Ignoring ACLs</td><td>Leaked confidential docs in answers</td><td>Filter by user permissions at retrieval time</td></tr></table></div><div class="cs-note"><strong>Production tips:</strong><ul><li>Log retrieval IDs and scores per query for debugging</li><li>A/B test chunk sizes on a golden eval set before shipping</li><li>Cache embeddings for frequent queries</li><li>Monitor faithfulness with LLM-as-judge or human spot checks weekly</li></ul></div>
+    </div>
+    <div class="cs-paper" id="cs-section-5">
+        <h2 class="cs-section-title">⑥ Interview / on-the-job Q&A</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Question</th><th>Answer</th></tr><tr><td>What is RAG?</td><td>Retrieve relevant docs at query time, inject into prompt, generate grounded answer — not retraining the model.</td></tr><tr><td>RAG vs fine-tuning?</td><td>RAG for fresh facts and citations; fine-tune for style, format, or domain phrasing when examples are abundant.</td></tr><tr><td>What is chunk overlap?</td><td>Repeated tokens between adjacent chunks so sentences split across boundaries are still retrievable.</td></tr><tr><td>What is hybrid search?</td><td>Combine dense vector similarity with sparse keyword (BM25) retrieval, then merge or rerank results.</td></tr><tr><td>How do you evaluate RAG?</td><td>Retrieval metrics (recall@k, MRR) plus answer quality (faithfulness, relevance) on labeled Q&A pairs.</td></tr><tr><td>Why hallucinate with RAG?</td><td>Retrieved context irrelevant or empty; model fills gaps — fix retrieval or say "I don't know."</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-6">
+        <h2 class="cs-section-title">⑦ Tools & ecosystem</h2>
+        <div class="cs-note"><ul><li><strong>Vector DBs:</strong> Pinecone, pgvector, Weaviate, Chroma, Milvus, Qdrant</li><li><strong>Frameworks:</strong> LangChain, LlamaIndex, Haystack</li><li><strong>Embeddings:</strong> OpenAI text-embedding-3, Cohere embed-v3, BGE, Voyage</li><li><strong>Rerankers:</strong> Cohere Rerank, cross-encoder models (bge-reranker)</li><li><strong>Eval:</strong> RAGAS, TruLens, custom golden sets in spreadsheets</li></ul></div><div class="cs-tags"><span class="cs-tag">embeddings</span><span class="cs-tag">vector-db</span><span class="cs-tag">chunking</span><span class="cs-tag">hybrid-search</span><span class="cs-tag">evaluation</span></div>
+    </div>
+    <div class="cs-paper" id="cs-section-7">
+        <h2 class="cs-section-title">⑧ Revision checklist</h2>
+        <ul class="cs-checklist"><li>Same embedding model for index and queries</li><li>Chunk size 300–800 tokens with overlap tested on sample docs</li><li>Metadata includes source URL, title, section, access level</li><li>System prompt forbids answering outside context</li><li>Citations visible to end users</li><li>Eval set of 30+ real questions with expected sources</li><li>Re-index pipeline triggered on content updates</li><li>Latency and cost per query logged (embed + LLM tokens)</li><li>Hybrid or rerank considered if naive retrieval fails eval</li></ul>
     </div>
     <div class="cs-related"><h3>More in this category</h3><div class="cs-related-links"><a href="/cheat-sheets/ai/">All AI cheat sheets</a><a href="/cheat-sheets/ai/rag">RAG</a><a href="/cheat-sheets/ai/agents-intro">What is an Agent?</a></div></div>
 
 </div>
 </main>
 <script src="/js/cheat-sheet-videos.js"></script>
+<script src="/js/cheat-sheet-prompts.js"></script>
 <script src="/js/cheat-sheet.js"></script>
 <script src="/js/site-nav.js"></script>
 </body>

@@ -20,35 +20,57 @@
         <p class="cs-subtitle">LLM + tools + loop: the model plans, acts, observes, and repeats until the task is done.</p>
     </header>
     <div class="cs-interview-tip"><strong>Interview tip</strong> Contrast: chatbot = one-shot. Agent = multi-step with tools (search, code run, API calls). Mention human-in-the-loop for risky actions.</div>
+    <nav class="cs-toc" aria-label="On this page">
+    <div class="cs-toc-title">On this page</div>
+    <ol><li><a href="#cs-section-0">① What you must know (30 sec)</a></li><li><a href="#cs-section-1">② How it works</a></li><li><a href="#cs-section-2">③ Step-by-step (hands-on)</a></li><li><a href="#cs-section-3">④ Code / config patterns</a></li><li><a href="#cs-section-4">⑤ Production & pitfalls</a></li><li><a href="#cs-section-5">⑥ Interview / on-the-job Q&A</a></li><li><a href="#cs-section-6">⑦ Tools & ecosystem</a></li><li><a href="#cs-section-7">⑧ Revision checklist</a></li></ol>
+  </nav>
     
-    <div class="cs-paper">
-        <h2 class="cs-section-title">Agent vs chatbot</h2>
-        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Chatbot</th><th>Agent</th></tr>
-        <tr><td>Single LLM call</td><td>Loop: think → act → observe</td></tr>
-        <tr><td>No side effects</td><td>Calls tools / APIs</td></tr>
-        <tr><td>Predictable cost</td><td>Variable steps — cap max iterations</td></tr></table></div>
+    <div class="cs-paper" id="cs-section-0">
+        <h2 class="cs-section-title">① What you must know (30 sec)</h2>
+        <div class="cs-note">An <strong>AI agent</strong> is an LLM that runs in a <strong>loop</strong>: it receives a goal, decides the next action (often a tool call), executes it, observes the result, and repeats until it produces a final answer or hits a limit. Unlike a one-shot chatbot, agents can search the web, query databases, run code, and call APIs — with variable cost and risk.</div><div class="cs-note"><strong>Analogy:</strong> A chatbot is a consultant who answers from memory; an agent is an intern with a laptop who can look things up, send emails, and run spreadsheets until the task is done.</div>
     </div>
-    <div class="cs-paper">
-        <h2 class="cs-section-title">Core loop</h2>
-        <div class="cs-layer-diagram">
-        <div class="cs-layer l1">1. User goal</div>
-        <div class="cs-layer l2">2. LLM plans next action</div>
-        <div class="cs-layer l3">3. Tool executes (search, SQL, shell)</div>
-        <div class="cs-layer l4">4. Result back to LLM → repeat or finish</div></div>
+    <div class="cs-paper" id="cs-section-1">
+        <h2 class="cs-section-title">② How it works</h2>
+        <div class="cs-diagram"><div class="cs-diagram-title">Agent loop</div><div class="cs-flow"><span class="cs-box gray">User goal</span><span class="cs-arrow">→</span><span class="cs-box purple">LLM plans action</span><span class="cs-arrow">→</span><span class="cs-box green">Tool executes</span><span class="cs-arrow">→</span><span class="cs-box orange">Observation</span><span class="cs-arrow">→</span><span class="cs-box">Final answer or repeat</span></div></div><div class="cs-layer-diagram"><div class="cs-layer l1">1. User goal — natural language task with success criteria</div><div class="cs-layer l2">2. LLM planner — chooses tool + arguments or returns final answer</div><div class="cs-layer l3">3. Tool runtime — validates args, executes allowlisted function</div><div class="cs-layer l4">4. Observation — tool output appended to conversation history</div><div class="cs-layer l1">5. Termination — final answer, max_steps, timeout, or human approval</div></div><div class="cs-note">ReAct (Reason + Act) is the most common pattern: the model explicitly reasons before each tool call.</div>
     </div>
-    <div class="cs-paper">
-        <h2 class="cs-section-title">When to use agents</h2>
-        <div class="cs-note"><ul>
-        <li>Multi-step research, ticket triage, data analysis</li>
-        <li>NOT for simple FAQ — use RAG + one call</li>
-        <li>Always set <strong>max_steps</strong> and approval for writes/deletes</li>
-        </ul></div>
+    <div class="cs-paper" id="cs-section-2">
+        <h2 class="cs-section-title">③ Step-by-step (hands-on)</h2>
+        <div class="cs-roadmap"><div class="cs-roadmap-step"><div><h4>Step 1 — Define the goal and success criteria</h4><p>"Summarize open Jira tickets for team X and post to Slack" — clear done state prevents infinite loops.</p></div></div><div class="cs-roadmap-step"><div><h4>Step 2 — Inventory tools</h4><p>List capabilities the LLM cannot do alone: search, SQL, calendar, send_message. One tool = one well-documented function with JSON schema.</p></div></div><div class="cs-roadmap-step"><div><h4>Step 3 — Write planner prompt</h4><p>Explain available tools, output format (JSON action or final answer), and rules: "Never guess account IDs; use lookup tool."</p></div></div><div class="cs-roadmap-step"><div><h4>Step 4 — Implement the loop</h4><p>Call LLM → parse tool call → execute → append result → repeat. Cap at 5–15 steps and 2–5 minute timeout.</p></div></div><div class="cs-roadmap-step"><div><h4>Step 5 — Add guardrails</h4><p>Allowlist tools, validate parameters, require approval for writes, sandbox code execution, audit log every action.</p></div></div><div class="cs-roadmap-step"><div><h4>Step 6 — Observe and evaluate</h4><p>Trace each step (LangSmith, OpenTelemetry). Measure task success rate and cost per run on a test suite.</p></div></div></div>
+    </div>
+    <div class="cs-paper" id="cs-section-3">
+        <h2 class="cs-section-title">④ Code / config patterns</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Pattern</th><th>Description</th><th>Best for</th></tr><tr><td>ReAct</td><td>Reason then act with tools</td><td>General-purpose agents</td></tr><tr><td>Plan-and-execute</td><td>Plan all steps upfront, then run</td><td>Predictable multi-step workflows</td></tr><tr><td>Router</td><td>Classify intent → specialized sub-agent</td><td>Multi-domain assistants</td></tr><tr><td>Human-in-the-loop</td><td>Pause for approval on risky actions</td><td>Finance, healthcare, prod changes</td></tr></table></div><div class="cs-code-block"><pre>while not done and steps < MAX_STEPS:
+    response = llm(messages, tools=tool_definitions)
+    if response.finish_reason == "final":
+        return response.text
+    args = validate(response.tool_call)
+    result = TOOL_REGISTRY[response.tool_name](**args)
+    messages.append({"role": "tool", "content": result})
+    steps += 1
+raise TimeoutError("Agent exceeded step limit")</pre></div>
+    </div>
+    <div class="cs-paper" id="cs-section-4">
+        <h2 class="cs-section-title">⑤ Production & pitfalls</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Pitfall</th><th>Why it hurts</th><th>Fix</th></tr><tr><td>Unbounded loops</td><td>Runaway cost and latency</td><td>max_steps, timeout, token budget per run</td></tr><tr><td>Arbitrary code execution</td><td>RCE, data exfiltration</td><td>Sandbox, allowlist commands, no shell by default</td></tr><tr><td>Tool description ambiguity</td><td>Wrong tool chosen repeatedly</td><td>Clear names, examples, negative cases in schema</td></tr><tr><td>No argument validation</td><td>SQL injection, bad API calls</td><td>Schema validation before execution</td></tr><tr><td>Agent for simple FAQ</td><td>10× cost vs one RAG call</td><td>Use single LLM call when no tools needed</td></tr><tr><td>Opaque failures</td><td>Cannot debug bad runs</td><td>Structured traces per step with inputs/outputs</td></tr></table></div><div class="cs-note"><strong>Production tips:</strong><ul><li>Separate read-only and write tools; gate writes behind approval</li><li>Idempotent tools where possible so retries are safe</li><li>Per-tenant tool permissions and data isolation</li><li>Kill switch to disable agent features without full outage</li></ul></div>
+    </div>
+    <div class="cs-paper" id="cs-section-5">
+        <h2 class="cs-section-title">⑥ Interview / on-the-job Q&A</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Question</th><th>Answer</th></tr><tr><td>Agent vs chatbot?</td><td>Chatbot: one LLM call, no side effects. Agent: multi-step loop with tool execution.</td></tr><tr><td>What is a tool?</td><td>A function the LLM can invoke — search, SQL, API — described by name, description, and JSON schema.</td></tr><tr><td>What is max_steps?</td><td>Hard cap on loop iterations to prevent runaway cost and infinite retries.</td></tr><tr><td>When not to use agents?</td><td>Simple Q&A, single retrieval, or deterministic workflows better handled by code.</td></tr><tr><td>What is human-in-the-loop?</td><td>Pause before irreversible actions (send email, charge card) for human approval.</td></tr><tr><td>How debug agents?</td><td>Step-by-step traces: prompt, tool chosen, args, result, and final answer per run.</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-6">
+        <h2 class="cs-section-title">⑦ Tools & ecosystem</h2>
+        <div class="cs-note"><ul><li><strong>Frameworks:</strong> LangGraph, CrewAI, OpenAI Assistants, Anthropic tool use</li><li><strong>Tracing:</strong> LangSmith, Arize, Weights & Biases</li><li><strong>Sandbox:</strong> E2B, Docker, Modal for code execution</li><li><strong>Protocols:</strong> MCP for standardized tool connections</li></ul></div><div class="cs-tags"><span class="cs-tag">agents</span><span class="cs-tag">tools</span><span class="cs-tag">react</span><span class="cs-tag">guardrails</span><span class="cs-tag">tracing</span></div>
+    </div>
+    <div class="cs-paper" id="cs-section-7">
+        <h2 class="cs-section-title">⑧ Revision checklist</h2>
+        <ul class="cs-checklist"><li>Clear success criteria defined before building loop</li><li>Tools have JSON schemas with descriptions and examples</li><li>max_steps and timeout configured</li><li>Write/destructive tools require approval</li><li>All tool calls audit-logged with user and timestamp</li><li>Argument validation before execution</li><li>Traces captured for every run</li><li>Eval suite of 10+ multi-step tasks</li><li>Cost per successful task measured and acceptable</li></ul>
     </div>
     <div class="cs-related"><h3>More in this category</h3><div class="cs-related-links"><a href="/cheat-sheets/ai/">All AI cheat sheets</a><a href="/cheat-sheets/ai/rag">RAG</a><a href="/cheat-sheets/ai/agents-intro">What is an Agent?</a></div></div>
 
 </div>
 </main>
 <script src="/js/cheat-sheet-videos.js"></script>
+<script src="/js/cheat-sheet-prompts.js"></script>
 <script src="/js/cheat-sheet.js"></script>
 <script src="/js/site-nav.js"></script>
 </body>

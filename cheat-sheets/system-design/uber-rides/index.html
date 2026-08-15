@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Design Uber / Ride Sharing | Binod Suman Cheat Sheet</title>
-    <meta name="description" content="Matching drivers and riders, real-time location, pricing, and trip lifecycle.">
+    <meta name="description" content="Matching drivers and riders, real-time location, surge pricing, trip state machine, and payment.">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Kalam:wght@400;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/css/site-nav.css">
@@ -17,36 +17,60 @@
     <header class="cs-hero">
         <span class="cs-category-badge system-design">System Design</span>
         <h1 class="cs-title">Design Uber / Ride Sharing</h1>
-        <p class="cs-subtitle">Matching drivers and riders, real-time location, pricing, and trip lifecycle.</p>
+        <p class="cs-subtitle">Matching drivers and riders, real-time location, surge pricing, trip state machine, and payment.</p>
     </header>
-    <div class="cs-interview-tip"><strong>Interview tip</strong> Geospatial index (quadtree/geohash) for nearby drivers. State machine for trip. Separate matching service.</div>
+    <div class="cs-interview-tip"><strong>Interview tip</strong> Geospatial index (geohash/quadtree) for nearby drivers. Trip state machine: requested → accepted → arrived → ongoing → completed. Separate location service (high write) from trip service.</div>
+    <nav class="cs-toc" aria-label="On this page">
+    <div class="cs-toc-title">On this page</div>
+    <ol><li><a href="#cs-section-0">① Clarify requirements</a></li><li><a href="#cs-section-1">② Back-of-the-envelope scale</a></li><li><a href="#cs-section-2">③ High-level architecture</a></li><li><a href="#cs-section-3">④ API & interfaces</a></li><li><a href="#cs-section-4">⑤ Data model & storage</a></li><li><a href="#cs-section-5">⑥ Deep dive — core components</a></li><li><a href="#cs-section-6">⑦ Trade-offs & alternatives</a></li><li><a href="#cs-section-7">⑧ 45-minute interview script</a></li><li><a href="#cs-section-8">⑨ Likely follow-up questions</a></li><li><a href="#cs-section-9">⑩ Revision checklist</a></li></ol>
+  </nav>
     
-    <div class="cs-paper">
-        <h2 class="cs-section-title">Core services</h2>
-        <div class="cs-note"><ul>
-        <li>Location service — driver GPS streams</li>
-        <li>Matching — find nearest available driver</li>
-        <li>Trip service — state: requested → accepted → ongoing → complete</li>
-        <li>Pricing — surge, distance, time</li>
-        <li>Payment — after trip</li>
-        </ul></div>
+    <div class="cs-paper" id="cs-section-0">
+        <h2 class="cs-section-title">① Clarify requirements</h2>
+        <div class="cs-note"><strong>Functional</strong><ul><li>Rider requests ride: pickup, dropoff, ride type (economy/premium)</li><li>Match with nearest available driver (ETA &lt; 5 min)</li><li>Real-time driver location on map during trip</li><li>Trip lifecycle: requested → accepted → arrived → in-progress → completed</li><li>Surge pricing during high demand</li><li>Payment charged after trip completion</li><li>Ratings for driver and rider after trip</li><li>Ride history for rider and driver</li></ul><strong>Non-functional</strong><ul><li>Match driver within 30s of request p99</li><li>Location updates reflected on map within 4s</li><li>20M rides/day → ~230 rides/sec avg, ~2K/sec peak (rush hour)</li><li>250K location updates/sec (2M active drivers × 1 update/4s)</li><li>99.9% availability on matching service</li></ul></div><div class="cs-note"><strong>Out of scope (say in interview)</strong><ul><li>Driver onboarding and background checks</li><li>Food delivery (Uber Eats — mention as extension)</li><li>Route optimization / navigation engine</li><li>Pool/shared rides matching</li></ul></div>
     </div>
-    <div class="cs-paper">
-        <h2 class="cs-section-title">Matching</h2>
-        <div class="cs-flow"><span class="cs-box gray">Rider request</span><span class="cs-arrow">→</span>
-        <span class="cs-box purple">Geo index query</span><span class="cs-arrow">→</span>
-        <span class="cs-box green">Rank drivers</span><span class="cs-arrow">→</span>
-        <span class="cs-box orange">Offer / accept</span></div>
+    <div class="cs-paper" id="cs-section-1">
+        <h2 class="cs-section-title">② Back-of-the-envelope scale</h2>
+        <div class="cs-note"><strong>Assumptions</strong><ul><li>20M rides/day → ~230/sec avg, ~2K/sec peak</li><li>10M drivers; 20% active peak = 2M drivers online</li><li>Location updates: 2M × 0.25/sec = 500K updates/sec</li><li>Geospatial index: 2M active driver locations in memory</li><li>Matching queries: 2K/sec peak; each queries ~50 nearby drivers</li><li>Trip state storage: 20M trips/day × 30 days = 600M active trip records</li></ul></div><div class="cs-note">Location service is write-heavy and separate from trip service. Geohash grid (precision 6 ≈ 1.2km × 0.6km cells) indexes drivers. Matching: query 9 surrounding cells → rank by distance + ETA + driver rating.</div>
     </div>
-    <div class="cs-paper">
-        <h2 class="cs-section-title">Real-time</h2>
-        <div class="cs-note">WebSocket for driver location to rider app. Kafka for location firehose. TTL on stale driver positions.</div>
+    <div class="cs-paper" id="cs-section-2">
+        <h2 class="cs-section-title">③ High-level architecture</h2>
+        <div class="cs-diagram"><div class="cs-diagram-title">Uber Ride-Sharing Platform</div><div class="cs-arch-grid"><div class="cs-arch-row"><div class="cs-arch-cell gray">Rider App</div><div class="cs-arch-cell gray">Driver App</div></div><div class="cs-arch-row"><div class="cs-arch-cell purple">API Gateway + WebSocket</div></div><div class="cs-arch-row"><div class="cs-arch-cell green">Trip Service (state machine)</div><div class="cs-arch-cell green">Matching Service</div><div class="cs-arch-cell orange">Location Service</div><div class="cs-arch-cell ">Pricing Service</div></div><div class="cs-arch-row"><div class="cs-arch-cell orange">Geospatial Index (Redis Geo)</div><div class="cs-arch-cell purple">Kafka (location stream)</div></div><div class="cs-arch-row"><div class="cs-arch-cell green">Trip DB (Cassandra)</div><div class="cs-arch-cell orange">Payment Service</div><div class="cs-arch-cell gray">Notification Service</div></div></div></div><div class="cs-flow"><span class="cs-box gray">Request ride</span><span class="cs-arrow">→</span><span class="cs-box">Geo search drivers</span><span class="cs-arrow">→</span><span class="cs-box purple">Offer + accept</span><span class="cs-arrow">→</span><span class="cs-box green">Trip in progress</span></div><div class="cs-note">Driver app sends GPS every 4s → Location Service → update Redis Geo index + publish to Kafka → rider app WebSocket subscribes to trip topic. Matching is stateless — queries geo index at request time. Trip state in Cassandra with optimistic locking.</div>
+    </div>
+    <div class="cs-paper" id="cs-section-3">
+        <h2 class="cs-section-title">④ API & interfaces</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Endpoint / flow</th><th>Purpose</th><th>Notes</th></tr><tr><td>POST /v1/trips/request</td><td>Request ride</td><td>{pickup, dropoff, rideType} → {tripId, estimatedFare, surgeMultiplier}</td></tr><tr><td>POST /v1/trips/{id}/accept</td><td>Driver accepts</td><td>Driver only; transitions requested→accepted; notifies rider</td></tr><tr><td>POST /v1/trips/{id}/status</td><td>Update trip status</td><td>arrived|started|completed — state machine validated</td></tr><tr><td>PUT /v1/drivers/{id}/location</td><td>Driver GPS update</td><td>{lat, lng, heading, ts} — high frequency, async</td></tr><tr><td>GET /v1/trips/{id}/location</td><td>Real-time driver location</td><td>WebSocket stream or poll; from Kafka trip topic</td></tr><tr><td>POST /v1/trips/{id}/rate</td><td>Rate trip</td><td>{rating, comment} — after completion only</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-4">
+        <h2 class="cs-section-title">⑤ Data model & storage</h2>
+        <div class="cs-note"><strong>trips</strong>: <code>trip_id</code>, <code>rider_id</code>, <code>driver_id</code>, <code>status</code>, <code>pickup</code>, <code>dropoff</code>, <code>fare</code>, <code>surge</code>, <code>created_at</code>, <code>version</code><br><br><strong>driver_locations</strong> (Redis Geo): GEOADD drivers {lng} {lat} {driver_id}; GEORADIUS for search<br><br><strong>drivers</strong>: <code>driver_id</code>, <code>status</code> (available|busy|offline), <code>vehicle_type</code>, <code>rating</code></div><div class="cs-table-wrap"><table class="cs-table"><tr><th>Store</th><th>What</th><th>Why</th></tr><tr><td>Redis Geo</td><td>Active driver locations</td><td>GEOADD/GEORADIUS; TTL 30s — stale drivers auto-removed</td></tr><tr><td>Kafka</td><td>Location stream + trip events</td><td>500K msgs/sec location; trip events for analytics</td></tr><tr><td>Cassandra</td><td>Trip records</td><td>Partition by trip_id; status history; high write throughput</td></tr><tr><td>PostgreSQL</td><td>Driver/rider profiles, payments</td><td>ACID for payment; trip references payment_id</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-5">
+        <h2 class="cs-section-title">⑥ Deep dive — core components</h2>
+        <h3 class="cs-subheading">Geospatial matching</h3><div class="cs-note">On ride request: GEORADIUS pickup_lat_lng 5km WITHDIST COUNT 50 ASC → 50 nearest drivers. Filter: status=available, vehicle_type matches, rating &gt; 4.0. Rank by: ETA (distance/avg_speed) + driver acceptance rate. Send offer to top 3 simultaneously; first accept wins; cancel others.</div><div class="cs-note">Geohash precision: 6 chars = ~1.2km cell. Query cell + 8 neighbors. Index update: driver moves → GEOADD overwrites previous position atomically.</div><h3 class="cs-subheading">Location update pipeline at 500K/sec</h3><div class="cs-note">Driver app → Location API (async, fire-and-forget) → Kafka topic partitioned by driver_id → consumers: (1) update Redis Geo, (2) if driver in active trip, publish to trip WebSocket topic for rider. API responds 202 immediately — no blocking.</div><div class="cs-note">Stale location: Redis TTL 30s on driver key. If no update in 30s, driver marked offline in matching. Driver heartbeat every 4s keeps TTL alive.</div><h3 class="cs-subheading">Trip state machine</h3><div class="cs-note">States: REQUESTED → ACCEPTED → ARRIVED → IN_PROGRESS → COMPLETED | CANCELLED. Transitions validated server-side (can't COMPLETE from REQUESTED). Each transition: UPDATE trip SET status=new, version=version+1 WHERE version=expected. Failed transition → 409 Conflict (concurrent update).</div><div class="cs-note">Cancellation: rider can cancel before ACCEPTED (free); after ACCEPTED (fee). Driver cancel → re-match rider automatically.</div><h3 class="cs-subheading">Surge pricing</h3><div class="cs-note">Surge = f(demand/supply ratio in geohash cell). Demand: ride requests in last 5 min. Supply: available drivers in cell. Ratio &gt; 2.0 → 1.5× surge; &gt; 4.0 → 2.5×. Computed every 1 min by pricing service; cached in Redis per cell. Shown to rider before confirm.</div>
+    </div>
+    <div class="cs-paper" id="cs-section-6">
+        <h2 class="cs-section-title">⑦ Trade-offs & alternatives</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Decision</th><th>Option A</th><th>Option B</th><th>Pick when</th></tr><tr><td>Geo index</td><td>Redis Geo (geohash)</td><td>Quadtree in memory</td><td>Redis Geo ops-managed; quadtree custom but flexible</td></tr><tr><td>Matching</td><td>Broadcast to top 3</td><td>Sequential offer</td><td>Broadcast faster; sequential less driver annoyance</td></tr><tr><td>Location</td><td>WebSocket push</td><td>Client poll 4s</td><td>WebSocket for smooth map; poll simpler</td></tr><tr><td>Trip storage</td><td>Cassandra</td><td>PostgreSQL</td><td>Cassandra for write scale; PG for simpler ACID</td></tr><tr><td>Surge</td><td>Geohash cell</td><td>City-wide</td><td>Cell granular; city-wide simpler but unfair</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-7">
+        <h2 class="cs-section-title">⑧ 45-minute interview script</h2>
+        <div class="cs-note"><ol><li>0–5 min: Clarify request, match, trip lifecycle, payment, location</li><li>5–12 min: Scale — 20M rides/day, 500K location updates/sec</li><li>12–22 min: Architecture — location, matching, trip, payment services</li><li>22–30 min: Geospatial index and matching algorithm deep dive</li><li>30–36 min: Location update pipeline (Kafka + Redis Geo)</li><li>36–42 min: Trip state machine with version locking</li><li>42–45 min: Surge pricing model</li></ol></div>
+    </div>
+    <div class="cs-paper" id="cs-section-8">
+        <h2 class="cs-section-title">⑨ Likely follow-up questions</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Question</th><th>Short answer</th></tr><tr><td>No drivers available?</td><td>Expand search radius incrementally; after 5km show "no drivers"; suggest schedule later</td></tr><tr><td>Driver accepts then cancels?</td><td>Trip back to REQUESTED; re-match; penalize driver acceptance rate</td></tr><tr><td>Rider and driver see different locations?</td><td>Location eventually consistent; 4s staleness acceptable; rider sees last known</td></tr><tr><td>Payment fails after trip?</td><td>Retry 3×; mark trip PAYMENT_PENDING; block rider next request until resolved</td></tr><tr><td>Driver in tunnel (no GPS)?</td><td>Last known location used; interpolate; mark low-confidence on map</td></tr><tr><td>Match during New Year surge?</td><td>Surge pricing reduces demand; waiting room for riders; incentive bonus for drivers</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-9">
+        <h2 class="cs-section-title">⑩ Revision checklist</h2>
+        <ul class="cs-checklist"><li>Geospatial index (Redis Geo / geohash)</li><li>GEORADIUS for nearby driver search</li><li>Location update async via Kafka</li><li>Trip state machine with valid transitions</li><li>Optimistic locking on trip status</li><li>Broadcast offer to top N drivers</li><li>500K location updates/sec handling</li><li>Stale driver TTL (30s heartbeat)</li><li>Surge pricing by geohash cell</li><li>WebSocket for real-time rider map</li></ul><div class="cs-tags"><span class="cs-tag">geospatial</span><span class="cs-tag">real-time</span><span class="cs-tag">matching</span><span class="cs-tag">state machine</span><span class="cs-tag">location</span></div>
     </div>
     <div class="cs-related"><h3>More in this category</h3><div class="cs-related-links"><a href="/cheat-sheets/system-design/">All SD cheat sheets</a><a href="/cheat-sheets/system-design/fundamentals">SD Fundamentals</a><a href="/cheat-sheets/system-design/url-shortener">URL Shortener</a></div></div>
 
 </div>
 </main>
 <script src="/js/cheat-sheet-videos.js"></script>
+<script src="/js/cheat-sheet-prompts.js"></script>
 <script src="/js/cheat-sheet.js"></script>
 <script src="/js/site-nav.js"></script>
 </body>

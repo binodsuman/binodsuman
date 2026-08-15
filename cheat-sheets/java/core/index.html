@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Java Core Interview | Binod Suman Cheat Sheet</title>
-    <meta name="description" content="Java core concepts for interviews — OOP, JVM, memory, strings, and equals/hashCode.">
+    <title>Java Core — Interview Cheat Sheet | Binod Suman Cheat Sheet</title>
+    <meta name="description" content="OOP, JVM memory model, garbage collection, String internals, equals/hashCode — senior Java interview essentials.">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Kalam:wght@400;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/css/site-nav.css">
@@ -13,43 +13,64 @@
 <body class="cheat-sheet-page">
 <main class="cheat-sheet-page">
 <div class="cs-container">
-    <nav class="cs-breadcrumb"><a href="/">Home</a> · <a href="/cheat-sheets/">Cheat Sheets</a> · Java · Core</nav>
+    <nav class="cs-breadcrumb"><a href="/">Home</a> · <a href="/cheat-sheets/">Cheat Sheets</a> · <a href="/cheat-sheets/java/">Java</a> · Core</nav>
     <header class="cs-hero">
         <span class="cs-category-badge java">Java</span>
         <h1 class="cs-title">Java Core — Interview Cheat Sheet</h1>
-        <p class="cs-subtitle">OOP, JVM memory, and language fundamentals recruiters test on every Java interview.</p>
+        <p class="cs-subtitle">OOP, JVM memory model, garbage collection, String internals, equals/hashCode — senior Java interview essentials.</p>
     </header>
+    <div class="cs-interview-tip"><strong>Interview tip</strong> For equals/hashCode: "Equal objects MUST have equal hash codes; override both together or neither."</div>
+    <nav class="cs-toc" aria-label="On this page">
+    <div class="cs-toc-title">On this page</div>
+    <ol><li><a href="#cs-section-0">① OOP pillars in Java</a></li><li><a href="#cs-section-1">② JVM memory model</a></li><li><a href="#cs-section-2">③ Garbage collection basics</a></li><li><a href="#cs-section-3">④ String immutability & pool</a></li><li><a href="#cs-section-4">⑤ equals() and hashCode() contract</a></li><li><a href="#cs-section-5">⑥ == vs equals & common pitfalls</a></li><li><a href="#cs-section-6">⑦ Java 8+ essentials</a></li><li><a href="#cs-section-7">⑧ Object lifecycle & initialization</a></li><li><a href="#cs-section-8">⑨ Interview Q&A</a></li><li><a href="#cs-section-9">⑩ Revision checklist</a></li></ol>
+  </nav>
     
-    <div class="cs-interview-tip"><strong>Interview tip</strong> For "explain JVM" — draw heap vs stack, mention GC roots, then one collector (G1).</div>
-    <div class="cs-paper">
-        <h2 class="cs-section-title">OOP pillars</h2>
-        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Concept</th><th>Interview one-liner</th></tr>
-        <tr><td>Encapsulation</td><td>Hide state, expose via methods — data hiding</td></tr>
-        <tr><td>Inheritance</td><td>IS-A — favor composition over inheritance</td></tr>
-        <tr><td>Polymorphism</td><td>Same interface, different behavior — runtime via overriding</td></tr>
-        <tr><td>Abstraction</td><td>Interfaces/abstract classes hide implementation</td></tr></table></div>
+    <div class="cs-paper" id="cs-section-0">
+        <h2 class="cs-section-title">① OOP pillars in Java</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Pillar</th><th>Java mechanism</th><th>Interview example</th></tr><tr><td>Encapsulation</td><td>private fields + getters/setters</td><td>Hide internal state; validate in setter</td></tr><tr><td>Inheritance</td><td>extends — is-a relationship</td><td>Dog extends Animal; favor composition over inheritance</td></tr><tr><td>Polymorphism</td><td>Method overriding, interfaces</td><td>List ref = new ArrayList(); runtime dispatch</td></tr><tr><td>Abstraction</td><td>abstract class, interface</td><td>PaymentProcessor interface; Stripe impl</td></tr></table></div><div class="cs-table-wrap"><table class="cs-table"><tr><th>Abstract class vs Interface</th><th>Abstract class</th><th>Interface</th></tr><tr><td>State</td><td>Can have fields, constructors</td><td>Only constants (before Java 8)</td></tr><tr><td>Methods</td><td>Abstract + concrete</td><td>Abstract (impl classes) + default/static (Java 8+)</td></tr><tr><td>Multiple inheritance</td><td>Single extends</td><td>Multiple implements</td></tr><tr><td>Use when</td><td>Shared base implementation</td><td>Capability contract (Comparable, Runnable)</td></tr></table></div>
     </div>
-    <div class="cs-paper">
-        <h2 class="cs-section-title">JVM memory model</h2>
-        <div class="cs-layer-diagram">
-            <div class="cs-layer l1">Stack (per thread) — local vars, frames</div>
-            <div class="cs-layer l2">Heap — objects, shared across threads</div>
-            <div class="cs-layer l3">Metaspace — class metadata (post Java 8)</div>
-            <div class="cs-layer l4">GC — mark-sweep, G1, ZGC for low latency</div>
-        </div>
-        <div class="cs-note"><strong>== vs equals:</strong> == compares references; equals() compares content (override for custom classes). Always override hashCode with equals.</div>
+    <div class="cs-paper" id="cs-section-1">
+        <h2 class="cs-section-title">② JVM memory model</h2>
+        <div class="cs-diagram"><div class="cs-diagram-title">JVM memory (simplified)</div><div class="cs-arch-grid"><div class="cs-arch-row"><div class="cs-arch-cell purple">Stack (per thread)</div><div class="cs-arch-cell green">Heap (shared)</div></div><div class="cs-arch-row"><div class="cs-arch-cell ">Local vars, frames</div><div class="cs-arch-cell orange">Young Gen (Eden, S0, S1)</div></div><div class="cs-arch-row"><div class="cs-arch-cell gray">Method area / Metaspace</div><div class="cs-arch-cell green">Old Gen (Tenured)</div></div></div></div><div class="cs-note"><strong>Stack:</strong> method frames, local primitives and references — thread-private, fast alloc/dealloc.<br><br><strong>Heap:</strong> all objects and arrays — shared, GC-managed.<br><br><strong>Metaspace:</strong> class metadata (Java 8+ replaced PermGen).</div>
     </div>
-    <div class="cs-paper">
-        <h2 class="cs-section-title">String & immutability</h2>
-        <div class="cs-note">String pool (intern), StringBuilder for loops (not + concatenation). Immutability = thread-safe, safe as hash keys.</div>
+    <div class="cs-paper" id="cs-section-2">
+        <h2 class="cs-section-title">③ Garbage collection basics</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Collector</th><th>Strategy</th><th>Typical use</th></tr><tr><td>Serial</td><td>Single thread, stop-the-world</td><td>Small apps, client</td></tr><tr><td>Parallel (Throughput)</td><td>Multi-thread young/old GC</td><td>Batch, throughput priority</td></tr><tr><td>G1 (default Java 9+)</td><td>Region-based, predictable pauses</td><td>General server default</td></tr><tr><td>ZGC / Shenandoah</td><td>Low-latency, concurrent</td><td>Large heaps, strict p99 latency</td></tr></table></div><div class="cs-note"><strong>Generational hypothesis:</strong> most objects die young → Eden collection frequent (minor GC); survivors promote to Old Gen (major GC less frequent, costlier).<br><br><strong>Triggers:</strong> Eden full, Old Gen threshold, System.gc() (hint only), metaspace pressure.</div><ul class="cs-checklist"><li>Strong references — normal objects; GC when unreachable</li><li>Soft — cleared before OOM (caches)</li><li>Weak — GC at next cycle (WeakHashMap keys)</li><li>Phantom — post-mortem cleanup (reference queues)</li></ul>
     </div>
-    <div class="cs-related">
-        <h3>More in this category</h3>
-        <div class="cs-related-links"><a href="/cheat-sheets/java/collections">Collections & Concurrency</a></div>
+    <div class="cs-paper" id="cs-section-3">
+        <h2 class="cs-section-title">④ String immutability & pool</h2>
+        <div class="cs-note"><strong>String is immutable</strong> — internal char array (byte[] since Java 9) cannot change after creation. Thread-safe, cacheable hashCode, safe as HashMap key.<br><br><strong>String pool:</strong> literals (<code>"hello"</code>) interned in pool. <code>new String("hello")</code> creates heap object NOT in pool unless <code>intern()</code> called.</div><div class="cs-table-wrap"><table class="cs-table"><tr><th>Type</th><th>Thread-safe</th><th>Use</th></tr><tr><td>String</td><td>Yes (immutable)</td><td>Constants, keys, short concat</td></tr><tr><td>StringBuilder</td><td>No</td><td>Single-thread string building — preferred</td></tr><tr><td>StringBuffer</td><td>Yes (synchronized)</td><td>Legacy; rarely needed</td></tr></table></div><div class="cs-note"><strong>Performance trap:</strong> <code>String s = ""; for(...) s += x;</code> creates O(n²) objects — use StringBuilder.</div>
     </div>
+    <div class="cs-paper" id="cs-section-4">
+        <h2 class="cs-section-title">⑤ equals() and hashCode() contract</h2>
+        <ul class="cs-checklist"><li>Reflexive: x.equals(x) is true</li><li>Symmetric: x.equals(y) ↔ y.equals(x)</li><li>Transitive: x.equals(y) and y.equals(z) → x.equals(z)</li><li>Consistent: repeated calls same result (unless mutated)</li><li>x.equals(null) is false</li><li><strong>Critical:</strong> if x.equals(y) then x.hashCode() == y.hashCode()</li><li>Unequal objects MAY have same hash (collision) — OK</li></ul><div class="cs-note"><strong>HashMap lookup:</strong> hashCode → bucket; equals → exact match. Break contract → lost entries, duplicates.<br><br><strong>Never use mutable fields in equals/hashCode</strong> if object used as map key — or make fields final.</div>
+    </div>
+    <div class="cs-paper" id="cs-section-5">
+        <h2 class="cs-section-title">⑥ == vs equals & common pitfalls</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Comparison</th><th>Compares</th><th>Example</th></tr><tr><td>== (primitives)</td><td>Values</td><td>int a=1, b=1 → true</td></tr><tr><td>== (objects)</td><td>Reference identity</td><td>new String("a") == new String("a") → false</td></tr><tr><td>equals()</td><td>Logical equality (override)</td><td>Objects with same field values</td></tr><tr><td>Objects.equals(a,b)</td><td>Null-safe</td><td>null-safe equals check</td></tr></table></div><div class="cs-note"><strong>Autoboxing NPE:</strong> <code>Integer a = null; a == 1</code> throws NPE on unboxing.<br><br><strong>Integer cache:</strong> -128 to 127 cached — <code>Integer.valueOf(127) == Integer.valueOf(127)</code> true; 128 false.</div>
+    </div>
+    <div class="cs-paper" id="cs-section-6">
+        <h2 class="cs-section-title">⑦ Java 8+ essentials</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Feature</th><th>Purpose</th><th>Interview note</th></tr><tr><td>Lambda / streams</td><td>Functional-style collection ops</td><td>Lazy; terminal ops trigger; parallelStream cautiously</td></tr><tr><td>Optional</td><td>Explicit absence vs null</td><td>Do not use as field or method param — return type OK</td></tr><tr><td>Default methods</td><td>Interface evolution</td><td>Diamond problem if two defaults — must override</td></tr><tr><td>Records (Java 16+)</td><td>Immutable data carriers</td><td>Auto equals/hashCode/toString</td></tr><tr><td>Sealed classes</td><td>Restricted inheritance</td><td>Exhaustive pattern matching (Java 21+)</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-7">
+        <h2 class="cs-section-title">⑧ Object lifecycle & initialization</h2>
+        <div class="cs-diagram"><div class="cs-diagram-title">Object creation order</div><div class="cs-flow"><span class="cs-box gray">Static init</span><span class="cs-arrow">→</span><span class="cs-box">Instance init blocks</span><span class="cs-arrow">→</span><span class="cs-box purple">Constructor</span><span class="cs-arrow">→</span><span class="cs-box green">Object ready</span></div></div><div class="cs-note"><strong>Shallow vs deep copy:</strong> clone() default is shallow — mutable fields shared. Deep copy requires manual or serialization libraries.</div>
+    </div>
+    <div class="cs-paper" id="cs-section-8">
+        <h2 class="cs-section-title">⑨ Interview Q&A</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Question</th><th>Answer sketch</th></tr><tr><td>Why String immutable?</td><td>Security, thread safety, pool interning, stable hashCode for keys</td></tr><tr><td>finalize()?</td><td>Deprecated — unreliable; use try-with-resources, Cleaner</td></tr><tr><td>fail-fast vs fail-safe?</td><td>Fail-fast (ArrayList iter) throws on concurrent mod; fail-safe (ConcurrentHashMap iter) snapshot</td></tr><tr><td>Checked vs unchecked exception?</td><td>Checked must declare/catch (IOException); unchecked extends RuntimeException</td></tr><tr><td>Composition vs inheritance?</td><td>Composition — has-a, flexible; inheritance — is-a, tight coupling</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-9">
+        <h2 class="cs-section-title">⑩ Revision checklist</h2>
+        <ul class="cs-checklist"><li>Explained heap vs stack with GC role</li><li>Named default GC (G1) and generational model</li><li>String immutability + pool + StringBuilder for concat</li><li>Stated equals/hashCode contract and HashMap impact</li><li>== vs equals with Integer cache example</li><li>Abstract class vs interface with Java 8 defaults</li></ul><div class="cs-tags"><span class="cs-tag">OOP</span><span class="cs-tag">JVM</span><span class="cs-tag">GC</span><span class="cs-tag">String</span><span class="cs-tag">equals</span><span class="cs-tag">hashCode</span></div>
+    </div>
+    <div class="cs-related"><h3>More in this category</h3><div class="cs-related-links"><a href="/cheat-sheets/java/collections">Java Collections</a></div></div>
+
 </div>
 </main>
 <script src="/js/cheat-sheet-videos.js"></script>
+<script src="/js/cheat-sheet-prompts.js"></script>
 <script src="/js/cheat-sheet.js"></script>
 <script src="/js/site-nav.js"></script>
 </body>

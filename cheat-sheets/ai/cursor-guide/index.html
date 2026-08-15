@@ -20,34 +20,54 @@
         <p class="cs-subtitle">AI-native IDE: chat, inline edit, Composer, rules, and repo-aware coding.</p>
     </header>
     <div class="cs-interview-tip"><strong>Interview tip</strong> Power moves: @file context, .cursorrules, Composer for multi-file features, terminal commands with approval.</div>
+    <nav class="cs-toc" aria-label="On this page">
+    <div class="cs-toc-title">On this page</div>
+    <ol><li><a href="#cs-section-0">① What you must know (30 sec)</a></li><li><a href="#cs-section-1">② How it works</a></li><li><a href="#cs-section-2">③ Step-by-step (hands-on)</a></li><li><a href="#cs-section-3">④ Code / config patterns</a></li><li><a href="#cs-section-4">⑤ Production & pitfalls</a></li><li><a href="#cs-section-5">⑥ Interview / on-the-job Q&A</a></li><li><a href="#cs-section-6">⑦ Tools & ecosystem</a></li><li><a href="#cs-section-7">⑧ Revision checklist</a></li></ol>
+  </nav>
     
-    <div class="cs-paper">
-        <h2 class="cs-section-title">Core features</h2>
-        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Feature</th><th>Use for</th></tr>
-        <tr><td>Chat (Ctrl+L)</td><td>Questions, small edits</td></tr>
-        <tr><td>Inline (Ctrl+K)</td><td>Edit selection in place</td></tr>
-        <tr><td>Composer</td><td>Multi-file features, refactors</td></tr>
-        <tr><td>@ mentions</td><td>Pin files, docs, web to context</td></tr>
-        <tr><td>Terminal</td><td>Run tests with AI assist</td></tr></table></div>
+    <div class="cs-paper" id="cs-section-0">
+        <h2 class="cs-section-title">① What you must know (30 sec)</h2>
+        <div class="cs-note"><strong>Cursor</strong> is an AI-native IDE (VS Code fork) with <strong>Chat</strong> for Q&A, <strong>Inline Edit (Cmd+K)</strong> for selection changes, and <strong>Agent/Composer</strong> for multi-file features. Use <strong>@ mentions</strong> to pin files and docs into context, and <strong>.cursor/rules</strong> to enforce project conventions across sessions.</div><div class="cs-note"><strong>Analogy:</strong> Cursor is pair programming with someone who has read your whole repo — but you still review every line before merge.</div>
     </div>
-    <div class="cs-paper">
-        <h2 class="cs-section-title">Workflow tips</h2>
-        <div class="cs-note"><ul>
-        <li>Write a <strong>spec</strong> in chat before codegen</li>
-        <li>Add <code>.cursor/rules</code> for project conventions</li>
-        <li>Review diffs — don't blindly accept</li>
-        <li>Use smaller tasks: "add tests" then "implement"</li>
-        </ul></div>
+    <div class="cs-paper" id="cs-section-1">
+        <h2 class="cs-section-title">② How it works</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Feature</th><th>Shortcut / access</th><th>Best for</th></tr><tr><td>Chat</td><td>Cmd+L</td><td>Explain code, small edits, debugging questions</td></tr><tr><td>Inline Edit</td><td>Cmd+K on selection</td><td>Rename, refactor one function, fix lint in place</td></tr><tr><td>Agent / Composer</td><td>Cmd+I</td><td>Multi-file features, tests + implementation</td></tr><tr><td>@ mentions</td><td>Type @ in chat</td><td>Pin files, folders, docs, web to context</td></tr><tr><td>Rules</td><td>.cursor/rules/*.md</td><td>Persistent project conventions</td></tr><tr><td>Terminal</td><td>Agent proposes commands</td><td>Run tests, installs — always review first</td></tr></table></div><div class="cs-note">Smaller scoped tasks get better results: "add unit tests for UserService" then "implement caching" beats one giant vague prompt.</div>
     </div>
-    <div class="cs-paper">
-        <h2 class="cs-section-title">Privacy note</h2>
-        <div class="cs-note">Check privacy mode / which models see your code. Don't paste secrets. Enterprise plans offer different data policies.</div>
+    <div class="cs-paper" id="cs-section-2">
+        <h2 class="cs-section-title">③ Step-by-step (hands-on)</h2>
+        <div class="cs-roadmap"><div class="cs-roadmap-step"><div><h4>Step 1 — Open project and index</h4><p>Open repo root so Cursor indexes the codebase. Wait for indexing on large monorepos before heavy Agent tasks.</p></div></div><div class="cs-roadmap-step"><div><h4>Step 2 — Set up rules</h4><p>Create .cursor/rules with stack, test commands, naming conventions, and "never commit secrets."</p></div></div><div class="cs-roadmap-step"><div><h4>Step 3 — Chat for orientation</h4><p>Ask "how does auth work?" with @src/auth/ attached. Read answer before changing code.</p></div></div><div class="cs-roadmap-step"><div><h4>Step 4 — Inline for local edits</h4><p>Select function → Cmd+K → "add error handling for null user". Review diff hunk by hunk.</p></div></div><div class="cs-roadmap-step"><div><h4>Step 5 — Agent for features</h4><p>Write spec: goal, files likely touched, test plan. Agent edits multiple files; run tests after.</p></div></div><div class="cs-roadmap-step"><div><h4>Step 6 — Review and iterate</h4><p>Never accept all blindly. Run linter and tests. Follow up chat: "fix failing test X".</p></div></div></div>
+    </div>
+    <div class="cs-paper" id="cs-section-3">
+        <h2 class="cs-section-title">④ Code / config patterns</h2>
+        <div class="cs-note"><strong>Effective prompt template:</strong> Goal → Constraints → @files → Test command → "Do not modify unrelated files." Example: "Add rate limiting to POST /api/chat. Use existing Redis client. @src/api/chat.ts @src/lib/redis.ts. Run npm test. Minimal diff only."</div><div class="cs-code-block"><pre># .cursor/rules/project.md
+- Stack: Next.js 14, TypeScript, Tailwind
+- Run tests: npm test
+- Never commit .env or API keys
+- Match existing error handling in src/lib/errors.ts
+- Prefer small PRs; one feature per Agent session</pre></div>
+    </div>
+    <div class="cs-paper" id="cs-section-4">
+        <h2 class="cs-section-title">⑤ Production & pitfalls</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Pitfall</th><th>Why it hurts</th><th>Fix</th></tr><tr><td>Vague giant prompts</td><td>Wrong files changed, broken build</td><td>Scope one task; attach @files explicitly</td></tr><tr><td>No rules file</td><td>Inconsistent style every session</td><td>Commit .cursor/rules to repo</td></tr><tr><td>Blind accept all diffs</td><td>Subtle bugs, deleted logic</td><td>Review every hunk; run tests</td></tr><tr><td>Missing @ context</td><td>Hallucinated APIs not in codebase</td><td>Pin relevant files and types</td></tr><tr><td>Secrets in chat</td><td>Keys in model context/logs</td><td>Use env vars; never paste credentials</td></tr><tr><td>Agent without test command</td><td>Regressions ship</td><td>Always specify how to verify in prompt</td></tr></table></div><div class="cs-note"><strong>Production tips:</strong><ul><li>Enable privacy mode if code cannot leave your machine</li><li>Use team rules for shared conventions across developers</li><li>Treat Agent output like a junior PR — full review required</li><li>Document which models your org allows for compliance</li></ul></div>
+    </div>
+    <div class="cs-paper" id="cs-section-5">
+        <h2 class="cs-section-title">⑥ Interview / on-the-job Q&A</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Question</th><th>Answer</th></tr><tr><td>Chat vs Composer?</td><td>Chat for Q&A and small edits; Composer/Agent for multi-file implementation.</td></tr><tr><td>What are @ mentions?</td><td>Attach files, folders, documentation, or web pages to the model context.</td></tr><tr><td>What are Cursor rules?</td><td>Persistent instructions in .cursor/rules applied to every session in the project.</td></tr><tr><td>Is code sent to the cloud?</td><td>Depends on privacy settings and plan — check Cursor privacy docs for your tier.</td></tr><tr><td>Best workflow?</td><td>Spec → attach context → small scope → review diff → run tests → commit.</td></tr><tr><td>When use Inline vs Agent?</td><td>Inline for one function; Agent when touching 3+ files or adding a feature end-to-end.</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-6">
+        <h2 class="cs-section-title">⑦ Tools & ecosystem</h2>
+        <div class="cs-note"><ul><li><strong>Modes:</strong> Chat, Inline Edit, Agent/Composer</li><li><strong>Context:</strong> @file, @folder, @codebase, @docs, @web</li><li><strong>Config:</strong> .cursor/rules, .cursorignore</li><li><strong>Models:</strong> GPT-4o, Claude Sonnet, Composer models (settings)</li></ul></div><div class="cs-tags"><span class="cs-tag">cursor</span><span class="cs-tag">ide</span><span class="cs-tag">composer</span><span class="cs-tag">rules</span><span class="cs-tag">productivity</span></div>
+    </div>
+    <div class="cs-paper" id="cs-section-7">
+        <h2 class="cs-section-title">⑧ Revision checklist</h2>
+        <ul class="cs-checklist"><li>.cursor/rules committed with stack and test commands</li><li>Understand Chat vs Inline vs Agent use cases</li><li>@ mentions used for relevant files on every task</li><li>Prompts scoped to one feature or fix</li><li>Every diff reviewed before accept</li><li>Tests run after Agent sessions</li><li>No secrets pasted into chat</li><li>Privacy settings checked for work repos</li><li>.cursorignore excludes node_modules and secrets</li></ul>
     </div>
     <div class="cs-related"><h3>More in this category</h3><div class="cs-related-links"><a href="/cheat-sheets/ai/">All AI cheat sheets</a><a href="/cheat-sheets/ai/rag">RAG</a><a href="/cheat-sheets/ai/agents-intro">What is an Agent?</a></div></div>
 
 </div>
 </main>
 <script src="/js/cheat-sheet-videos.js"></script>
+<script src="/js/cheat-sheet-prompts.js"></script>
 <script src="/js/cheat-sheet.js"></script>
 <script src="/js/site-nav.js"></script>
 </body>

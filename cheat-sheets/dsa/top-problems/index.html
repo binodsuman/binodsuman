@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Top DSA Interview Problems | Binod Suman Cheat Sheet</title>
-    <meta name="description" content="Top 20 coding interview problems by pattern with difficulty and key insight for FAANG prep.">
+    <meta name="description" content="High-frequency problems with pattern tags, approach hints, and complexity — your prioritized study list.">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Kalam:wght@400;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/css/site-nav.css">
@@ -13,40 +13,64 @@
 <body class="cheat-sheet-page">
 <main class="cheat-sheet-page">
 <div class="cs-container">
-    <nav class="cs-breadcrumb"><a href="/">Home</a> · <a href="/cheat-sheets/">Cheat Sheets</a> · DSA · Top Problems</nav>
+    <nav class="cs-breadcrumb"><a href="/">Home</a> · <a href="/cheat-sheets/">Cheat Sheets</a> · <a href="/cheat-sheets/dsa/">DSA</a> · Top Problems</nav>
     <header class="cs-hero">
         <span class="cs-category-badge dsa">DSA</span>
-        <h1 class="cs-title">Top 20 Interview Problems</h1>
-        <p class="cs-subtitle">High-frequency problems mapped to patterns — revise these before any coding interview.</p>
+        <h1 class="cs-title">Top DSA Interview Problems</h1>
+        <p class="cs-subtitle">High-frequency problems with pattern tags, approach hints, and complexity — your prioritized study list.</p>
     </header>
+    <div class="cs-interview-tip"><strong>Interview tip</strong> For each problem: pattern → brute force → optimized → complexity → edge cases (empty, single, duplicates).</div>
+    <nav class="cs-toc" aria-label="On this page">
+    <div class="cs-toc-title">On this page</div>
+    <ol><li><a href="#cs-section-0">① Arrays & hashing — top problems</a></li><li><a href="#cs-section-1">② Linked lists</a></li><li><a href="#cs-section-2">③ Trees & graphs</a></li><li><a href="#cs-section-3">④ Dynamic programming</a></li><li><a href="#cs-section-4">⑤ Heaps & design</a></li><li><a href="#cs-section-5">⑥ Binary search classics</a></li><li><a href="#cs-section-6">⑦ How to practice each problem</a></li><li><a href="#cs-section-7">⑧ 2-week prioritized study plan</a></li><li><a href="#cs-section-8">⑨ Complexity quick reference</a></li><li><a href="#cs-section-9">⑩ Revision checklist</a></li></ol>
+  </nav>
     
-    <div class="cs-interview-tip"><strong>Interview tip</strong> Do 2 easy + 1 medium in 45 min practice sessions. Explain brute force first, then optimize.</div>
-    <div class="cs-paper">
-        <h2 class="cs-section-title">Must-do list</h2>
-        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Problem</th><th>Pattern</th><th>Key insight</th></tr>
-        <tr><td>Two Sum</td><td>Hash map</td><td>Store complement</td></tr>
-        <tr><td>Valid Anagram</td><td>Hash / sort</td><td>Char frequency</td></tr>
-        <tr><td>Merge intervals</td><td>Intervals</td><td>Sort by start</td></tr>
-        <tr><td>LRU Cache</td><td>Hash + DLL</td><td>O(1) get/put</td></tr>
-        <tr><td>Serialize BST</td><td>Tree DFS</td><td>Preorder with null markers</td></tr>
-        <tr><td>Course schedule</td><td>Topo sort</td><td>Cycle = impossible</td></tr>
-        <tr><td>Number of islands</td><td>DFS/BFS grid</td><td>Mark visited</td></tr>
-        <tr><td>Coin change</td><td>DP</td><td>min(coins) unbounded</td></tr>
-        <tr><td>House robber</td><td>DP</td><td>rob[i] vs skip[i]</td></tr>
-        <tr><td>Trapping rain water</td><td>Two pointers</td><td>Max left/right height</td></tr>
-        <tr><td>Longest substring w/o repeat</td><td>Sliding window</td><td>Hash set of chars</td></tr>
-        <tr><td>Merge K lists</td><td>Heap</td><td>Min-heap of heads</td></tr>
-        <tr><td>Word break</td><td>DP</td><td>dp[i] = any word match</td></tr>
-        <tr><td>Search rotated array</td><td>Binary search</td><td>Which half sorted?</td></tr>
-        <tr><td>Subarray sum equals K</td><td>Prefix sum + hash</td><td>Count prefix differences</td></tr></table></div>
+    <div class="cs-paper" id="cs-section-0">
+        <h2 class="cs-section-title">① Arrays & hashing — top problems</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Problem</th><th>Pattern</th><th>Approach hint</th><th>Complexity</th></tr><tr><td>Two Sum</td><td>Hash map</td><td>Store complement as you scan</td><td>O(n) time O(n) space</td></tr><tr><td>3Sum</td><td>Sort + two pointers</td><td>Fix i, two-pointer rest for zero sum</td><td>O(n²)</td></tr><tr><td>Container With Most Water</td><td>Two pointers</td><td>Move shorter line inward</td><td>O(n)</td></tr><tr><td>Longest Substring Without Repeating</td><td>Sliding window</td><td>Map char → last index; shrink on dup</td><td>O(n)</td></tr><tr><td>Product of Array Except Self</td><td>Prefix/suffix</td><td>Output[i] = left product × right product</td><td>O(n) O(1)* extra</td></tr><tr><td>Merge Intervals</td><td>Sort + merge</td><td>Sort by start; merge overlaps</td><td>O(n log n)</td></tr><tr><td>Trapping Rain Water</td><td>Two pointers / stack</td><td>Max left/right height at each index</td><td>O(n)</td></tr></table></div>
     </div>
-    <div class="cs-related">
-        <h3>More in this category</h3>
-        <div class="cs-related-links"><a href="/cheat-sheets/dsa/patterns">DSA Patterns</a></div>
+    <div class="cs-paper" id="cs-section-1">
+        <h2 class="cs-section-title">② Linked lists</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Problem</th><th>Pattern</th><th>Approach hint</th><th>Complexity</th></tr><tr><td>Reverse Linked List</td><td>In-place reversal</td><td>prev/curr/next iteration</td><td>O(n) O(1)</td></tr><tr><td>Merge Two Sorted Lists</td><td>Dummy head</td><td>Compare heads, attach smaller</td><td>O(n+m)</td></tr><tr><td>Linked List Cycle</td><td>Fast/slow</td><td>Floyd detection</td><td>O(n) O(1)</td></tr><tr><td>Reorder List</td><td>Multi-step</td><td>Find middle, reverse 2nd half, merge</td><td>O(n)</td></tr><tr><td>LRU Cache</td><td>HashMap + DLL</td><td>Get/put O(1); evict tail on capacity</td><td>O(1) per op</td></tr></table></div><div class="cs-note">LRU Cache is a <strong>design + DSA</strong> favorite — practice implementing from scratch.</div>
     </div>
+    <div class="cs-paper" id="cs-section-2">
+        <h2 class="cs-section-title">③ Trees & graphs</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Problem</th><th>Pattern</th><th>Approach hint</th><th>Complexity</th></tr><tr><td>Invert Binary Tree</td><td>DFS/BFS</td><td>Swap children recursively</td><td>O(n)</td></tr><tr><td>Validate BST</td><td>DFS bounds</td><td>Pass (min, max) down</td><td>O(n)</td></tr><tr><td>Lowest Common Ancestor</td><td>DFS</td><td>Return node if p/q found in subtrees</td><td>O(n)</td></tr><tr><td>Binary Tree Level Order</td><td>BFS</td><td>Queue per level</td><td>O(n)</td></tr><tr><td>Serialize/Deserialize BT</td><td>BFS/DFS</td><td>Include null markers</td><td>O(n)</td></tr><tr><td>Number of Islands</td><td>DFS/BFS grid</td><td>Mark visited; flood fill</td><td>O(m×n)</td></tr><tr><td>Course Schedule</td><td>Topo sort</td><td>Kahn or cycle detect DFS</td><td>O(V+E)</td></tr><tr><td>Word Ladder</td><td>BFS</td><td>Bidirectional BFS optional</td><td>O(N×L²)</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-3">
+        <h2 class="cs-section-title">④ Dynamic programming</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Problem</th><th>Pattern</th><th>State / recurrence</th><th>Complexity</th></tr><tr><td>Climbing Stairs</td><td>1D DP</td><td>dp[i]=dp[i-1]+dp[i-2]</td><td>O(n) O(1)</td></tr><tr><td>House Robber</td><td>1D DP</td><td>dp[i]=max(dp[i-1], nums[i]+dp[i-2])</td><td>O(n)</td></tr><tr><td>Coin Change</td><td>Unbounded knapsack</td><td>dp[a]=min coins for amount a</td><td>O(amount×coins)</td></tr><tr><td>Longest Increasing Subsequence</td><td>DP or patience</td><td>O(n²) DP or O(n log n) binary search on tails</td></tr><tr><td>Word Break</td><td>String DP</td><td>dp[i]=true if prefix breakable</td><td>O(n²×dict)</td></tr><tr><td>Edit Distance</td><td>2D string DP</td><td>Insert/delete/replace min ops</td><td>O(m×n)</td></tr><tr><td>Unique Paths</td><td>Grid DP</td><td>dp[r][c]=dp[r-1][c]+dp[r][c-1]</td><td>O(m×n)</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-4">
+        <h2 class="cs-section-title">⑤ Heaps & design</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Problem</th><th>Pattern</th><th>Key idea</th></tr><tr><td>Kth Largest Element</td><td>Min-heap size K</td><td>Or quickselect O(n) avg</td></tr><tr><td>Merge K Sorted Lists</td><td>Min-heap of heads</td><td>Pop min, push next from that list</td></tr><tr><td>Find Median from Data Stream</td><td>Two heaps</td><td>Balance sizes after each add</td></tr><tr><td>Top K Frequent Elements</td><td>Heap or bucket sort</td><td>Bucket by frequency O(n)</td></tr><tr><td>Task Scheduler</td><td>Greedy + math</td><td>Cooldown slots or heap simulation</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-5">
+        <h2 class="cs-section-title">⑥ Binary search classics</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Problem</th><th>Search space</th><th>Predicate</th></tr><tr><td>Search in Rotated Sorted Array</td><td>Index</td><td>Which half is sorted?</td></tr><tr><td>Find Minimum in Rotated Sorted Array</td><td>Index</td><td>Compare mid with right</td></tr><tr><td>Koko Eating Bananas</td><td>Speed k</td><td>Can finish in H hours?</td></tr><tr><td>Median of Two Sorted Arrays</td><td>Partition i</td><td>Left parts ≤ right parts</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-6">
+        <h2 class="cs-section-title">⑦ How to practice each problem</h2>
+        <ul class="cs-checklist"><li>Read problem — restate in own words</li><li>Name pattern before coding</li><li>Brute force first if stuck — then optimize</li><li>State time and space complexity aloud</li><li>List edge cases: empty, one element, duplicates, negatives</li><li>Write clean pseudocode or code in 20–25 min timed</li><li>Re-solve from memory next day without hints</li></ul><div class="cs-note">Quality &gt; quantity: 50 well-understood problems beat 200 shallow solves.</div>
+    </div>
+    <div class="cs-paper" id="cs-section-7">
+        <h2 class="cs-section-title">⑧ 2-week prioritized study plan</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Week</th><th>Focus</th><th>Problems (daily 2)</th></tr><tr><td>Week 1</td><td>Arrays, hash, two pointers</td><td>Two Sum, 3Sum, Container, Longest Substring, Merge Intervals</td></tr><tr><td>Week 1</td><td>Trees BFS/DFS</td><td>Invert, Validate BST, LCA, Level Order</td></tr><tr><td>Week 2</td><td>Graphs + topo</td><td>Islands, Course Schedule, Word Ladder</td></tr><tr><td>Week 2</td><td>DP + heap</td><td>Coin Change, LIS, LRU Cache, Kth Largest</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-8">
+        <h2 class="cs-section-title">⑨ Complexity quick reference</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Structure</th><th>Access</th><th>Search</th><th>Insert</th><th>Delete</th></tr><tr><td>Array</td><td>O(1)</td><td>O(n)</td><td>O(n)</td><td>O(n)</td></tr><tr><td>Hash map</td><td>—</td><td>O(1)*</td><td>O(1)*</td><td>O(1)*</td></tr><tr><td>Balanced BST</td><td>O(log n)</td><td>O(log n)</td><td>O(log n)</td><td>O(log n)</td></tr><tr><td>Heap</td><td>min/max O(1)</td><td>—</td><td>O(log n)</td><td>O(log n)</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-9">
+        <h2 class="cs-section-title">⑩ Revision checklist</h2>
+        <ul class="cs-checklist"><li>Can solve Two Sum, LRU, Islands, Coin Change from memory</li><li>State pattern and complexity without hesitation</li><li>Handled follow-ups: 3Sum, follow-up space optimization</li><li>Practiced timed 25-min sessions</li><li>Reviewed wrong answers in error log notebook</li></ul><div class="cs-tags"><span class="cs-tag">arrays</span><span class="cs-tag">trees</span><span class="cs-tag">graphs</span><span class="cs-tag">DP</span><span class="cs-tag">heap</span><span class="cs-tag">interview</span></div>
+    </div>
+    <div class="cs-related"><h3>More in this category</h3><div class="cs-related-links"><a href="/cheat-sheets/dsa/patterns">DSA Patterns</a></div></div>
+
 </div>
 </main>
 <script src="/js/cheat-sheet-videos.js"></script>
+<script src="/js/cheat-sheet-prompts.js"></script>
 <script src="/js/cheat-sheet.js"></script>
 <script src="/js/site-nav.js"></script>
 </body>

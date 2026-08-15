@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Design Distributed Cache | Binod Suman Cheat Sheet</title>
-    <meta name="description" content="Redis cluster, consistent hashing, replication, and cache invalidation strategies.">
+    <meta name="description" content="Redis cluster, consistent hashing, replication, cache-aside vs read-through, and invalidation at scale.">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Kalam:wght@400;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/css/site-nav.css">
@@ -17,30 +17,60 @@
     <header class="cs-hero">
         <span class="cs-category-badge system-design">System Design</span>
         <h1 class="cs-title">Design Distributed Cache</h1>
-        <p class="cs-subtitle">Redis cluster, consistent hashing, replication, and cache invalidation strategies.</p>
+        <p class="cs-subtitle">Redis cluster, consistent hashing, replication, cache-aside vs read-through, and invalidation at scale.</p>
     </header>
-    <div class="cs-interview-tip"><strong>Interview tip</strong> Explain sharding, replication for HA, cache-aside vs read-through, and thundering herd mitigation.</div>
+    <div class="cs-interview-tip"><strong>Interview tip</strong> Explain sharding with consistent hashing, replication for HA, cache-aside pattern, thundering herd mitigation (singleflight), and cache invalidation strategies (TTL vs delete-on-write).</div>
+    <nav class="cs-toc" aria-label="On this page">
+    <div class="cs-toc-title">On this page</div>
+    <ol><li><a href="#cs-section-0">① Clarify requirements</a></li><li><a href="#cs-section-1">② Back-of-the-envelope scale</a></li><li><a href="#cs-section-2">③ High-level architecture</a></li><li><a href="#cs-section-3">④ API & interfaces</a></li><li><a href="#cs-section-4">⑤ Data model & storage</a></li><li><a href="#cs-section-5">⑥ Deep dive — core components</a></li><li><a href="#cs-section-6">⑦ Trade-offs & alternatives</a></li><li><a href="#cs-section-7">⑧ 45-minute interview script</a></li><li><a href="#cs-section-8">⑨ Likely follow-up questions</a></li><li><a href="#cs-section-9">⑩ Revision checklist</a></li></ol>
+  </nav>
     
-    <div class="cs-paper">
-        <h2 class="cs-section-title">Why distributed</h2>
-        <div class="cs-note">Single Redis hits memory limit. Shard by key hash across nodes. Each shard primary + replica.</div>
+    <div class="cs-paper" id="cs-section-0">
+        <h2 class="cs-section-title">① Clarify requirements</h2>
+        <div class="cs-note"><strong>Functional</strong><ul><li>get(key) → value or miss</li><li>set(key, value, ttl_sec) — store with optional expiration</li><li>delete(key) — explicit invalidation</li><li>Support cache-aside pattern (app manages cache)</li><li>Atomic increment/decrement for counters</li><li>Batch get (mget) for multiple keys</li><li>Namespace/prefix support for logical isolation</li></ul><strong>Non-functional</strong><ul><li>1M operations/sec across cluster</li><li>get latency p99 &lt; 5ms</li><li>99.99% availability — survive single node failure</li><li>Horizontally scalable to 10TB total memory</li><li>Consistent performance under node add/remove (minimal key redistribution)</li></ul></div><div class="cs-note"><strong>Out of scope (say in interview)</strong><ul><li>Redis-specific commands (focus on concepts)</li><li>Cache warming strategies (brief mention)</li><li>Multi-region cache coherence</li><li>Persistent cache (AOF/RDB backup — brief)</li></ul></div>
     </div>
-    <div class="cs-paper">
-        <h2 class="cs-section-title">Consistent hashing</h2>
-        <div class="cs-note">Keys → hash ring → node. Add node = minimal key movement. Virtual nodes for balance.</div>
+    <div class="cs-paper" id="cs-section-1">
+        <h2 class="cs-section-title">② Back-of-the-envelope scale</h2>
+        <div class="cs-note"><strong>Assumptions</strong><ul><li>1M ops/sec: 80% get, 20% set → 800K gets/sec, 200K sets/sec</li><li>100M unique keys × 10KB avg = 1TB data (10TB with replication factor 3)</li><li>Cache hit ratio target: 95% → 50K DB queries/sec on miss</li><li>Cluster: 100 nodes × 100GB RAM = 10TB; ~10K ops/sec per node</li><li>Network: 1M ops × 10KB = 10 GB/sec aggregate bandwidth</li><li>Consistent hash: 100 physical nodes × 150 virtual nodes = 15K ring positions</li></ul></div><div class="cs-note">Each shard: 1 primary + 2 replicas. On primary failure, replica promoted in &lt;30s. Client library handles topology changes via gossip protocol. Hot keys: replicate to all nodes or local L1 cache on app servers.</div>
     </div>
-    <div class="cs-paper">
-        <h2 class="cs-section-title">Invalidation</h2>
-        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Strategy</th><th>When</th></tr>
-        <tr><td>TTL</td><td>Stale OK briefly</td></tr>
-        <tr><td>Delete on write</td><td>Strong consistency need</td></tr>
-        <tr><td>Pub/sub invalidate</td><td>Multi-region caches</td></tr></table></div>
+    <div class="cs-paper" id="cs-section-2">
+        <h2 class="cs-section-title">③ High-level architecture</h2>
+        <div class="cs-diagram"><div class="cs-diagram-title">Distributed Cache Cluster</div><div class="cs-arch-grid"><div class="cs-arch-row"><div class="cs-arch-cell gray">Application Servers</div></div><div class="cs-arch-row"><div class="cs-arch-cell purple">Cache Client Library (consistent hash router)</div></div><div class="cs-arch-row"><div class="cs-arch-cell green">Shard 1 (Primary + 2 Replicas)</div><div class="cs-arch-cell green">Shard 2 (Primary + 2 Replicas)</div><div class="cs-arch-cell green">Shard N…</div></div><div class="cs-arch-row"><div class="cs-arch-cell orange">Gossip Protocol (cluster membership)</div></div><div class="cs-arch-row"><div class="cs-arch-cell gray">Database (on cache miss)</div></div></div></div><div class="cs-flow"><span class="cs-box gray">get(key)</span><span class="cs-arrow">→</span><span class="cs-box">Hash → shard</span><span class="cs-arrow">→</span><span class="cs-box purple">Hit / miss</span><span class="cs-arrow">→</span><span class="cs-box green">DB on miss</span></div><div class="cs-note">Client library computes shard = consistent_hash(key) → routes to primary. On miss: app fetches DB, populates cache (cache-aside). Replication: primary streams writes to replicas asynchronously (eventual consistency within shard).</div>
+    </div>
+    <div class="cs-paper" id="cs-section-3">
+        <h2 class="cs-section-title">④ API & interfaces</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Endpoint / flow</th><th>Purpose</th><th>Notes</th></tr><tr><td>GET key</td><td>Retrieve value</td><td>Returns value or nil; p99 &lt;5ms</td></tr><tr><td>SET key value EX ttl</td><td>Store with TTL</td><td>Atomic; replicates to replicas async</td></tr><tr><td>DEL key</td><td>Delete / invalidate</td><td>Propagates to replicas; returns count deleted</td></tr><tr><td>MGET key1 key2 …</td><td>Batch get</td><td>Routes to multiple shards in parallel; merges results</td></tr><tr><td>INCR key</td><td>Atomic counter</td><td>Used for rate limiting, view counts</td></tr><tr><td>CLUSTER NODES</td><td>Topology discovery</td><td>Client bootstraps shard map; refreshed on MOVED redirect</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-4">
+        <h2 class="cs-section-title">⑤ Data model & storage</h2>
+        <div class="cs-note"><strong>Cache entry</strong> (in-memory per shard): <code>key</code> (string, max 512MB value), <code>value</code> (bytes), <code>ttl_expiry</code> (absolute timestamp), <code>access_count</code> (for LFU eviction)<br><br><strong>Cluster metadata</strong>: <code>node_id</code>, <code>ip:port</code>, <code>role</code> (primary|replica), <code>hash_slots[]</code>, <code>status</code> (online|fail|handshake)</div><div class="cs-table-wrap"><table class="cs-table"><tr><th>Store</th><th>What</th><th>Why</th></tr><tr><td>In-memory (per shard node)</td><td>Cache data</td><td>RAM; eviction when maxmemory reached</td></tr><tr><td>AOF (append-only file)</td><td>Durability (optional)</td><td>fsync every sec; rebuild on restart — most caches skip for speed</td></tr><tr><td>Gossip state</td><td>Cluster topology</td><td>In-memory; exchanged every 1s between nodes</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-5">
+        <h2 class="cs-section-title">⑥ Deep dive — core components</h2>
+        <h3 class="cs-subheading">Consistent hashing with virtual nodes</h3><div class="cs-diagram"><div class="cs-diagram-title">Hash ring (conceptual)</div><div class="cs-note">Keys A, B, C hash onto ring → walk clockwise to nearest vnode → physical node owns key. Adding Node D only moves keys between C and D.</div></div><div class="cs-note">Hash ring: 0 to 2³². Each physical node has 150 virtual nodes on ring (better balance). key → hash(key) → walk clockwise to first virtual node → that physical node owns the key. Add node: only keys between predecessor and new node move (~1/N keys). Remove node: keys redistributed to next node.</div><div class="cs-note">Without virtual nodes: uneven distribution when few nodes. With 150 vnodes per node: std deviation &lt; 5% key distribution.</div><h3 class="cs-subheading">Cache-aside pattern and thundering herd</h3><div class="cs-note"><strong>Cache-aside:</strong> App checks cache → on miss, read DB → write to cache → return. App owns consistency. On write: update DB first, then delete cache key (not update — avoids race).</div><div class="cs-note"><strong>Thundering herd:</strong> Hot key expires → 10K concurrent requests miss → all hit DB. Fixes: (1) <strong>Singleflight</strong> — only one request fetches DB, others wait. (2) <strong>Probabilistic early expiration</strong> — expire at random time before TTL. (3) <strong>Never expire hot keys</strong> — background refresh before TTL.</div><h3 class="cs-subheading">Replication and failover</h3><div class="cs-note">Each shard: 1 primary + 2 replicas. Writes go to primary → replicated via command stream. Reads: default from primary (strong); can read from replica (eventual, lower load). Primary failure: replicas gossip elect new primary in &lt;30s. Clients receive MOVED/ASK redirects during rebalancing.</div><h3 class="cs-subheading">Eviction policies</h3><div class="cs-note">When maxmemory reached: <strong>allkeys-lru</strong> (evict least recently used — general purpose), <strong>volatile-lru</strong> (only keys with TTL), <strong>allkeys-lfu</strong> (least frequently used — better for hot key retention). Never <strong>noeviction</strong> in production cache — causes OOM errors. Monitor eviction rate; scale if &gt; 100/sec.</div>
+    </div>
+    <div class="cs-paper" id="cs-section-6">
+        <h2 class="cs-section-title">⑦ Trade-offs & alternatives</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Decision</th><th>Option A</th><th>Option B</th><th>Pick when</th></tr><tr><td>Pattern</td><td>Cache-aside</td><td>Read-through</td><td>Cache-aside: app control; read-through: simpler app code</td></tr><tr><td>Write</td><td>Delete on write</td><td>Update cache on write</td><td>Delete safer; update risks stale if DB write fails</td></tr><tr><td>Consistency</td><td>Eventual (replicas)</td><td>Strong (primary only)</td><td>Primary reads for strong; replicas for scale</td></tr><tr><td>Eviction</td><td>LRU</td><td>LFU</td><td>LRU general; LFU better for skewed access patterns</td></tr><tr><td>Hot key</td><td>Local L1 cache</td><td>Replicate key to all nodes</td><td>L1 simpler; replicate for extreme hot keys</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-7">
+        <h2 class="cs-section-title">⑧ 45-minute interview script</h2>
+        <div class="cs-note"><ol><li>0–5 min: Clarify cache-aside, TTL, scale, availability requirements</li><li>5–12 min: Scale — 1M ops/sec, 1TB data, hit ratio math</li><li>12–22 min: Consistent hashing diagram with virtual nodes</li><li>22–30 min: Cache-aside pattern; delete vs update on write</li><li>30–36 min: Thundering herd — singleflight and early expiration</li><li>36–42 min: Replication and failover</li><li>42–45 min: Eviction policy selection</li></ol></div>
+    </div>
+    <div class="cs-paper" id="cs-section-8">
+        <h2 class="cs-section-title">⑨ Likely follow-up questions</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Question</th><th>Short answer</th></tr><tr><td>Hot key on one shard?</td><td>Local L1 cache on app; or replicate hot key to all shards; client-side hash override</td></tr><tr><td>Cache node dies?</td><td>Replica promoted; ~1/N keys unavailable for 30s; clients retry with redirect</td></tr><tr><td>Cache and DB inconsistent?</td><td>TTL bounds staleness; delete-on-write for critical data; accept eventual for most</td></tr><tr><td>10TB — all in RAM?</td><td>Yes for Redis-class; larger: tiered cache (hot in RAM, warm on SSD with Redis on Flash)</td></tr><tr><td>How to monitor cache health?</td><td>Hit ratio, eviction rate, memory usage, p99 latency, replication lag per shard</td></tr><tr><td>Add node without downtime?</td><td>Add node → reshard slots gradually → each slot migration moves keys live with dual-write period</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-9">
+        <h2 class="cs-section-title">⑩ Revision checklist</h2>
+        <ul class="cs-checklist"><li>Consistent hashing with virtual nodes</li><li>Cache-aside pattern explained</li><li>Delete-on-write (not update-on-write)</li><li>Thundering herd + singleflight solution</li><li>Primary + replica per shard</li><li>Failover and MOVED redirects</li><li>95% hit ratio → DB load calculation</li><li>Eviction policy (LRU/LFU)</li><li>1M ops/sec cluster sizing</li><li>Hot key mitigation strategies</li></ul><div class="cs-tags"><span class="cs-tag">Redis</span><span class="cs-tag">consistent hashing</span><span class="cs-tag">caching</span><span class="cs-tag">replication</span><span class="cs-tag">performance</span></div>
     </div>
     <div class="cs-related"><h3>More in this category</h3><div class="cs-related-links"><a href="/cheat-sheets/system-design/">All SD cheat sheets</a><a href="/cheat-sheets/system-design/fundamentals">SD Fundamentals</a><a href="/cheat-sheets/system-design/url-shortener">URL Shortener</a></div></div>
 
 </div>
 </main>
 <script src="/js/cheat-sheet-videos.js"></script>
+<script src="/js/cheat-sheet-prompts.js"></script>
 <script src="/js/cheat-sheet.js"></script>
 <script src="/js/site-nav.js"></script>
 </body>

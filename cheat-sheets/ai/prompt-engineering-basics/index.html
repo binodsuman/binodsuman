@@ -20,29 +20,56 @@
         <p class="cs-subtitle">Clear instructions, examples, structure, and evaluation — the foundation before fancy RAG.</p>
     </header>
     <div class="cs-interview-tip"><strong>Interview tip</strong> Framework: Role + Task + Context + Format + Constraints. Always show 1–2 few-shot examples for structured output.</div>
+    <nav class="cs-toc" aria-label="On this page">
+    <div class="cs-toc-title">On this page</div>
+    <ol><li><a href="#cs-section-0">① What you must know (30 sec)</a></li><li><a href="#cs-section-1">② How it works</a></li><li><a href="#cs-section-2">③ Step-by-step (hands-on)</a></li><li><a href="#cs-section-3">④ Code / config patterns</a></li><li><a href="#cs-section-4">⑤ Production & pitfalls</a></li><li><a href="#cs-section-5">⑥ Interview / on-the-job Q&A</a></li><li><a href="#cs-section-6">⑦ Tools & ecosystem</a></li><li><a href="#cs-section-7">⑧ Revision checklist</a></li></ol>
+  </nav>
     
-    <div class="cs-paper">
-        <h2 class="cs-section-title">Anatomy of a good prompt</h2>
-        <div class="cs-layer-diagram">
-        <div class="cs-layer l1">Role — "You are a senior SD interviewer"</div>
-        <div class="cs-layer l2">Task — "Design URL shortener in 5 bullets"</div>
-        <div class="cs-layer l3">Context — requirements, constraints</div>
-        <div class="cs-layer l4">Format — JSON, markdown table, max words</div></div>
+    <div class="cs-paper" id="cs-section-0">
+        <h2 class="cs-section-title">① What you must know (30 sec)</h2>
+        <div class="cs-note"><strong>Prompt engineering</strong> is designing inputs so LLMs reliably produce the output you need — without retraining. Core framework: <strong>Role</strong> (who), <strong>Task</strong> (what), <strong>Context</strong> (background), <strong>Format</strong> (shape), <strong>Constraints</strong> (rules). Techniques: few-shot examples, chain-of-thought, self-check, and temperature tuning.</div><div class="cs-note"><strong>Analogy:</strong> Prompting is like writing a great brief for a freelancer — vague briefs get vague work; precise briefs with examples get repeatable results.</div>
     </div>
-    <div class="cs-paper">
-        <h2 class="cs-section-title">Techniques</h2>
-        <div class="cs-note"><ul>
-        <li><strong>Few-shot</strong> — input/output examples</li>
-        <li><strong>Chain-of-thought</strong> — "think step by step"</li>
-        <li><strong>Self-check</strong> — "verify against rules before answer"</li>
-        <li><strong>Temperature</strong> — 0 for facts, higher for creative</li>
-        </ul></div>
+    <div class="cs-paper" id="cs-section-1">
+        <h2 class="cs-section-title">② How it works</h2>
+        <div class="cs-layer-diagram"><div class="cs-layer l1">Role — "You are a senior backend engineer reviewing PRs"</div><div class="cs-layer l2">Task — "List security issues in the diff below"</div><div class="cs-layer l3">Context — requirements, audience, data the model needs</div><div class="cs-layer l4">Format — JSON schema, bullet count, markdown table, max words</div><div class="cs-layer l1">Constraints — "Only use provided context; say unknown if missing"</div></div><div class="cs-diagram"><div class="cs-diagram-title">Technique picker</div><div class="cs-flow"><span class="cs-box gray">Need structure?</span><span class="cs-arrow">→</span><span class="cs-box purple">Few-shot examples</span><span class="cs-arrow">→</span><span class="cs-box gray">Need reasoning?</span><span class="cs-arrow">→</span><span class="cs-box green">Chain-of-thought</span><span class="cs-arrow">→</span><span class="cs-box gray">Need facts?</span><span class="cs-arrow">→</span><span class="cs-box orange">RAG or tools</span></div></div><div class="cs-note">Always A/B test prompt changes on a fixed eval set — intuition lies; metrics don't.</div>
+    </div>
+    <div class="cs-paper" id="cs-section-2">
+        <h2 class="cs-section-title">③ Step-by-step (hands-on)</h2>
+        <div class="cs-roadmap"><div class="cs-roadmap-step"><div><h4>Step 1 — Define success criteria</h4><p>What does good output look like? Write 5 ideal examples before crafting the prompt.</p></div></div><div class="cs-roadmap-step"><div><h4>Step 2 — Draft RTCF prompt</h4><p>Role + Task + Context + Format + Constraints in clear sections or XML tags.</p></div></div><div class="cs-roadmap-step"><div><h4>Step 3 — Add 1–2 few-shot examples</h4><p>Show input → expected output for classification, extraction, or formatting tasks.</p></div></div><div class="cs-roadmap-step"><div><h4>Step 4 — Tune parameters</h4><p>temperature=0 for deterministic facts; higher for brainstorming. Set max_tokens to prevent rambling.</p></div></div><div class="cs-roadmap-step"><div><h4>Step 5 — Build eval set</h4><p>20–50 inputs with golden outputs. Run prompt v1 and v2; compare accuracy or use LLM-as-judge.</p></div></div><div class="cs-roadmap-step"><div><h4>Step 6 — Harden for production</h4><p>Separate system vs user content; defend against injection; version prompts in git.</p></div></div></div>
+    </div>
+    <div class="cs-paper" id="cs-section-3">
+        <h2 class="cs-section-title">④ Code / config patterns</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Technique</th><th>Purpose</th><th>Example phrase</th></tr><tr><td>Few-shot</td><td>Teach format by example</td><td>Input: ... Output: ...</td></tr><tr><td>Chain-of-thought</td><td>Multi-step reasoning</td><td>"Think step by step"</td></tr><tr><td>Self-check</td><td>Reduce errors</td><td>"Verify against rules before answering"</td></tr><tr><td>Delimiters</td><td>Separate sections</td><td>### Context ### ... ### Task ###</td></tr><tr><td>Negative constraints</td><td>Prevent bad behavior</td><td>"Do not invent citations"</td></tr></table></div><div class="cs-code-block"><pre>SYSTEM = """You are a ticket classifier.
+Output JSON only: {"label": "billing|bug|feature", "confidence": 0-1}
+
+Example:
+Input: "I was charged twice"
+Output: {"label": "billing", "confidence": 0.95}
+"""
+USER = f"Input: {ticket_text}"</pre></div>
+    </div>
+    <div class="cs-paper" id="cs-section-4">
+        <h2 class="cs-section-title">⑤ Production & pitfalls</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Pitfall</th><th>Why it hurts</th><th>Fix</th></tr><tr><td>Vague instructions</td><td>Inconsistent outputs</td><td>RTCF framework; explicit format</td></tr><tr><td>No examples for structured output</td><td>JSON syntax errors</td><td>Few-shot 2–3 examples in prompt</td></tr><tr><td>High temperature for facts</td><td>Hallucinations</td><td>temperature 0–0.2 for extraction/classification</td></tr><tr><td>Prompt too long without hierarchy</td><td>Model ignores middle</td><td>XML tags; repeat key rules at end</td></tr><tr><td>No eval loop</td><td>Regression on "improvements"</td><td>Fixed test set before/after changes</td></tr><tr><td>User content in system prompt</td><td>Injection overrides instructions</td><td>Sanitize user input; delimiter boundaries</td></tr></table></div><div class="cs-note"><strong>Production tips:</strong><ul><li>Store prompts in version control with changelog</li><li>Prompt templates with variable slots — not string concat in app code</li><li>Monitor output format parse failure rate</li><li>Fallback prompt or smaller model when primary fails</li></ul></div>
+    </div>
+    <div class="cs-paper" id="cs-section-5">
+        <h2 class="cs-section-title">⑥ Interview / on-the-job Q&A</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Question</th><th>Answer</th></tr><tr><td>What is few-shot prompting?</td><td>Including example input/output pairs in the prompt to teach format and behavior.</td></tr><tr><td>What is chain-of-thought?</td><td>Asking the model to reason step by step before the final answer — improves logic tasks.</td></tr><tr><td>Temperature 0 vs 1?</td><td>0 = more deterministic; 1 = more random/creative.</td></tr><tr><td>When is prompting not enough?</td><td>Need fresh facts (RAG), actions (tools), or consistent niche style at scale (fine-tune).</td></tr><tr><td>What is prompt injection?</td><td>User text that tricks the model to ignore system instructions — mitigate with separation and validation.</td></tr><tr><td>How evaluate prompts?</td><td>Labeled test set, accuracy/F1, human review, or LLM-as-judge with rubric.</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-6">
+        <h2 class="cs-section-title">⑦ Tools & ecosystem</h2>
+        <div class="cs-note"><ul><li><strong>Playgrounds:</strong> OpenAI Playground, Claude console</li><li><strong>Eval:</strong> Promptfoo, LangSmith datasets</li><li><strong>Libraries:</strong> Guidance, Instructor (structured output)</li><li><strong>Versioning:</strong> git, PromptLayer</li></ul></div><div class="cs-tags"><span class="cs-tag">prompting</span><span class="cs-tag">few-shot</span><span class="cs-tag">cot</span><span class="cs-tag">evaluation</span><span class="cs-tag">rtcf</span></div>
+    </div>
+    <div class="cs-paper" id="cs-section-7">
+        <h2 class="cs-section-title">⑧ Revision checklist</h2>
+        <ul class="cs-checklist"><li>RTCF sections present in system prompt</li><li>2+ few-shot examples for structured tasks</li><li>Temperature appropriate for task type</li><li>max_tokens set to prevent runaway output</li><li>Eval set of 20+ examples created</li><li>Prompts versioned in git</li><li>User input separated from system instructions</li><li>Parse failures logged and monitored</li><li>Documented when to escalate to RAG/tools</li></ul>
     </div>
     <div class="cs-related"><h3>More in this category</h3><div class="cs-related-links"><a href="/cheat-sheets/ai/">All AI cheat sheets</a><a href="/cheat-sheets/ai/rag">RAG</a><a href="/cheat-sheets/ai/agents-intro">What is an Agent?</a></div></div>
 
 </div>
 </main>
 <script src="/js/cheat-sheet-videos.js"></script>
+<script src="/js/cheat-sheet-prompts.js"></script>
 <script src="/js/cheat-sheet.js"></script>
 <script src="/js/site-nav.js"></script>
 </body>

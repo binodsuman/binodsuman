@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Design Rate Limiter | Binod Suman Cheat Sheet</title>
-    <meta name="description" content="Protect APIs with token bucket, sliding window, or leaky bucket — per user, IP, or API key.">
+    <meta name="description" content="Protect APIs with token bucket, sliding window, or leaky bucket — per user, IP, or API key across distributed servers.">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Kalam:wght@400;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/css/site-nav.css">
@@ -17,34 +17,60 @@
     <header class="cs-hero">
         <span class="cs-category-badge system-design">System Design</span>
         <h1 class="cs-title">Design Rate Limiter</h1>
-        <p class="cs-subtitle">Protect APIs with token bucket, sliding window, or leaky bucket — per user, IP, or API key.</p>
+        <p class="cs-subtitle">Protect APIs with token bucket, sliding window, or leaky bucket — per user, IP, or API key across distributed servers.</p>
     </header>
-    <div class="cs-interview-tip"><strong>Interview tip</strong> Compare algorithms. Mention distributed rate limit with Redis + atomic INCR or Lua scripts.</div>
+    <div class="cs-interview-tip"><strong>Interview tip</strong> Compare algorithms with a table. Mention Redis INCR + TTL, Lua scripts for atomicity, and returning 429 with Retry-After header.</div>
+    <nav class="cs-toc" aria-label="On this page">
+    <div class="cs-toc-title">On this page</div>
+    <ol><li><a href="#cs-section-0">① Clarify requirements</a></li><li><a href="#cs-section-1">② Back-of-the-envelope scale</a></li><li><a href="#cs-section-2">③ High-level architecture</a></li><li><a href="#cs-section-3">④ API & interfaces</a></li><li><a href="#cs-section-4">⑤ Data model & storage</a></li><li><a href="#cs-section-5">⑥ Deep dive — core components</a></li><li><a href="#cs-section-6">⑦ Trade-offs & alternatives</a></li><li><a href="#cs-section-7">⑧ 45-minute interview script</a></li><li><a href="#cs-section-8">⑨ Likely follow-up questions</a></li><li><a href="#cs-section-9">⑩ Revision checklist</a></li></ol>
+  </nav>
     
-    <div class="cs-paper">
-        <h2 class="cs-section-title">Requirements</h2>
-        <div class="cs-note">Limit N requests per window per client. Return 429 + Retry-After. Must work across multiple API servers (distributed).</div>
+    <div class="cs-paper" id="cs-section-0">
+        <h2 class="cs-section-title">① Clarify requirements</h2>
+        <div class="cs-note"><strong>Functional</strong><ul><li>Define rules: {identifier, limit, window} e.g. 100 req/min per API key</li><li>On each request, return allow or deny before reaching backend</li><li>Support multiple rule dimensions: per key, per IP, per endpoint</li><li>Return HTTP 429 with Retry-After header when throttled</li><li>Admin API to create/update/delete rules at runtime</li><li>Expose metrics: throttle rate, top offenders</li></ul><strong>Non-functional</strong><ul><li>Decision latency &lt; 5ms p99 added to request path</li><li>Accurate across all gateway nodes (distributed consistency)</li><li>Highly available — limiter failure should not take down API</li><li>Support 50K+ RPS checks across cluster</li><li>Memory efficient — millions of keys with sparse activity</li></ul></div><div class="cs-note"><strong>Out of scope (say in interview)</strong><ul><li>DDoS protection at network layer (WAF / Cloudflare)</li><li>Billing / quota enforcement with payment</li><li>Per-payload-size limits (only request count)</li><li>ML-based anomaly detection</li></ul></div>
     </div>
-    <div class="cs-paper">
-        <h2 class="cs-section-title">Algorithms</h2>
-        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Algorithm</th><th>Pros</th><th>Cons</th></tr>
-        <tr><td>Token bucket</td><td>Bursts allowed</td><td>Config tokens/refill</td></tr>
-        <tr><td>Fixed window</td><td>Simple</td><td>Spike at window edge</td></tr>
-        <tr><td>Sliding window log</td><td>Accurate</td><td>Memory per user</td></tr>
-        <tr><td>Sliding window counter</td><td>Good balance</td><td>Slight approximation</td></tr></table></div>
+    <div class="cs-paper" id="cs-section-1">
+        <h2 class="cs-section-title">② Back-of-the-envelope scale</h2>
+        <div class="cs-note"><strong>Assumptions</strong><ul><li>50K RPS aggregate across all APIs</li><li>1M registered API keys; ~100K active/hour</li><li>Average 2 rate-limit checks per request (global + endpoint rule)</li><li>100K checks/sec → Redis must handle 100K+ ops/sec</li><li>Memory: sliding window log worst case 100 timestamps × 100K keys ≈ 80MB (bounded)</li><li>Rules config: ~10K rules, cached in gateway memory, refresh every 30s</li></ul></div><div class="cs-note">Prefer approximate sliding window counter over per-request log storage — 1 Redis key per (identifier, window_bucket) with INCR + EXPIRE uses ~50 bytes per active key.</div>
     </div>
-    <div class="cs-paper">
-        <h2 class="cs-section-title">Distributed pattern</h2>
-        <div class="cs-flow"><span class="cs-box">API server</span><span class="cs-arrow">→</span>
-        <span class="cs-box purple">Redis</span><span class="cs-arrow">→</span>
-        <span class="cs-box green">allow / deny</span></div>
-        <div class="cs-note">Optional local cache for hot keys; sync with Redis for accuracy on strict limits.</div>
+    <div class="cs-paper" id="cs-section-2">
+        <h2 class="cs-section-title">③ High-level architecture</h2>
+        <div class="cs-diagram"><div class="cs-diagram-title">Distributed Rate Limiter</div><div class="cs-arch-grid"><div class="cs-arch-row"><div class="cs-arch-cell gray">Clients</div></div><div class="cs-arch-row"><div class="cs-arch-cell purple">API Gateway / Envoy (rate limit filter)</div></div><div class="cs-arch-row"><div class="cs-arch-cell ">Rate Limiter Service (optional central)</div><div class="cs-arch-cell orange">Local LRU Cache (hot keys)</div></div><div class="cs-arch-row"><div class="cs-arch-cell green">Redis Cluster (counters)</div><div class="cs-arch-cell gray">Rules Config Store (etcd / DB)</div></div><div class="cs-arch-row"><div class="cs-arch-cell green">Backend Microservices</div></div></div></div><div class="cs-flow"><span class="cs-box gray">Request</span><span class="cs-arrow">→</span><span class="cs-box">Check local cache</span><span class="cs-arrow">→</span><span class="cs-box purple">Redis INCR</span><span class="cs-arrow">→</span><span class="cs-box green">Allow / 429</span></div><div class="cs-note">Embed limiter in API gateway (Envoy rate limit service, Kong plugin) to avoid extra hop. Redis Cluster with hash tags per API key for locality. Lua script ensures atomic INCR + compare + TTL.</div>
+    </div>
+    <div class="cs-paper" id="cs-section-3">
+        <h2 class="cs-section-title">④ API & interfaces</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Endpoint / flow</th><th>Purpose</th><th>Notes</th></tr><tr><td>Internal: check(key, rule)</td><td>Allow/deny decision</td><td>Returns {allowed, remaining, resetAt}; called by gateway middleware</td></tr><tr><td>POST /admin/rules</td><td>Create rule</td><td>{scope, identifier_pattern, limit, window_sec, action}</td></tr><tr><td>GET /admin/rules/{id}</td><td>Read rule</td><td>For dashboard</td></tr><tr><td>GET /metrics/throttled</td><td>Observability</td><td>Prometheus: rate_limit_exceeded_total{key, rule}</td></tr><tr><td>gRPC RateLimitService/ShouldAllow</td><td>Low-latency check</td><td>Used by sidecar; batch checks supported</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-4">
+        <h2 class="cs-section-title">⑤ Data model & storage</h2>
+        <div class="cs-note"><strong>rules:</strong> <code>id</code>, <code>scope</code> (global|key|ip|endpoint), <code>pattern</code>, <code>limit</code>, <code>window_sec</code>, <code>action</code> (reject|queue)<br><br><strong>Redis keys:</strong> <code>rl:{rule_id}:{identifier}:{window_bucket}</code> → integer counter, TTL = window_sec<br><br><strong>Token bucket variant:</strong> <code>rl:tb:{id}</code> → hash {tokens, last_refill_ts}</div><div class="cs-table-wrap"><table class="cs-table"><tr><th>Store</th><th>What</th><th>Why</th></tr><tr><td>Redis Cluster</td><td>Request counters</td><td>Sub-ms; atomic Lua; TTL auto-expires stale keys</td></tr><tr><td>PostgreSQL / etcd</td><td>Rule definitions</td><td>Source of truth; gateways poll or watch changes</td></tr><tr><td>Local process cache</td><td>Hot key decisions</td><td>100ms TTL; reduces Redis load 60–80%</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-5">
+        <h2 class="cs-section-title">⑥ Deep dive — core components</h2>
+        <h3 class="cs-subheading">Algorithm comparison</h3><div class="cs-note"><strong>Fixed window:</strong> INCR key <code>rl:user123:1692000000</code> (minute bucket). Simple, 1 Redis op. Flaw: 2× burst at window boundary (100 at 0:59 + 100 at 1:00).</div><div class="cs-note"><strong>Sliding window log:</strong> Store sorted set of timestamps per key. Accurate but O(n) memory per key. Use only for strict tiers.</div><div class="cs-note"><strong>Sliding window counter:</strong> Weighted avg of current + previous window: <code>count = prev_count × (1 - elapsed/window) + curr_count</code>. ~2 Redis keys, good accuracy, industry standard (Cloudflare, Stripe).</div><div class="cs-note"><strong>Token bucket:</strong> Refill tokens at steady rate; allow bursts up to bucket size. Best when burst tolerance is a product requirement. Implement with Redis hash + Lua atomic refill.</div><h3 class="cs-subheading">Distributed correctness</h3><div class="cs-note">Race condition: two gateways read count=99, both allow request 100 and 101. Fix: atomic INCR in Redis Lua script — increment first, then compare to limit. Never read-then-write from app code.</div><div class="cs-note">Clock skew: use Redis TIME or centralized window buckets keyed by floor(timestamp/window), not local clock. For token bucket, store last_refill in Redis, not gateway.</div><h3 class="cs-subheading">Fail-open vs fail-closed</h3><div class="cs-note"><strong>Fail-open</strong> (allow on Redis down): API stays up; risk of abuse during outage. Use for consumer APIs with other protections.</div><div class="cs-note"><strong>Fail-closed</strong> (deny on Redis down): safer for paid/premium tiers. Mitigate with local token bucket fallback (conservative limit) when Redis unreachable &gt; 1s.</div><div class="cs-note">Hybrid: fail-open for 99% traffic, fail-closed for admin/write endpoints. Circuit breaker on Redis client with half-open retry.</div><h3 class="cs-subheading">Performance at 100K checks/sec</h3><div class="cs-note">Batch checks: gateway collects N requests, single Redis pipeline MGET/MINCR. Local cache with stale-while-revalidate — if local says "5 remaining", skip Redis until 0.</div><div class="cs-note">Shard Redis by API key hash. Avoid hot keys from shared NAT IPs — use API key over IP when possible; for IP limits, use /24 subnet aggregation.</div>
+    </div>
+    <div class="cs-paper" id="cs-section-6">
+        <h2 class="cs-section-title">⑦ Trade-offs & alternatives</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Decision</th><th>Option A</th><th>Option B</th><th>Pick when</th></tr><tr><td>Algorithm</td><td>Fixed window</td><td>Sliding window counter</td><td>Fixed for dev; sliding for production APIs</td></tr><tr><td>Placement</td><td>Gateway middleware</td><td>Dedicated sidecar</td><td>Gateway simpler; sidecar for polyglot meshes</td></tr><tr><td>Store</td><td>Redis</td><td>In-memory only</td><td>Redis for distributed; local only for single-node dev</td></tr><tr><td>On Redis failure</td><td>Fail-open</td><td>Fail-closed</td><td>Open for availability; closed for security</td></tr><tr><td>Burst</td><td>Token bucket</td><td>Strict sliding</td><td>Token bucket if product allows bursts</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-7">
+        <h2 class="cs-section-title">⑧ 45-minute interview script</h2>
+        <div class="cs-note"><ol><li>0–5 min: Clarify dimensions (key, IP, endpoint), limits, and 429 contract</li><li>5–10 min: Compare algorithms — draw timeline of fixed-window edge burst</li><li>10–18 min: Architecture — gateway, Redis, rules store; diagram</li><li>18–28 min: Deep dive atomic Redis Lua script; sliding window counter math</li><li>28–35 min: Fail-open vs closed; local cache layer</li><li>35–40 min: Admin API, metrics, rule hot-reload</li><li>40–45 min: Scale to 100K checks/sec — pipelining, sharding</li></ol></div>
+    </div>
+    <div class="cs-paper" id="cs-section-8">
+        <h2 class="cs-section-title">⑨ Likely follow-up questions</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Question</th><th>Short answer</th></tr><tr><td>Fixed window burst at boundary?</td><td>100 req last second of window + 100 first second = 200 in 2 sec; fix with sliding window</td></tr><tr><td>How to rate limit by IP behind NAT?</td><td>Prefer API keys; for IP use X-Forwarded-For carefully; /24 subnet bucketing</td></tr><tr><td>Different limits per user tier?</td><td>Rule priority chain: check tier rule first, then global; merge in gateway config</td></tr><tr><td>Redis down?</td><td>Local fallback bucket at 50% limit; or fail-open with alert; never silent unlimited</td></tr><tr><td>Global rate limit across regions?</td><td>Central Redis (latency cost) or CRDT counters (complex); often per-region + global cap in single DC</td></tr><tr><td>How to test rate limiter?</td><td>Chaos: kill Redis; load test boundary; verify 429 Retry-After accuracy</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-9">
+        <h2 class="cs-section-title">⑩ Revision checklist</h2>
+        <ul class="cs-checklist"><li>Named 3+ algorithms with pros/cons</li><li>Explained fixed-window boundary burst problem</li><li>Redis atomic INCR/Lua for distributed correctness</li><li>429 + Retry-After response contract</li><li>Diagram: gateway → Redis → backend</li><li>Fail-open vs fail-closed decision</li><li>Local cache to reduce Redis load</li><li>Rules admin without redeploy</li><li>Memory estimate per active key</li><li>Metrics for throttle rate monitoring</li></ul><div class="cs-tags"><span class="cs-tag">Redis</span><span class="cs-tag">algorithms</span><span class="cs-tag">API gateway</span><span class="cs-tag">distributed systems</span></div>
     </div>
     <div class="cs-related"><h3>More in this category</h3><div class="cs-related-links"><a href="/cheat-sheets/system-design/">All SD cheat sheets</a><a href="/cheat-sheets/system-design/fundamentals">SD Fundamentals</a><a href="/cheat-sheets/system-design/url-shortener">URL Shortener</a></div></div>
 
 </div>
 </main>
 <script src="/js/cheat-sheet-videos.js"></script>
+<script src="/js/cheat-sheet-prompts.js"></script>
 <script src="/js/cheat-sheet.js"></script>
 <script src="/js/site-nav.js"></script>
 </body>

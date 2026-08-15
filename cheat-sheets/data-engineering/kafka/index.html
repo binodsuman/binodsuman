@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Apache Kafka Cheat Sheet | Binod Suman Cheat Sheet</title>
-    <meta name="description" content="Apache Kafka interview cheat sheet — topics, partitions, consumer groups, offsets, and architecture.">
+    <title>Apache Kafka — Interview Cheat Sheet | Binod Suman Cheat Sheet</title>
+    <meta name="description" content="Producers, consumers, partitions, consumer groups, replication, and exactly-once semantics.">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Kalam:wght@400;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/css/site-nav.css">
@@ -13,62 +13,64 @@
 <body class="cheat-sheet-page">
 <main class="cheat-sheet-page">
 <div class="cs-container">
-    <nav class="cs-breadcrumb"><a href="/">Home</a> · <a href="/cheat-sheets/">Cheat Sheets</a> · Data Engineering · Kafka</nav>
+    <nav class="cs-breadcrumb"><a href="/">Home</a> · <a href="/cheat-sheets/">Cheat Sheets</a> · <a href="/cheat-sheets/data-engineering/">Data Engineering</a> · Kafka</nav>
     <header class="cs-hero">
         <span class="cs-category-badge data-engineering">Data Engineering</span>
         <h1 class="cs-title">Apache Kafka — Interview Cheat Sheet</h1>
-        <p class="cs-subtitle">Core concepts for streaming interviews — from producers to exactly-once semantics.</p>
+        <p class="cs-subtitle">Producers, consumers, partitions, consumer groups, replication, and exactly-once semantics.</p>
     </header>
-    
     <div class="cs-interview-tip"><strong>Interview tip</strong> Draw: Producer → Topic (partitions) → Consumer Group. Mention offset, replication factor, and why partitions enable parallelism.</div>
-    <div class="cs-paper">
-        <h2 class="cs-section-title">Core concepts</h2>
-        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Term</th><th>One-liner</th></tr>
-        <tr><td>Topic</td><td>Logical stream of records, split into partitions</td></tr>
-        <tr><td>Partition</td><td>Ordered, immutable log — parallelism unit</td></tr>
-        <tr><td>Offset</td><td>Position in partition log — consumer tracks this</td></tr>
-        <tr><td>Consumer group</td><td>One consumer per partition max — scale reads</td></tr>
-        <tr><td>Replication</td><td>Leader + followers (ISR) — fault tolerance</td></tr>
-        <tr><td>Broker</td><td>Kafka server storing partitions</td></tr></table></div>
+    <nav class="cs-toc" aria-label="On this page">
+    <div class="cs-toc-title">On this page</div>
+    <ol><li><a href="#cs-section-0">① Core concepts</a></li><li><a href="#cs-section-1">② Architecture diagram</a></li><li><a href="#cs-section-2">③ Producers — acks, keys, batching</a></li><li><a href="#cs-section-3">④ Consumers & consumer groups</a></li><li><a href="#cs-section-4">⑤ Ordering, retention & delivery semantics</a></li><li><a href="#cs-section-5">⑥ Replication & fault tolerance</a></li><li><a href="#cs-section-6">⑦ Exactly-once semantics</a></li><li><a href="#cs-section-7">⑧ Kafka vs traditional queues</a></li><li><a href="#cs-section-8">⑨ Scenario — order processing pipeline</a></li><li><a href="#cs-section-9">⑩ Tuning & interview Q&A</a></li></ol>
+  </nav>
+    
+    <div class="cs-paper" id="cs-section-0">
+        <h2 class="cs-section-title">① Core concepts</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Term</th><th>One-liner</th></tr><tr><td>Topic</td><td>Logical stream of records, split into partitions</td></tr><tr><td>Partition</td><td>Ordered, immutable append-only log — unit of parallelism</td></tr><tr><td>Offset</td><td>Monotonic position in partition — consumer tracks progress</td></tr><tr><td>Consumer group</td><td>Consumers cooperate — one consumer per partition max per group</td></tr><tr><td>Broker</td><td>Kafka server storing partition logs</td></tr><tr><td>Replication factor</td><td>Copies per partition — leader + followers (ISR)</td></tr><tr><td>ISR</td><td>In-sync replicas — caught up with leader</td></tr><tr><td>ZooKeeper / KRaft</td><td>Cluster metadata and controller election (KRaft replaces ZK)</td></tr></table></div>
     </div>
-    <div class="cs-paper">
-        <h2 class="cs-section-title">Architecture diagram</h2>
-        <div class="cs-diagram">
-            <div class="cs-diagram-title">Kafka cluster (simplified)</div>
-            <div class="cs-flow">
-                <span class="cs-box green">Producers</span><span class="cs-arrow">→</span>
-                <span class="cs-box purple">Brokers / Topics</span><span class="cs-arrow">→</span>
-                <span class="cs-box">Consumer Group</span>
-            </div>
-        </div>
-        <div class="cs-note"><ul>
-            <li><strong>Key-based routing:</strong> same key → same partition (ordering per key)</li>
-            <li><strong>Zookeeper/KRaft:</strong> cluster metadata & controller election</li>
-            <li><strong>Retention:</strong> time or size based — not a traditional queue</li>
-        </ul></div>
+    <div class="cs-paper" id="cs-section-1">
+        <h2 class="cs-section-title">② Architecture diagram</h2>
+        <div class="cs-diagram"><div class="cs-diagram-title">Kafka cluster (simplified)</div><div class="cs-arch-grid"><div class="cs-arch-row"><div class="cs-arch-cell green">Producers</div></div><div class="cs-arch-row"><div class="cs-arch-cell purple">Brokers — Topic A (P0, P1, P2)</div></div><div class="cs-arch-row"><div class="cs-arch-cell ">Consumer Group A</div><div class="cs-arch-cell ">Consumer Group B</div></div></div></div><div class="cs-diagram"><div class="cs-diagram-title">Data flow</div><div class="cs-flow"><span class="cs-box gray">Producer</span><span class="cs-arrow">→</span><span class="cs-box purple">Partition by key</span><span class="cs-arrow">→</span><span class="cs-box green">Replicated log</span><span class="cs-arrow">→</span><span class="cs-box orange">Consumer poll</span><span class="cs-arrow">→</span><span class="cs-box">Commit offset</span></div></div>
     </div>
-    <div class="cs-paper">
-        <h2 class="cs-section-title">Delivery semantics</h2>
-        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Semantic</th><th>How</th><th>Trade-off</th></tr>
-        <tr><td>At-most-once</td><td>Commit offset before process</td><td>May lose messages</td></tr>
-        <tr><td>At-least-once</td><td>Process then commit offset</td><td>Duplicates possible</td></tr>
-        <tr><td>Exactly-once</td><td>Idempotent producer + transactions</td><td>More overhead</td></tr></table></div>
+    <div class="cs-paper" id="cs-section-2">
+        <h2 class="cs-section-title">③ Producers — acks, keys, batching</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>acks setting</th><th>Behavior</th><th>Durability</th></tr><tr><td>acks=0</td><td>Fire and forget</td><td>May lose messages</td></tr><tr><td>acks=1</td><td>Leader ack only</td><td>Lost if leader dies before replicate</td></tr><tr><td>acks=all (-1)</td><td>All ISR ack</td><td>Strongest — wait for min.insync.replicas</td></tr></table></div><div class="cs-note"><strong>Partition key:</strong> same key → same partition → ordering per key guaranteed.<br><br><strong>Null key:</strong> round-robin across partitions — no ordering guarantee.<br><br><strong>Batching:</strong> linger.ms + batch.size trade latency for throughput.</div>
     </div>
-    <div class="cs-paper">
-        <h2 class="cs-section-title">Common interview questions</h2>
-        <div class="cs-note"><ul>
-            <li>How do you handle consumer lag? (scale consumers ≤ partitions, optimize processing, monitor)</li>
-            <li>Partition count — how to choose? (throughput vs ordering vs rebalancing cost)</li>
-            <li>Kafka vs traditional MQ? (log-based, replay, high throughput)</li>
-        </ul></div>
+    <div class="cs-paper" id="cs-section-3">
+        <h2 class="cs-section-title">④ Consumers & consumer groups</h2>
+        <div class="cs-note"><strong>Consumer group:</strong> each partition assigned to at most one consumer in group — scale consumers up to partition count. More consumers than partitions → idle consumers.<br><br><strong>Rebalance:</strong> triggered on consumer join/leave/crash — partitions reassigned (range, round-robin, sticky, cooperative sticky strategies).</div><div class="cs-table-wrap"><table class="cs-table"><tr><th>Commit mode</th><th>Pros</th><th>Cons</th></tr><tr><td>Auto commit</td><td>Simple</td><td>May commit before processing — at-most-once risk on crash</td></tr><tr><td>Manual sync commit</td><td>After successful process</td><td>Slower; still at-least-once without idempotency</td></tr><tr><td>Manual async commit</td><td>Non-blocking</td><td>Ordering of commits not guaranteed</td></tr></table></div>
     </div>
-    <div class="cs-related">
-        <h3>More in this category</h3>
-        <div class="cs-related-links"><a href="/cheat-sheets/data-engineering/spark">Apache Spark</a></div>
+    <div class="cs-paper" id="cs-section-4">
+        <h2 class="cs-section-title">⑤ Ordering, retention & delivery semantics</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Guarantee</th><th>Scope</th><th>Requirement</th></tr><tr><td>Order</td><td>Within single partition only</td><td>Same key → same partition</td></tr><tr><td>At-most-once</td><td>Messages may be lost</td><td>Commit before process</td></tr><tr><td>At-least-once</td><td>Duplicates possible</td><td>Commit after process + idempotent consumer</td></tr><tr><td>Exactly-once</td><td>No dup, no loss (within Kafka txn scope)</td><td>Idempotent producer + transactions</td></tr></table></div><div class="cs-note"><strong>Retention:</strong> time-based (log.retention.hours) or size-based — Kafka is a log, not a traditional queue that deletes on read. Consumers track their own offsets.</div>
     </div>
+    <div class="cs-paper" id="cs-section-5">
+        <h2 class="cs-section-title">⑥ Replication & fault tolerance</h2>
+        <div class="cs-layer-diagram"><div class="cs-layer l1">Leader partition serves reads/writes on a broker</div><div class="cs-layer l2">Followers replicate from leader — join ISR when caught up</div><div class="cs-layer l3">Leader failure → controller elects new leader from ISR</div><div class="cs-layer l4">unclean.leader.election.enable=false — prefer availability vs data loss trade-off</div><div class="cs-layer l1">min.insync.replicas + acks=all — prevent commit if too few replicas</div></div><div class="cs-note">Replication factor 3 in production — tolerate 2 broker failures with careful min.insync.replicas config.</div>
+    </div>
+    <div class="cs-paper" id="cs-section-6">
+        <h2 class="cs-section-title">⑦ Exactly-once semantics</h2>
+        <div class="cs-diagram"><div class="cs-diagram-title">EOS building blocks</div><div class="cs-flow"><span class="cs-box purple">Idempotent producer</span><span class="cs-arrow">→</span><span class="cs-box green">Transactional API</span><span class="cs-arrow">→</span><span class="cs-box orange">Read-process-write</span></div></div><div class="cs-note"><strong>Idempotent producer:</strong> PID + sequence number dedupes retries on broker.<br><br><strong>Transactions:</strong> atomic write to multiple partitions + consumer offset commit in same transaction — read-process-write pipelines.<br><br><strong>Limit:</strong> EOS within Kafka ecosystem; external side effects still need idempotent sinks.</div>
+    </div>
+    <div class="cs-paper" id="cs-section-7">
+        <h2 class="cs-section-title">⑧ Kafka vs traditional queues</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Aspect</th><th>Kafka</th><th>RabbitMQ / SQS</th></tr><tr><td>Model</td><td>Distributed commit log</td><td>Queue — message deleted after ack</td></tr><tr><td>Replay</td><td>Yes — reset offset</td><td>No (unless DLQ/replay pattern)</td></tr><tr><td>Throughput</td><td>Very high sequential writes</td><td>Lower for very high volume</td></tr><tr><td>Ordering</td><td>Per partition</td><td>Single consumer per queue typically</td></tr><tr><td>Use case</td><td>Event streaming, analytics, CDC</td><td>Task queues, RPC-style messaging</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-8">
+        <h2 class="cs-section-title">⑨ Scenario — order processing pipeline</h2>
+        <div class="cs-diagram"><div class="cs-diagram-title">Order events</div><div class="cs-arch-grid"><div class="cs-arch-row"><div class="cs-arch-cell gray">Order Service (producer)</div></div><div class="cs-arch-row"><div class="cs-arch-cell purple">Topic: orders (key=order_id)</div></div><div class="cs-arch-row"><div class="cs-arch-cell green">Payment consumer</div><div class="cs-arch-cell green">Inventory consumer</div><div class="cs-arch-cell ">Analytics sink</div></div></div></div><ul class="cs-checklist"><li>Partition by order_id — all events for one order ordered</li><li>Enough partitions for peak throughput (measure bytes/sec)</li><li>Idempotent consumers — dedupe by event_id in store</li><li>DLQ topic for poison messages after N retries</li><li>Monitor consumer lag per partition</li></ul>
+    </div>
+    <div class="cs-paper" id="cs-section-9">
+        <h2 class="cs-section-title">⑩ Tuning & interview Q&A</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Question</th><th>Answer sketch</th></tr><tr><td>Consumer lag high?</td><td>Scale consumers (≤ partitions), optimize processing, check rebalance storms, broker disk</td></tr><tr><td>Hot partition?</td><td>Skewed keys — salt keys or custom partitioner</td></tr><tr><td>How many partitions?</td><td>Target throughput / single partition throughput; plan ahead — hard to reduce</td></tr><tr><td>Why not exceed consumers vs partitions?</td><td>Extra consumers idle — wasted resources</td></tr></table></div><ul class="cs-checklist"><li>Drew producer → topic/partitions → consumer group</li><li>Explained acks=all and ISR</li><li>Ordering per partition + key choice</li><li>At-least-once vs exactly-once trade-offs</li><li>Retention vs queue semantics</li></ul><div class="cs-tags"><span class="cs-tag">kafka</span><span class="cs-tag">streaming</span><span class="cs-tag">partitions</span><span class="cs-tag">exactly-once</span><span class="cs-tag">consumer-groups</span></div>
+    </div>
+    <div class="cs-related"><h3>More in this category</h3><div class="cs-related-links"><a href="/cheat-sheets/data-engineering/spark">Apache Spark</a></div></div>
+
 </div>
 </main>
 <script src="/js/cheat-sheet-videos.js"></script>
+<script src="/js/cheat-sheet-prompts.js"></script>
 <script src="/js/cheat-sheet.js"></script>
 <script src="/js/site-nav.js"></script>
 </body>

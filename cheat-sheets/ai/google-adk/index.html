@@ -20,33 +20,57 @@
         <p class="cs-subtitle">Google's toolkit for building agents on Gemini — tools, sessions, and deployment paths.</p>
     </header>
     <div class="cs-interview-tip"><strong>Interview tip</strong> Mention Gemini models, Google Cloud auth, and how ADK structures agents similarly to other frameworks.</div>
+    <nav class="cs-toc" aria-label="On this page">
+    <div class="cs-toc-title">On this page</div>
+    <ol><li><a href="#cs-section-0">① What you must know (30 sec)</a></li><li><a href="#cs-section-1">② How it works</a></li><li><a href="#cs-section-2">③ Step-by-step (hands-on)</a></li><li><a href="#cs-section-3">④ Code / config patterns</a></li><li><a href="#cs-section-4">⑤ Production & pitfalls</a></li><li><a href="#cs-section-5">⑥ Interview / on-the-job Q&A</a></li><li><a href="#cs-section-6">⑦ Tools & ecosystem</a></li><li><a href="#cs-section-7">⑧ Revision checklist</a></li></ol>
+  </nav>
     
-    <div class="cs-paper">
-        <h2 class="cs-section-title">What is ADK?</h2>
-        <div class="cs-note">Google's <strong>Agent Development Kit</strong> helps you define agents with tools, orchestration, and testing — optimized for <strong>Gemini</strong> on Vertex AI / AI Studio.</div>
+    <div class="cs-paper" id="cs-section-0">
+        <h2 class="cs-section-title">① What you must know (30 sec)</h2>
+        <div class="cs-note">The <strong>Agent Development Kit (ADK)</strong> is Google's framework for building <strong>Gemini-powered agents</strong> with tools, multi-turn sessions, and first-class deployment to <strong>Vertex AI</strong> and <strong>Cloud Run</strong>. It structures agents similarly to other frameworks — instructions + model + tools + loop — but optimized for Google Cloud auth, grounding, and enterprise compliance.</div><div class="cs-note"><strong>Analogy:</strong> ADK is to Gemini agents what Firebase is to mobile apps — opinionated tooling that pairs naturally with Google's cloud stack.</div>
     </div>
-    <div class="cs-paper">
-        <h2 class="cs-section-title">Typical pieces</h2>
-        <div class="cs-note"><ul>
-        <li><strong>Agent definition</strong> — instructions + model (Gemini)</li>
-        <li><strong>Tools</strong> — custom functions, Google Search, code exec</li>
-        <li><strong>Session / memory</strong> — multi-turn state</li>
-        <li><strong>Deploy</strong> — Cloud Run, Agent Engine</li>
-        </ul></div>
-        <div class="cs-tags"><span class="cs-tag">Gemini</span><span class="cs-tag">Vertex AI</span><span class="cs-tag">tools</span></div>
+    <div class="cs-paper" id="cs-section-1">
+        <h2 class="cs-section-title">② How it works</h2>
+        <div class="cs-diagram"><div class="cs-diagram-title">ADK components</div><div class="cs-flow"><span class="cs-box gray">Agent definition</span><span class="cs-arrow">→</span><span class="cs-box purple">Gemini model</span><span class="cs-arrow">→</span><span class="cs-box green">Tools (custom + Google)</span><span class="cs-arrow">→</span><span class="cs-box orange">Session state</span><span class="cs-arrow">→</span><span class="cs-box">Deploy (Vertex / Run)</span></div></div><div class="cs-layer-diagram"><div class="cs-layer l1">Agent — system instructions, model (gemini-2.0-flash / pro), tool registry</div><div class="cs-layer l2">Tools — Python functions, Google Search grounding, code execution</div><div class="cs-layer l3">Session — multi-turn memory keyed by user or conversation ID</div><div class="cs-layer l4">Runner — orchestrates agent loop with callbacks and safety settings</div><div class="cs-layer l1">Deploy — package agent to Vertex AI Agent Engine or Cloud Run container</div></div><div class="cs-note">Start in Google AI Studio for rapid prototyping; migrate to Vertex AI for VPC, IAM, audit logs, and SLA.</div>
     </div>
-    <div class="cs-paper">
-        <h2 class="cs-section-title">Getting started</h2>
-        <div class="cs-roadmap">
-        <div class="cs-roadmap-step"><div><h4>1. API key / GCP project</h4><p>AI Studio for experiments; Vertex for production.</p></div></div>
-        <div class="cs-roadmap-step"><div><h4>2. Install ADK</h4><p>Follow Google quickstart — Python package.</p></div></div>
-        <div class="cs-roadmap-step"><div><h4>3. One agent + one tool</h4><p>Mirror your first-agent cheat sheet pattern.</p></div></div></div>
+    <div class="cs-paper" id="cs-section-2">
+        <h2 class="cs-section-title">③ Step-by-step (hands-on)</h2>
+        <div class="cs-roadmap"><div class="cs-roadmap-step"><div><h4>Step 1 — Set up GCP project</h4><p>Enable Vertex AI API, create service account with aiplatform.user role. For experiments, AI Studio API key is faster.</p></div></div><div class="cs-roadmap-step"><div><h4>Step 2 — Install ADK</h4><p>Follow Google quickstart — pip install google-adk (or current package name per docs). Verify Gemini model access in your region.</p></div></div><div class="cs-roadmap-step"><div><h4>Step 3 — Define one agent</h4><p>Instructions, model=gemini-2.0-flash, description of persona and constraints. Mirror your first-agent pattern.</p></div></div><div class="cs-roadmap-step"><div><h4>Step 4 — Register a custom tool</h4><p>Python function with type hints and docstring — ADK generates schema. Test tool independently first.</p></div></div><div class="cs-roadmap-step"><div><h4>Step 5 — Add session handling</h4><p>Persist conversation state across turns for support or coaching use cases.</p></div></div><div class="cs-roadmap-step"><div><h4>Step 6 — Deploy to Vertex or Cloud Run</h4><p>Containerize agent, configure IAM, set min instances for latency, enable Cloud Logging and Monitoring.</p></div></div></div>
+    </div>
+    <div class="cs-paper" id="cs-section-3">
+        <h2 class="cs-section-title">④ Code / config patterns</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Surface</th><th>Use case</th><th>Auth</th></tr><tr><td>AI Studio</td><td>Prototypes, personal projects</td><td>API key</td></tr><tr><td>Vertex AI</td><td>Production, enterprise</td><td>Service account / IAM</td></tr><tr><td>Agent Engine</td><td>Managed agent hosting</td><td>GCP IAM + VPC-SC</td></tr><tr><td>Cloud Run</td><td>Custom scaling, HTTP API</td><td>Workload identity</td></tr></table></div><div class="cs-code-block"><pre># Conceptual ADK agent sketch
+agent = Agent(
+    model="gemini-2.0-flash",
+    instruction="You are a helpful support agent. Use tools when needed.",
+    tools=[get_order_status, search_kb]
+)
+session = agent.create_session(user_id="u123")
+response = session.send("Where is order 45678?")
+# Tool loop handled by ADK runner</pre></div>
+    </div>
+    <div class="cs-paper" id="cs-section-4">
+        <h2 class="cs-section-title">⑤ Production & pitfalls</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Pitfall</th><th>Why it hurts</th><th>Fix</th></tr><tr><td>API key in production</td><td>No IAM audit trail</td><td>Vertex AI with service accounts on prod</td></tr><tr><td>Region/model availability mismatch</td><td>404 or quota errors</td><td>Check model list per region before design</td></tr><tr><td>Unbounded tool access</td><td>Data leaks across tenants</td><td>Scope tools by user context in function</td></tr><tr><td>Skipping safety settings</td><td>Harmful or off-brand outputs</td><td>Configure Gemini safety filters and system instructions</td></tr><tr><td>No Cloud Logging</td><td>Cannot debug prod agent runs</td><td>Structured logs per session and tool call</td></tr><tr><td>Framework lock-in without eval</td><td>Hard to swap models later</td><td>Benchmark against raw Gemini API baseline</td></tr></table></div><div class="cs-note"><strong>Production tips:</strong><ul><li>VPC Service Controls for sensitive data on Vertex</li><li>Quota and budget alerts per project</li><li>Grounding with Google Search for factual queries where appropriate</li><li>Canary deploy new agent versions with traffic split</li></ul></div>
+    </div>
+    <div class="cs-paper" id="cs-section-5">
+        <h2 class="cs-section-title">⑥ Interview / on-the-job Q&A</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Question</th><th>Answer</th></tr><tr><td>What is ADK?</td><td>Google toolkit to define, test, and deploy Gemini agents with tools and sessions.</td></tr><tr><td>ADK vs raw Gemini API?</td><td>ADK adds agent loop, tool wiring, session management, and deployment helpers.</td></tr><tr><td>AI Studio vs Vertex?</td><td>Studio for fast experiments; Vertex for production IAM, compliance, and scale.</td></tr><tr><td>Which Gemini model?</td><td>Flash for speed/cost; Pro for complex reasoning — match to task eval.</td></tr><tr><td>How add custom tools?</td><td>Register Python functions; ADK exposes them to the model like function calling.</td></tr><tr><td>Deployment options?</td><td>Vertex Agent Engine (managed), Cloud Run (containers), or self-hosted with ADK runner.</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-6">
+        <h2 class="cs-section-title">⑦ Tools & ecosystem</h2>
+        <div class="cs-note"><ul><li><strong>Platform:</strong> Google AI Studio, Vertex AI, Cloud Run</li><li><strong>Models:</strong> gemini-2.0-flash, gemini-2.0-pro</li><li><strong>Grounding:</strong> Google Search, Vertex AI Search</li><li><strong>Observability:</strong> Cloud Logging, Cloud Monitoring</li></ul></div><div class="cs-tags"><span class="cs-tag">google</span><span class="cs-tag">gemini</span><span class="cs-tag">vertex-ai</span><span class="cs-tag">adk</span><span class="cs-tag">gcp</span></div>
+    </div>
+    <div class="cs-paper" id="cs-section-7">
+        <h2 class="cs-section-title">⑧ Revision checklist</h2>
+        <ul class="cs-checklist"><li>GCP project with Vertex AI API enabled</li><li>Auth strategy chosen (API key dev, IAM prod)</li><li>One agent with one custom tool working locally</li><li>Session persistence tested across 3+ turns</li><li>Safety settings and instructions reviewed</li><li>Tools scoped to authenticated user context</li><li>Cloud Logging enabled before prod deploy</li><li>Budget alerts configured</li><li>Eval compared Flash vs Pro on representative tasks</li></ul>
     </div>
     <div class="cs-related"><h3>More in this category</h3><div class="cs-related-links"><a href="/cheat-sheets/ai/">All AI cheat sheets</a><a href="/cheat-sheets/ai/rag">RAG</a><a href="/cheat-sheets/ai/agents-intro">What is an Agent?</a></div></div>
 
 </div>
 </main>
 <script src="/js/cheat-sheet-videos.js"></script>
+<script src="/js/cheat-sheet-prompts.js"></script>
 <script src="/js/cheat-sheet.js"></script>
 <script src="/js/site-nav.js"></script>
 </body>

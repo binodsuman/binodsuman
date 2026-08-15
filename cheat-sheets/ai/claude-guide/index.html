@@ -20,34 +20,57 @@
         <p class="cs-subtitle">Anthropic's Claude for chat, Projects, API, and long-context reasoning.</p>
     </header>
     <div class="cs-interview-tip"><strong>Interview tip</strong> Claude strengths: long context, careful reasoning, structured output. Use Projects for persistent knowledge.</div>
+    <nav class="cs-toc" aria-label="On this page">
+    <div class="cs-toc-title">On this page</div>
+    <ol><li><a href="#cs-section-0">① What you must know (30 sec)</a></li><li><a href="#cs-section-1">② How it works</a></li><li><a href="#cs-section-2">③ Step-by-step (hands-on)</a></li><li><a href="#cs-section-3">④ Code / config patterns</a></li><li><a href="#cs-section-4">⑤ Production & pitfalls</a></li><li><a href="#cs-section-5">⑥ Interview / on-the-job Q&A</a></li><li><a href="#cs-section-6">⑦ Tools & ecosystem</a></li><li><a href="#cs-section-7">⑧ Revision checklist</a></li></ol>
+  </nav>
     
-    <div class="cs-paper">
-        <h2 class="cs-section-title">Claude surfaces</h2>
-        <div class="cs-note"><ul>
-        <li><strong>claude.ai</strong> — chat, Projects, artifacts</li>
-        <li><strong>API</strong> — Messages API, tool use, batch</li>
-        <li><strong>Claude Code</strong> — terminal agent for repos</li>
-        <li><strong>Models:</strong> Opus (best), Sonnet (balance), Haiku (fast)</li>
-        </ul></div>
+    <div class="cs-paper" id="cs-section-0">
+        <h2 class="cs-section-title">① What you must know (30 sec)</h2>
+        <div class="cs-note"><strong>Claude</strong> (by Anthropic) excels at <strong>long-context reasoning</strong>, careful analysis, and structured writing. Surfaces: <strong>claude.ai</strong> (chat, Projects, Artifacts), <strong>API</strong> (Messages API, tool use, batch), and <strong>Claude Code</strong> (terminal agent for repositories). Models: <strong>Opus</strong> (best), <strong>Sonnet</strong> (balance), <strong>Haiku</strong> (fast/cheap).</div><div class="cs-note"><strong>Analogy:</strong> Claude Projects are like giving the assistant a permanent filing cabinet for one client or codebase — not re-uploading docs every chat.</div>
     </div>
-    <div class="cs-paper">
-        <h2 class="cs-section-title">Prompt patterns</h2>
-        <div class="cs-note"><ul>
-        <li>Put instructions at top + bottom for long prompts</li>
-        <li>Use XML tags: &lt;context&gt;, &lt;task&gt;, &lt;output&gt;</li>
-        <li>Ask for step-by-step before final answer</li>
-        <li>Tool use for structured actions in API</li>
-        </ul></div>
+    <div class="cs-paper" id="cs-section-1">
+        <h2 class="cs-section-title">② How it works</h2>
+        <div class="cs-layer-diagram"><div class="cs-layer l1">claude.ai — browser chat, Artifacts (live docs/code), Projects with persistent knowledge</div><div class="cs-layer l2">API — Messages API with system/user/assistant roles, streaming, tool_use blocks</div><div class="cs-layer l3">Claude Code — CLI agent that reads, edits, and commits in your git repo</div><div class="cs-layer l4">Long context — 200K+ tokens for full codebases or document sets in one prompt</div><div class="cs-layer l1">Structured output — XML tags, JSON mode, and tool schemas for reliable parsing</div></div><div class="cs-diagram"><div class="cs-diagram-title">API message flow</div><div class="cs-flow"><span class="cs-box gray">System prompt</span><span class="cs-arrow">→</span><span class="cs-box purple">User + context</span><span class="cs-arrow">→</span><span class="cs-box green">Claude response</span><span class="cs-arrow">→</span><span class="cs-box orange">Tool result (optional)</span><span class="cs-arrow">→</span><span class="cs-box">Final answer</span></div></div><div class="cs-note">Put critical instructions at the beginning AND end of long system prompts — Claude weighs both positions heavily.</div>
     </div>
-    <div class="cs-paper">
-        <h2 class="cs-section-title">When Claude fits best</h2>
-        <div class="cs-note">Long documents, policy-heavy writing, code review with nuance, agentic coding with Claude Code.</div>
+    <div class="cs-paper" id="cs-section-2">
+        <h2 class="cs-section-title">③ Step-by-step (hands-on)</h2>
+        <div class="cs-roadmap"><div class="cs-roadmap-step"><div><h4>Step 1 — Pick the right surface</h4><p>Quick questions → claude.ai. Automation → API. Large repo refactor → Claude Code. Batch jobs → Batch API (50% cost).</p></div></div><div class="cs-roadmap-step"><div><h4>Step 2 — Choose model tier</h4><p>Haiku for classification/speed; Sonnet for daily dev; Opus for architecture and hard reasoning.</p></div></div><div class="cs-roadmap-step"><div><h4>Step 3 — Structure prompts with XML</h4><p><context>...</context><task>...</task><output_format>...</output_format> — reduces ambiguity.</p></div></div><div class="cs-roadmap-step"><div><h4>Step 4 — Use Projects for persistence</h4><p>Upload specs, style guides, API docs once. Every chat in the Project inherits that knowledge.</p></div></div><div class="cs-roadmap-step"><div><h4>Step 5 — API integration</h4><p>anthropic SDK, messages.create with model, max_tokens, system. Handle stop_reason for tool_use.</p></div></div><div class="cs-roadmap-step"><div><h4>Step 6 — Evaluate outputs</h4><p>For critical work, ask Claude to critique its own answer against a rubric before you accept.</p></div></div></div>
+    </div>
+    <div class="cs-paper" id="cs-section-3">
+        <h2 class="cs-section-title">④ Code / config patterns</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Technique</th><th>When</th><th>Example</th></tr><tr><td>XML tags</td><td>Long or multi-part prompts</td><td><document>...</document></td></tr><tr><td>Chain of thought</td><td>Math, logic, debugging</td><td>"Think step by step, then answer"</td></tr><tr><td>Few-shot</td><td>Fixed output format</td><td>2 examples of input → JSON output</td></tr><tr><td>Tool use</td><td>Agents, API actions</td><td>Define tools in API call</td></tr><tr><td>Projects</td><td>Repeat work same domain</td><td>Client docs always in context</td></tr></table></div><div class="cs-code-block"><pre>import anthropic
+client = anthropic.Anthropic()
+msg = client.messages.create(
+    model="claude-sonnet-4-20250514",
+    max_tokens=1024,
+    system="You are a code reviewer. Be concise.",
+    messages=[{"role":"user","content":"Review this diff: ..."}]
+)
+print(msg.content[0].text)</pre></div>
+    </div>
+    <div class="cs-paper" id="cs-section-4">
+        <h2 class="cs-section-title">⑤ Production & pitfalls</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Pitfall</th><th>Why it hurts</th><th>Fix</th></tr><tr><td>Wall of text prompts</td><td>Missed constraints</td><td>Use XML sections and bullet constraints</td></tr><tr><td>Wrong model for task</td><td>Slow or shallow answers</td><td>Haiku for simple; Opus only when needed</td></tr><tr><td>Ignoring context limits</td><td>Truncated middle of huge paste</td><td>Use Projects or file references; summarize first</td></tr><tr><td>No output format specified</td><td>Unparseable responses in pipelines</td><td>Request JSON, markdown table, or max words</td></tr><tr><td>Skipping API streaming</td><td>Poor UX for long answers</td><td>Use stream=True for chat interfaces</td></tr><tr><td>Assuming web access</td><td>Stale facts unless tools enabled</td><td>Use search tools or RAG for current data</td></tr></table></div><div class="cs-note"><strong>Production tips:</strong><ul><li>Batch API for offline eval and bulk processing</li><li>Rate limit handling with retries on 529/overloaded</li><li>Log request IDs for Anthropic support escalation</li><li>Enterprise for SSO, audit logs, and data retention controls</li></ul></div>
+    </div>
+    <div class="cs-paper" id="cs-section-5">
+        <h2 class="cs-section-title">⑥ Interview / on-the-job Q&A</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Question</th><th>Answer</th></tr><tr><td>Opus vs Sonnet vs Haiku?</td><td>Opus: hardest tasks. Sonnet: best balance. Haiku: speed and cost.</td></tr><tr><td>What are Projects?</td><td>Workspaces with persistent uploaded knowledge applied to every chat.</td></tr><tr><td>What are Artifacts?</td><td>Side-panel live documents/code Claude generates you can edit and export.</td></tr><tr><td>Claude Code vs Cursor?</td><td>Claude Code is terminal-first autonomous repo agent; Cursor is IDE-integrated.</td></tr><tr><td>How long is context?</td><td>200K+ tokens on recent models — full books or large codebases.</td></tr><tr><td>What is tool use?</td><td>API feature where Claude returns structured tool calls your app executes.</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-6">
+        <h2 class="cs-section-title">⑦ Tools & ecosystem</h2>
+        <div class="cs-note"><ul><li><strong>Surfaces:</strong> claude.ai, Anthropic API, Claude Code CLI</li><li><strong>SDKs:</strong> anthropic (Python/TS)</li><li><strong>Integrations:</strong> Amazon Bedrock, Google Vertex (Claude models)</li><li><strong>Features:</strong> Batch API, tool use, prompt caching</li></ul></div><div class="cs-tags"><span class="cs-tag">claude</span><span class="cs-tag">anthropic</span><span class="cs-tag">projects</span><span class="cs-tag">api</span><span class="cs-tag">long-context</span></div>
+    </div>
+    <div class="cs-paper" id="cs-section-7">
+        <h2 class="cs-section-title">⑧ Revision checklist</h2>
+        <ul class="cs-checklist"><li>Model tier matched to task complexity</li><li>Prompts use XML or clear sections for long context</li><li>Projects set up for recurring domain work</li><li>Output format specified for pipeline use</li><li>API keys in env vars, not client-side</li><li>Streaming enabled for user-facing chat</li><li>Tool use for actions requiring fresh data</li><li>Self-check step for high-stakes outputs</li><li>Data policy reviewed for sensitive content</li></ul>
     </div>
     <div class="cs-related"><h3>More in this category</h3><div class="cs-related-links"><a href="/cheat-sheets/ai/">All AI cheat sheets</a><a href="/cheat-sheets/ai/rag">RAG</a><a href="/cheat-sheets/ai/agents-intro">What is an Agent?</a></div></div>
 
 </div>
 </main>
 <script src="/js/cheat-sheet-videos.js"></script>
+<script src="/js/cheat-sheet-prompts.js"></script>
 <script src="/js/cheat-sheet.js"></script>
 <script src="/js/site-nav.js"></script>
 </body>

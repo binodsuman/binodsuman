@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Design Ticket Booking (Ticketmaster) | Binod Suman Cheat Sheet</title>
-    <meta name="description" content="Seat inventory, concurrency, holds, and preventing double booking.">
+    <meta name="description" content="Seat inventory, concurrency, temporary holds, payment, and preventing double booking at sale spikes.">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Kalam:wght@400;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/css/site-nav.css">
@@ -17,32 +17,60 @@
     <header class="cs-hero">
         <span class="cs-category-badge system-design">System Design</span>
         <h1 class="cs-title">Design Ticket Booking (Ticketmaster)</h1>
-        <p class="cs-subtitle">Seat inventory, concurrency, holds, and preventing double booking.</p>
+        <p class="cs-subtitle">Seat inventory, concurrency, temporary holds, payment, and preventing double booking at sale spikes.</p>
     </header>
-    <div class="cs-interview-tip"><strong>Interview tip</strong> Core problem: atomic seat reservation. Redis lock or DB row lock + transactional booking flow.</div>
+    <div class="cs-interview-tip"><strong>Interview tip</strong> Core problem: atomic seat reservation. Use DB row lock or distributed lock (Redis) + transactional booking flow. Virtual waiting room for on-sale spikes. Hold expires in 5–10 minutes.</div>
+    <nav class="cs-toc" aria-label="On this page">
+    <div class="cs-toc-title">On this page</div>
+    <ol><li><a href="#cs-section-0">① Clarify requirements</a></li><li><a href="#cs-section-1">② Back-of-the-envelope scale</a></li><li><a href="#cs-section-2">③ High-level architecture</a></li><li><a href="#cs-section-3">④ API & interfaces</a></li><li><a href="#cs-section-4">⑤ Data model & storage</a></li><li><a href="#cs-section-5">⑥ Deep dive — core components</a></li><li><a href="#cs-section-6">⑦ Trade-offs & alternatives</a></li><li><a href="#cs-section-7">⑧ 45-minute interview script</a></li><li><a href="#cs-section-8">⑨ Likely follow-up questions</a></li><li><a href="#cs-section-9">⑩ Revision checklist</a></li></ol>
+  </nav>
     
-    <div class="cs-paper">
-        <h2 class="cs-section-title">Requirements</h2>
-        <div class="cs-note">Browse events, view seat map, temporary hold (5 min), payment, no double book, high spike on sale start.</div>
+    <div class="cs-paper" id="cs-section-0">
+        <h2 class="cs-section-title">① Clarify requirements</h2>
+        <div class="cs-note"><strong>Functional</strong><ul><li>Browse events and view available seats on interactive map</li><li>Select one or more seats; system holds them temporarily (5–10 min)</li><li>Complete payment within hold window to confirm booking</li><li>Release hold automatically on timeout or user cancel</li><li>Prevent double booking — seat sold to only one user</li><li>Send confirmation email with tickets (QR code)</li><li>Waitlist when event sold out</li></ul><strong>Non-functional</strong><ul><li>Zero double bookings (correctness &gt; availability)</li><li>Hold + payment flow completes in &lt; 10 minutes</li><li>Support 100K concurrent users at sale opening</li><li>Seat map loads in &lt; 2s</li><li>Booking confirmation within 30s of payment</li></ul></div><div class="cs-note"><strong>Out of scope (say in interview)</strong><ul><li>Dynamic pricing / surge pricing algorithm</li><li>Resale marketplace</li><li>Venue management / seat configuration UI</li><li>Fraud detection (brief mention)</li></ul></div>
     </div>
-    <div class="cs-paper">
-        <h2 class="cs-section-title">Booking flow</h2>
-        <div class="cs-flow"><span class="cs-box">Select seats</span><span class="cs-arrow">→</span>
-        <span class="cs-box purple">Hold (locked)</span><span class="cs-arrow">→</span>
-        <span class="cs-box green">Payment</span><span class="cs-arrow">→</span>
-        <span class="cs-box orange">Confirm / release hold</span></div>
+    <div class="cs-paper" id="cs-section-1">
+        <h2 class="cs-section-title">② Back-of-the-envelope scale</h2>
+        <div class="cs-note"><strong>Assumptions</strong><ul><li>50M tickets/year → ~1.6 tickets/sec avg; flash sale: 10K seats in 60s → 167 seats/sec</li><li>100K concurrent users at sale open → 100K seat map loads + selection attempts</li><li>Seat inventory: 10K events × 10K seats = 100M seat records</li><li>Holds: 100K concurrent × 4 seats avg = 400K active holds in Redis</li><li>Payment: 167 payments/sec peak → payment gateway handles 1K/sec (OK)</li><li>Seat map read: 100K concurrent → CDN cache static map; availability overlay from Redis</li></ul></div><div class="cs-note">Virtual waiting room queues 100K users; admit 10K at a time with random queue tokens. Seat availability in Redis (SET per seat status) for sub-ms atomic check-and-hold. PostgreSQL for confirmed bookings (ACID).</div>
     </div>
-    <div class="cs-paper">
-        <h2 class="cs-section-title">Concurrency</h2>
-        <div class="cs-note"><strong>Optimistic locking</strong> on seat row version<br>
-        <strong>Or</strong> distributed lock per seat in Redis<br>
-        Queue users at sale open — virtual waiting room</div>
+    <div class="cs-paper" id="cs-section-2">
+        <h2 class="cs-section-title">③ High-level architecture</h2>
+        <div class="cs-diagram"><div class="cs-diagram-title">Ticket Booking System</div><div class="cs-arch-grid"><div class="cs-arch-row"><div class="cs-arch-cell gray">Users (flash sale spike)</div></div><div class="cs-arch-row"><div class="cs-arch-cell orange">Virtual Waiting Room (queue)</div><div class="cs-arch-cell gray">CDN (seat map static assets)</div></div><div class="cs-arch-row"><div class="cs-arch-cell purple">Booking API</div><div class="cs-arch-cell ">Seat Map Service</div></div><div class="cs-arch-row"><div class="cs-arch-cell green">Hold Service (Redis atomic)</div><div class="cs-arch-cell green">Inventory DB (PostgreSQL)</div></div><div class="cs-arch-row"><div class="cs-arch-cell orange">Payment Service</div><div class="cs-arch-cell ">Confirmation + QR Generator</div></div><div class="cs-arch-row"><div class="cs-arch-cell gray">Notification (email ticket)</div></div></div></div><div class="cs-flow"><span class="cs-box gray">Select seats</span><span class="cs-arrow">→</span><span class="cs-box">Atomic hold</span><span class="cs-arrow">→</span><span class="cs-box purple">Payment</span><span class="cs-arrow">→</span><span class="cs-box green">Confirm booking</span></div><div class="cs-note">Hold flow: Redis SET seat:{eventId}:{seatId} = userId NX EX 600 (set only if not exists, 10 min TTL). If OK → hold granted. Payment success → DB transaction: INSERT booking, UPDATE seat status=booked, DELETE Redis hold. All in one DB transaction.</div>
+    </div>
+    <div class="cs-paper" id="cs-section-3">
+        <h2 class="cs-section-title">④ API & interfaces</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Endpoint / flow</th><th>Purpose</th><th>Notes</th></tr><tr><td>GET /v1/events/{id}/seats</td><td>Seat map + availability</td><td>Static layout from CDN; availability overlay from Redis (available|held|booked)</td></tr><tr><td>POST /v1/events/{id}/holds</td><td>Hold seats</td><td>{seatIds[]} → {holdId, expiresAt}; atomic; 409 if taken</td></tr><tr><td>DELETE /v1/holds/{holdId}</td><td>Release hold</td><td>Frees seats in Redis; idempotent</td></tr><tr><td>POST /v1/bookings</td><td>Confirm booking</td><td>{holdId, paymentToken} → bookingId; transactional</td></tr><tr><td>GET /v1/bookings/{id}</td><td>Booking details</td><td>QR code, seat info, event details</td></tr><tr><td>GET /v1/events/{id}/queue</td><td>Waiting room status</td><td>{position, estimatedWait} — admit when position &lt; threshold</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-4">
+        <h2 class="cs-section-title">⑤ Data model & storage</h2>
+        <div class="cs-note"><strong>seats</strong>: <code>event_id</code>, <code>seat_id</code>, <code>section</code>, <code>row</code>, <code>number</code>, <code>status</code> (available|held|booked), <code>version</code> (optimistic lock)<br><br><strong>holds</strong> (Redis): <code>hold:{holdId}</code> → {userId, seatIds[], expiresAt}<br><br><strong>bookings</strong>: <code>booking_id</code>, <code>user_id</code>, <code>event_id</code>, <code>seat_ids[]</code>, <code>payment_id</code>, <code>status</code>, <code>qr_code</code></div><div class="cs-table-wrap"><table class="cs-table"><tr><th>Store</th><th>What</th><th>Why</th></tr><tr><td>Redis</td><td>Seat holds + availability cache</td><td>Atomic SET NX; TTL auto-expires holds; 400K concurrent holds</td></tr><tr><td>PostgreSQL</td><td>Bookings + seat inventory (source of truth)</td><td>ACID transactions; row-level lock on confirm</td></tr><tr><td>CDN</td><td>Static seat map SVG/layout</td><td>Event layout immutable; availability fetched separately</td></tr><tr><td>Kafka</td><td>Booking events</td><td>Payment confirm → async QR generation + email</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-5">
+        <h2 class="cs-section-title">⑥ Deep dive — core components</h2>
+        <h3 class="cs-subheading">Atomic seat hold with Redis</h3><div class="cs-note">Lua script (atomic): for each seatId, SET seat:{eventId}:{seatId} {userId} NX EX 600. If any SET fails (already held/booked), rollback all previous SETs in script (DEL). Return success only if all seats held. Prevents partial hold race.</div><div class="cs-note">Hold expiration: Redis TTL auto-releases. Backup: cron scans holds expiring in 30s, proactively DEL. On expiry event (Redis keyspace notification), update seat map availability.</div><h3 class="cs-subheading">Booking confirmation transaction</h3><div class="cs-note">On payment success: BEGIN TRANSACTION → verify holds still valid (check Redis) → UPDATE seats SET status=booked, version=version+1 WHERE seat_id IN (...) AND version=expected → INSERT booking → COMMIT → DEL Redis holds → emit booking event.</div><div class="cs-note">Optimistic locking: if version mismatch (concurrent booking somehow passed hold), ROLLBACK and refund payment. Pessimistic: SELECT FOR UPDATE on seat rows — slower but simpler for interview.</div><h3 class="cs-subheading">Virtual waiting room</h3><div class="cs-note">Sale opens: all users land on waiting room. Enqueue user_id in Kafka/Redis queue with timestamp. Admit users at rate of 10K/min (protect backend). Client polls queue position every 5s. When admitted: receive session token (30 min validity) → access seat map. Token validated on every API call.</div><div class="cs-note">Bots: CAPTCHA on queue entry; rate limit per IP; device fingerprint. Queue token non-transferable (bound to session).</div><h3 class="cs-subheading">Seat map at scale</h3><div class="cs-note">Static seat layout (SVG coordinates) served from CDN — never changes. Availability overlay: lightweight API returns {seatId: status} map from Redis (~100KB for 10K seats). Client merges locally. WebSocket push for availability changes (optional — polling every 5s sufficient).</div>
+    </div>
+    <div class="cs-paper" id="cs-section-6">
+        <h2 class="cs-section-title">⑦ Trade-offs & alternatives</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Decision</th><th>Option A</th><th>Option B</th><th>Pick when</th></tr><tr><td>Hold lock</td><td>Redis SET NX (pessimistic)</td><td>DB optimistic version</td><td>Redis faster for hold; DB for final confirm</td></tr><tr><td>Sale spike</td><td>Virtual waiting room</td><td>Scale backend 100×</td><td>Waiting room standard; over-provisioning expensive</td></tr><tr><td>Hold duration</td><td>5 min</td><td>15 min</td><td>5 min reduces inventory lock; 15 min better UX for slow payers</td></tr><tr><td>Availability</td><td>Redis cache</td><td>Direct DB read</td><td>Redis for speed; DB authoritative on booking</td></tr><tr><td>Payment fail</td><td>Release hold immediately</td><td>Retry payment 3×</td><td>Release prevents inventory lock; retry better UX</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-7">
+        <h2 class="cs-section-title">⑧ 45-minute interview script</h2>
+        <div class="cs-note"><ol><li>0–5 min: Clarify browse, hold, pay, confirm flow; flash sale scenario</li><li>5–12 min: Scale — 100K concurrent, 10K seats in 60s</li><li>12–22 min: Architecture — waiting room, hold service, inventory, payment</li><li>22–32 min: Deep dive Redis atomic hold Lua script</li><li>32–38 min: Booking confirmation DB transaction</li><li>38–42 min: Virtual waiting room for spike</li><li>42–45 min: Double-booking prevention guarantee</li></ol></div>
+    </div>
+    <div class="cs-paper" id="cs-section-8">
+        <h2 class="cs-section-title">⑨ Likely follow-up questions</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Question</th><th>Short answer</th></tr><tr><td>Two users click same seat simultaneously?</td><td>Redis SET NX — only one succeeds; other gets 409 Seat Unavailable</td></tr><tr><td>Payment succeeds but DB commit fails?</td><td>Idempotent payment ref; retry commit; if hold expired, refund automatically</td></tr><tr><td>Hold expires during payment?</td><td>Extend hold on payment initiation; payment gateway webhook confirms within extended window</td></tr><tr><td>Bot buys all tickets?</td><td>Waiting room + CAPTCHA + per-user purchase limit (4 tickets) + rate limit</td></tr><tr><td>Event cancelled after sale?</td><td>Bulk refund job; UPDATE bookings status=cancelled; notify all bookers</td></tr><tr><td>How to load test?</td><td>Simulate 100K queue entries; verify zero double bookings with concurrent hold attempts</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-9">
+        <h2 class="cs-section-title">⑩ Revision checklist</h2>
+        <ul class="cs-checklist"><li>Atomic hold with Redis SET NX</li><li>Hold TTL auto-expiration (5–10 min)</li><li>DB transaction on booking confirm</li><li>Optimistic or pessimistic locking explained</li><li>Virtual waiting room for flash sales</li><li>Zero double booking guarantee</li><li>Seat map: static CDN + availability overlay</li><li>Payment failure → hold release</li><li>100K concurrent users handling</li><li>Lua script for multi-seat atomic hold</li></ul><div class="cs-tags"><span class="cs-tag">concurrency</span><span class="cs-tag">locking</span><span class="cs-tag">Redis</span><span class="cs-tag">transactions</span><span class="cs-tag">flash sale</span></div>
     </div>
     <div class="cs-related"><h3>More in this category</h3><div class="cs-related-links"><a href="/cheat-sheets/system-design/">All SD cheat sheets</a><a href="/cheat-sheets/system-design/fundamentals">SD Fundamentals</a><a href="/cheat-sheets/system-design/url-shortener">URL Shortener</a></div></div>
 
 </div>
 </main>
 <script src="/js/cheat-sheet-videos.js"></script>
+<script src="/js/cheat-sheet-prompts.js"></script>
 <script src="/js/cheat-sheet.js"></script>
 <script src="/js/site-nav.js"></script>
 </body>

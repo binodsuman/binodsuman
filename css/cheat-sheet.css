@@ -665,8 +665,220 @@
 
 .cs-hub-card a:hover { text-decoration: underline; }
 
+/* Table of contents */
+.cs-toc {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 1.15rem 1.35rem;
+    margin: 1.25rem 0 1.75rem;
+}
+
+.cs-toc-title {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #64748b;
+    margin-bottom: 0.65rem;
+}
+
+.cs-toc ol {
+    margin: 0;
+    padding-left: 1.25rem;
+    columns: 2;
+    column-gap: 1.5rem;
+}
+
+.cs-toc li {
+    margin-bottom: 0.35rem;
+    font-size: 0.88rem;
+    break-inside: avoid;
+}
+
+.cs-toc a {
+    color: #2563eb;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.cs-toc a:hover { text-decoration: underline; }
+
+/* Architecture grid diagrams */
+.cs-arch-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin: 0.5rem 0;
+}
+
+.cs-arch-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    justify-content: center;
+}
+
+.cs-arch-cell {
+    flex: 1;
+    min-width: 120px;
+    max-width: 220px;
+    padding: 0.65rem 0.85rem;
+    border: 2px solid #94a3b8;
+    border-radius: 8px;
+    background: #f8fafc;
+    font-size: 0.82rem;
+    font-weight: 600;
+    text-align: center;
+    line-height: 1.35;
+}
+
+.cs-arch-cell.primary { background: #eff6ff; border-color: #3b82f6; }
+.cs-arch-cell.data { background: #ecfdf5; border-color: #10b981; }
+.cs-arch-cell.queue { background: #fff7ed; border-color: #f97316; }
+.cs-arch-cell.client { background: #f1f5f9; border-color: #64748b; }
+
+.cs-subheading {
+    font-family: 'Inter', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    color: #1e40af;
+    margin: 1.25rem 0 0.5rem;
+}
+
+.cs-checklist {
+    list-style: none;
+    margin: 0.75rem 0;
+    padding: 0;
+}
+
+.cs-checklist li {
+    position: relative;
+    padding: 0.45rem 0 0.45rem 1.75rem;
+    font-family: 'Kalam', cursive;
+    font-size: 1.05rem;
+    line-height: 1.45;
+    border-bottom: 1px dashed #e2e8f0;
+}
+
+.cs-checklist li::before {
+    content: '✓';
+    position: absolute;
+    left: 0;
+    color: #10b981;
+    font-weight: 700;
+    font-family: 'Inter', sans-serif;
+}
+
+.cs-code-block {
+    background: #1e293b;
+    color: #e2e8f0;
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 0.82rem;
+    line-height: 1.55;
+    padding: 1rem 1.15rem;
+    border-radius: 8px;
+    margin: 1rem 0;
+    overflow-x: auto;
+    white-space: pre-wrap;
+}
+
+/* AI practice prompt box */
+.cs-prompt-box {
+    background: linear-gradient(135deg, #f8fafc 0%, #eef2ff 100%);
+    border: 2px solid #c7d2fe;
+    border-radius: 16px;
+    padding: 1.5rem 1.5rem 1.25rem;
+    margin: 2rem 0 1.5rem;
+    box-shadow: 0 8px 30px rgba(99, 102, 241, 0.12);
+}
+
+.cs-prompt-header h3 {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 0.35rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.cs-prompt-header h3 i {
+    color: #6366f1;
+}
+
+.cs-prompt-header p {
+    font-size: 0.9rem;
+    color: #64748b;
+    margin-bottom: 1rem;
+}
+
+.cs-prompt-preview {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 1rem 1.15rem;
+    font-size: 0.88rem;
+    line-height: 1.65;
+    color: #334155;
+    max-height: 160px;
+    overflow-y: auto;
+    margin-bottom: 1rem;
+    font-family: 'Inter', sans-serif;
+}
+
+.cs-prompt-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.65rem;
+}
+
+.cs-prompt-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.65rem 1.15rem;
+    border-radius: 50px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.cs-prompt-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+}
+
+.cs-prompt-gpt {
+    background: #10a37f;
+    color: white;
+}
+
+.cs-prompt-claude {
+    background: #d97757;
+    color: white;
+}
+
+.cs-prompt-copy {
+    background: white;
+    color: #475569;
+    border: 1px solid #e2e8f0;
+}
+
+.cs-container {
+    max-width: 960px;
+}
+
 @media (max-width: 640px) {
     .cs-paper { padding: 1.25rem 1rem; }
     .cs-flow { flex-direction: column; }
     .cs-arrow { transform: rotate(90deg); }
+    .cs-toc ol { columns: 1; }
+    .cs-arch-cell { min-width: 100%; max-width: 100%; }
+    .cs-prompt-actions { flex-direction: column; }
+    .cs-prompt-btn { justify-content: center; width: 100%; }
 }

@@ -20,27 +20,49 @@
         <p class="cs-subtitle">Two AI coding assistants — IDE-integrated vs terminal-first. Pick by workflow, not hype.</p>
     </header>
     <div class="cs-interview-tip"><strong>Interview tip</strong> Cursor = daily IDE pair programmer. Claude Code = deep repo tasks from terminal / CI. Many devs use both.</div>
+    <nav class="cs-toc" aria-label="On this page">
+    <div class="cs-toc-title">On this page</div>
+    <ol><li><a href="#cs-section-0">① What you must know (30 sec)</a></li><li><a href="#cs-section-1">② How it works</a></li><li><a href="#cs-section-2">③ Step-by-step (hands-on)</a></li><li><a href="#cs-section-3">④ Code / config patterns</a></li><li><a href="#cs-section-4">⑤ Production & pitfalls</a></li><li><a href="#cs-section-5">⑥ Interview / on-the-job Q&A</a></li><li><a href="#cs-section-6">⑦ Tools & ecosystem</a></li><li><a href="#cs-section-7">⑧ Revision checklist</a></li></ol>
+  </nav>
     
-    <div class="cs-paper">
-        <h2 class="cs-section-title">Side-by-side</h2>
-        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Cursor</th><th>Claude Code</th></tr>
-        <tr><td>VS Code fork IDE</td><td>CLI / terminal agent</td></tr>
-        <tr><td>Inline + Composer UI</td><td>Autonomous file edits</td></tr>
-        <tr><td>Multi-model (GPT, Claude, …)</td><td>Anthropic Claude focused</td></tr>
-        <tr><td>Best for interactive dev</td><td>Best for batch refactors, scripts</td></tr>
-        <tr><td>Visual diff review</td><td>Git-aware terminal flow</td></tr></table></div>
+    <div class="cs-paper" id="cs-section-0">
+        <h2 class="cs-section-title">① What you must know (30 sec)</h2>
+        <div class="cs-note"><strong>Cursor</strong> embeds AI in your <strong>IDE</strong> for interactive coding — inline edits, chat, and multi-file Composer with visual diffs. <strong>Claude Code</strong> runs from the <strong>terminal</strong> as an autonomous agent focused on Anthropic Claude, ideal for large refactors, scripts, and headless workflows. Many developers use <strong>both</strong>: Cursor for daily feature work, Claude Code for heavy migration jobs.</div><div class="cs-note"><strong>Analogy:</strong> Cursor is a smart co-pilot in the cockpit; Claude Code is an autonomous drone you launch for a specific survey mission.</div>
     </div>
-    <div class="cs-paper">
-        <h2 class="cs-section-title">Decision guide</h2>
-        <div class="cs-note"><strong>Choose Cursor if:</strong> you want AI inside your editor all day.<br>
-        <strong>Choose Claude Code if:</strong> you prefer terminal, large autonomous tasks, or headless automation.<br>
-        <strong>Use both:</strong> Cursor for feature work; Claude Code for "migrate this module" jobs.</div>
+    <div class="cs-paper" id="cs-section-1">
+        <h2 class="cs-section-title">② How it works</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Dimension</th><th>Cursor</th><th>Claude Code</th></tr><tr><td>Interface</td><td>VS Code fork IDE</td><td>Terminal CLI</td></tr><tr><td>Primary interaction</td><td>Chat, Cmd+K, Agent</td><td>Natural language commands</td></tr><tr><td>Models</td><td>GPT, Claude, others</td><td>Anthropic Claude</td></tr><tr><td>Diff review</td><td>Visual side-by-side</td><td>git diff in terminal</td></tr><tr><td>Best for</td><td>Interactive daily dev</td><td>Batch refactors, automation</td></tr><tr><td>Context</td><td>@file, @codebase</td><td>Full repo via agent tools</td></tr><tr><td>CI / headless</td><td>Limited</td><td>Stronger scriptable potential</td></tr></table></div><div class="cs-note">Decision is workflow-shaped: if you live in the IDE, start Cursor; if you live in tmux and git, try Claude Code first.</div>
+    </div>
+    <div class="cs-paper" id="cs-section-2">
+        <h2 class="cs-section-title">③ Step-by-step (hands-on)</h2>
+        <div class="cs-roadmap"><div class="cs-roadmap-step"><div><h4>Step 1 — Map your typical tasks</h4><p>List last week: bug fixes, new features, refactors, code review. Interactive vs batch ratio guides the tool.</p></div></div><div class="cs-roadmap-step"><div><h4>Step 2 — Try Cursor for a feature</h4><p>Small feature with @files, rules, test run. Note how fast inline edit feels for local changes.</p></div></div><div class="cs-roadmap-step"><div><h4>Step 3 — Try Claude Code for a refactor</h4><p>"Rename UserService to AccountService across repo and fix imports." Review git diff scope.</p></div></div><div class="cs-roadmap-step"><div><h4>Step 4 — Compare review experience</h4><p>Which diff UI helps you catch mistakes? Speed of accept/reject loop matters more than raw model IQ.</p></div></div><div class="cs-roadmap-step"><div><h4>Step 5 — Evaluate team constraints</h4><p>Security: where does code go? Budget: seats vs API usage? Standardize or allow both?</p></div></div><div class="cs-roadmap-step"><div><h4>Step 6 — Define a combined playbook</h4><p>Example: Cursor for features; Claude Code for "migrate X to Y" Friday jobs with PR template.</p></div></div></div>
+    </div>
+    <div class="cs-paper" id="cs-section-3">
+        <h2 class="cs-section-title">④ Code / config patterns</h2>
+        <div class="cs-note"><strong>Choose Cursor if:</strong> you want AI inside the editor all day, multi-model flexibility, and visual diff review.<br><strong>Choose Claude Code if:</strong> you prefer terminal, large autonomous repo tasks, or Claude-specific reasoning.<br><strong>Use both:</strong> Cursor for interactive dev; Claude Code for migrations and scripted agent runs.</div>
+    </div>
+    <div class="cs-paper" id="cs-section-4">
+        <h2 class="cs-section-title">⑤ Production & pitfalls</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Pitfall</th><th>Why it hurts</th><th>Fix</th></tr><tr><td>Picking by hype not workflow</td><td>Wrong tool frustrates team</td><td>Trial both on real tasks for one week</td></tr><tr><td>No review discipline</td><td>Both can ship bad code fast</td><td>Same PR review standards regardless of tool</td></tr><tr><td>Duplicate subscriptions</td><td>Unnecessary cost</td><td>Team policy: primary + optional second tool</td></tr><tr><td>Ignoring data policies</td><td>Code leaves approved boundary</td><td>Check enterprise options per vendor</td></tr><tr><td>Huge autonomous jobs unchecked</td><td>Wide blast radius</td><td>Scope refactors; branch per agent run</td></tr><tr><td>Skipping tests after either tool</td><td>Regressions</td><td>CI must pass before merge — non-negotiable</td></tr></table></div><div class="cs-note"><strong>Production tips:</strong><ul><li>Document approved AI tools in engineering handbook</li><li>Require human review on all agent-generated PRs</li><li>Use branch protection and CI gates unchanged</li><li>Track velocity and defect rate — adjust tool policy with data</li></ul></div>
+    </div>
+    <div class="cs-paper" id="cs-section-5">
+        <h2 class="cs-section-title">⑥ Interview / on-the-job Q&A</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Question</th><th>Answer</th></tr><tr><td>Main difference?</td><td>Cursor: IDE-integrated. Claude Code: terminal-first autonomous agent.</td></tr><tr><td>Can I use both?</td><td>Yes — common pattern: Cursor daily, Claude Code for big refactors.</td></tr><tr><td>Which is better for beginners?</td><td>Cursor — familiar VS Code UI and smaller scoped edits.</td></tr><tr><td>Which for monorepo migration?</td><td>Claude Code often handles wide refactors well; still review full diff.</td></tr><tr><td>Model choice?</td><td>Cursor: multi-provider. Claude Code: Anthropic only.</td></tr><tr><td>Security comparison?</td><td>Depends on plan and settings — evaluate data retention per org policy.</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-6">
+        <h2 class="cs-section-title">⑦ Tools & ecosystem</h2>
+        <div class="cs-note"><ul><li><strong>Cursor:</strong> Chat, Composer, .cursor/rules</li><li><strong>Claude Code:</strong> claude CLI, git integration</li><li><strong>Shared:</strong> git, CI, code review (GitHub/GitLab)</li></ul></div><div class="cs-tags"><span class="cs-tag">cursor</span><span class="cs-tag">claude-code</span><span class="cs-tag">comparison</span><span class="cs-tag">workflow</span><span class="cs-tag">ide</span></div>
+    </div>
+    <div class="cs-paper" id="cs-section-7">
+        <h2 class="cs-section-title">⑧ Revision checklist</h2>
+        <ul class="cs-checklist"><li>Tried both on real repo tasks</li><li>Workflow mapped (IDE vs terminal heavy)</li><li>Diff review process defined for agent output</li><li>Data/privacy policy checked for each tool</li><li>Team playbook documents when to use which</li><li>CI and tests required post-agent edits</li><li>Subscription/budget aligned to usage</li><li>No blind merge of large agent PRs</li><li>Periodic retro on tool effectiveness</li></ul>
     </div>
     <div class="cs-related"><h3>More in this category</h3><div class="cs-related-links"><a href="/cheat-sheets/ai/">All AI cheat sheets</a><a href="/cheat-sheets/ai/rag">RAG</a><a href="/cheat-sheets/ai/agents-intro">What is an Agent?</a></div></div>
 
 </div>
 </main>
 <script src="/js/cheat-sheet-videos.js"></script>
+<script src="/js/cheat-sheet-prompts.js"></script>
 <script src="/js/cheat-sheet.js"></script>
 <script src="/js/site-nav.js"></script>
 </body>

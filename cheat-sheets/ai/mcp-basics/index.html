@@ -20,28 +20,63 @@
         <p class="cs-subtitle">Standard way to plug tools, data sources, and IDEs into LLM clients — one protocol, many servers.</p>
     </header>
     <div class="cs-interview-tip"><strong>Interview tip</strong> MCP = USB-C for AI tools. Host (Cursor, Claude) connects to MCP servers (GitHub, DB, filesystem).</div>
+    <nav class="cs-toc" aria-label="On this page">
+    <div class="cs-toc-title">On this page</div>
+    <ol><li><a href="#cs-section-0">① What you must know (30 sec)</a></li><li><a href="#cs-section-1">② How it works</a></li><li><a href="#cs-section-2">③ Step-by-step (hands-on)</a></li><li><a href="#cs-section-3">④ Code / config patterns</a></li><li><a href="#cs-section-4">⑤ Production & pitfalls</a></li><li><a href="#cs-section-5">⑥ Interview / on-the-job Q&A</a></li><li><a href="#cs-section-6">⑦ Tools & ecosystem</a></li><li><a href="#cs-section-7">⑧ Revision checklist</a></li></ol>
+  </nav>
     
-    <div class="cs-paper">
-        <h2 class="cs-section-title">Architecture</h2>
-        <div class="cs-diagram"><div class="cs-diagram-title">MCP flow</div>
-        <div class="cs-flow"><span class="cs-box">MCP Host</span><span class="cs-arrow">↔</span>
-        <span class="cs-box purple">MCP Server</span><span class="cs-arrow">↔</span>
-        <span class="cs-box green">Tool / Data</span></div></div>
-        <div class="cs-note">Servers expose <strong>resources</strong> (read data) and <strong>tools</strong> (actions). Host discovers capabilities at connect time.</div>
+    <div class="cs-paper" id="cs-section-0">
+        <h2 class="cs-section-title">① What you must know (30 sec)</h2>
+        <div class="cs-note"><strong>MCP (Model Context Protocol)</strong> is an open standard connecting <strong>hosts</strong> (Cursor, Claude Desktop, custom apps) to <strong>MCP servers</strong> that expose <strong>tools</strong> (actions) and <strong>resources</strong> (readable data). One server implementation works across any MCP-compatible host — like USB-C for AI integrations.</div><div class="cs-note"><strong>Analogy:</strong> MCP is USB-C for AI tools: one port on the host (IDE), many peripherals (servers) that plug in without custom drivers per app.</div>
     </div>
-    <div class="cs-paper">
-        <h2 class="cs-section-title">Why it matters</h2>
-        <div class="cs-note"><ul>
-        <li>Reuse integrations across Cursor, Claude Desktop, custom apps</li>
-        <li>Community servers: Postgres, Slack, Brave search</li>
-        <li>Build your own server for internal APIs</li>
-        </ul></div>
+    <div class="cs-paper" id="cs-section-1">
+        <h2 class="cs-section-title">② How it works</h2>
+        <div class="cs-diagram"><div class="cs-diagram-title">MCP architecture</div><div class="cs-flow"><span class="cs-box gray">MCP Host</span><span class="cs-arrow">→</span><span class="cs-box purple">↔ protocol</span><span class="cs-arrow">→</span><span class="cs-box green">MCP Server</span><span class="cs-arrow">→</span><span class="cs-box orange">Tools + Resources</span></div></div><div class="cs-layer-diagram"><div class="cs-layer l1">Host — LLM client (Cursor, Claude Desktop) that runs the agent loop</div><div class="cs-layer l2">Server — process exposing tools (run query) and resources (read file, fetch doc)</div><div class="cs-layer l3">Discovery — host lists available tools/resources at connection time</div><div class="cs-layer l4">Invocation — model selects tool; host routes call to correct server</div><div class="cs-layer l1">Transports — stdio (local) or SSE/HTTP (remote servers)</div></div><div class="cs-note">Community servers exist for GitHub, Postgres, Slack, Brave Search — check official MCP registry before building custom.</div>
+    </div>
+    <div class="cs-paper" id="cs-section-2">
+        <h2 class="cs-section-title">③ Step-by-step (hands-on)</h2>
+        <div class="cs-roadmap"><div class="cs-roadmap-step"><div><h4>Step 1 — Identify host and needs</h4><p>Cursor or Claude Desktop — list data sources and actions the agent needs (repo, DB, tickets).</p></div></div><div class="cs-roadmap-step"><div><h4>Step 2 — Install community servers</h4><p>Configure mcp.json with server command, args, and env vars. Restart host to discover tools.</p></div></div><div class="cs-roadmap-step"><div><h4>Step 3 — Authenticate safely</h4><p>Pass API tokens via env — not committed. Use read-only DB credentials where possible.</p></div></div><div class="cs-roadmap-step"><div><h4>Step 4 — Test tool discovery</h4><p>Ask agent "what tools do you have?" Verify expected tools appear before real tasks.</p></div></div><div class="cs-roadmap-step"><div><h4>Step 5 — Build custom server (optional)</h4><p>Use MCP SDK (TypeScript/Python) to wrap internal API as tools with JSON schemas.</p></div></div><div class="cs-roadmap-step"><div><h4>Step 6 — Harden for team rollout</h4><p>Allowlist approved servers; document each tool capability; audit logs on sensitive tools.</p></div></div></div>
+    </div>
+    <div class="cs-paper" id="cs-section-3">
+        <h2 class="cs-section-title">④ Code / config patterns</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Concept</th><th>Description</th><th>Example</th></tr><tr><td>Host</td><td>Runs LLM + connects servers</td><td>Cursor IDE</td></tr><tr><td>Server</td><td>Exposes capabilities</td><td>github-mcp-server</td></tr><tr><td>Tool</td><td>Action with side effects</td><td>create_issue, run_query</td></tr><tr><td>Resource</td><td>Readable data URI</td><td>file://, db schema</td></tr><tr><td>Transport</td><td>Connection channel</td><td>stdio, SSE</td></tr></table></div><div class="cs-code-block"><pre>// ~/.cursor/mcp.json (conceptual)
+{
+  "mcpServers": {
+    "github": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": { "GITHUB_TOKEN": "${GITHUB_TOKEN}" }
+    },
+    "postgres": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-postgres"],
+      "env": { "DATABASE_URL": "${DATABASE_URL}" }
+    }
+  }
+}</pre></div>
+    </div>
+    <div class="cs-paper" id="cs-section-4">
+        <h2 class="cs-section-title">⑤ Production & pitfalls</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Pitfall</th><th>Why it hurts</th><th>Fix</th></tr><tr><td>Over-permissioned servers</td><td>Agent deletes prod data</td><td>Read-only creds; separate write tools with approval</td></tr><tr><td>Unvetted community servers</td><td>Malicious code in server process</td><td>Allowlist; review server source</td></tr><tr><td>Secrets in mcp.json committed</td><td>Token leak in git</td><td>Env var references only; .gitignore config</td></tr><tr><td>Too many tools enabled</td><td>Model picks wrong tool</td><td>Enable minimal set per project</td></tr><tr><td>No transport security (remote)</td><td>MITM on SSE</td><td>TLS, auth tokens, private network</td></tr><tr><td>Confusing MCP with function calling</td><td>MCP is cross-app standard; function calling is per-API</td><td>Use MCP for reusable integrations</td></tr></table></div><div class="cs-note"><strong>Production tips:</strong><ul><li>Central IT-approved server catalog for enterprise</li><li>Per-team mcp.json templates with least privilege</li><li>Log every tool invocation with user and args (redacted)</li><li>Sandbox custom servers before org-wide deploy</li></ul></div>
+    </div>
+    <div class="cs-paper" id="cs-section-5">
+        <h2 class="cs-section-title">⑥ Interview / on-the-job Q&A</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Question</th><th>Answer</th></tr><tr><td>What is MCP?</td><td>Open protocol for LLM hosts to connect to external tools and data via MCP servers.</td></tr><tr><td>Host vs server?</td><td>Host runs the AI client; server exposes tools/resources the host can call.</td></tr><tr><td>Tool vs resource?</td><td>Tool performs an action; resource is addressable read-only data.</td></tr><tr><td>Why not custom plugins?</td><td>Write once, use in Cursor, Claude, and other MCP hosts.</td></tr><tr><td>stdio vs SSE?</td><td>stdio for local subprocess servers; SSE/HTTP for remote networked servers.</td></tr><tr><td>Security concern?</td><td>Servers run with your credentials — treat like installing software with API access.</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-6">
+        <h2 class="cs-section-title">⑦ Tools & ecosystem</h2>
+        <div class="cs-note"><ul><li><strong>Hosts:</strong> Cursor, Claude Desktop, custom MCP clients</li><li><strong>SDK:</strong> @modelcontextprotocol/sdk (TS), mcp Python</li><li><strong>Servers:</strong> GitHub, Postgres, filesystem, Brave Search, Slack</li><li><strong>Registry:</strong> MCP server directory (official/community)</li></ul></div><div class="cs-tags"><span class="cs-tag">mcp</span><span class="cs-tag">tools</span><span class="cs-tag">cursor</span><span class="cs-tag">integration</span><span class="cs-tag">protocol</span></div>
+    </div>
+    <div class="cs-paper" id="cs-section-7">
+        <h2 class="cs-section-title">⑧ Revision checklist</h2>
+        <ul class="cs-checklist"><li>MCP host configured (Cursor mcp.json or Claude config)</li><li>Only required servers enabled</li><li>Credentials via environment variables</li><li>Read-only access for exploratory DB tools</li><li>Tool list verified after host restart</li><li>Custom servers code-reviewed before use</li><li>Team allowlist of approved MCP servers</li><li>Sensitive tool calls audit-logged</li><li>Understand difference from in-app function calling</li></ul>
     </div>
     <div class="cs-related"><h3>More in this category</h3><div class="cs-related-links"><a href="/cheat-sheets/ai/">All AI cheat sheets</a><a href="/cheat-sheets/ai/rag">RAG</a><a href="/cheat-sheets/ai/agents-intro">What is an Agent?</a></div></div>
 
 </div>
 </main>
 <script src="/js/cheat-sheet-videos.js"></script>
+<script src="/js/cheat-sheet-prompts.js"></script>
 <script src="/js/cheat-sheet.js"></script>
 <script src="/js/site-nav.js"></script>
 </body>

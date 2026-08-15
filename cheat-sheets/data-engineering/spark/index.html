@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Apache Spark Cheat Sheet | Binod Suman Cheat Sheet</title>
-    <meta name="description" content="Apache Spark interview cheat sheet — RDD, DataFrame, Spark SQL, tuning, and architecture.">
+    <title>Apache Spark — Interview Cheat Sheet | Binod Suman Cheat Sheet</title>
+    <meta name="description" content="RDD vs DataFrame, lazy evaluation, shuffle, partitioning, caching, and job optimization.">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Kalam:wght@400;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/css/site-nav.css">
@@ -13,61 +13,64 @@
 <body class="cheat-sheet-page">
 <main class="cheat-sheet-page">
 <div class="cs-container">
-    <nav class="cs-breadcrumb"><a href="/">Home</a> · <a href="/cheat-sheets/">Cheat Sheets</a> · Data Engineering · Spark</nav>
+    <nav class="cs-breadcrumb"><a href="/">Home</a> · <a href="/cheat-sheets/">Cheat Sheets</a> · <a href="/cheat-sheets/data-engineering/">Data Engineering</a> · Spark</nav>
     <header class="cs-hero">
         <span class="cs-category-badge data-engineering">Data Engineering</span>
         <h1 class="cs-title">Apache Spark — Interview Cheat Sheet</h1>
-        <p class="cs-subtitle">Batch and streaming processing essentials for data engineering interviews.</p>
+        <p class="cs-subtitle">RDD vs DataFrame, lazy evaluation, shuffle, partitioning, caching, and job optimization.</p>
     </header>
+    <div class="cs-interview-tip"><strong>Interview tip</strong> Shuffle is the enemy — explain wide transformations (groupBy, join) vs narrow (map, filter) and how to minimize data movement.</div>
+    <nav class="cs-toc" aria-label="On this page">
+    <div class="cs-toc-title">On this page</div>
+    <ol><li><a href="#cs-section-0">① Spark architecture overview</a></li><li><a href="#cs-section-1">② RDD vs DataFrame vs Dataset</a></li><li><a href="#cs-section-2">③ Transformations — narrow vs wide</a></li><li><a href="#cs-section-3">④ Partitioning & parallelism</a></li><li><a href="#cs-section-4">⑤ Join strategies</a></li><li><a href="#cs-section-5">⑥ Caching & persistence</a></li><li><a href="#cs-section-6">⑦ Structured Streaming (brief)</a></li><li><a href="#cs-section-7">⑧ Optimization checklist</a></li><li><a href="#cs-section-8">⑨ Debugging slow jobs</a></li><li><a href="#cs-section-9">⑩ Interview Q&A & revision</a></li></ol>
+  </nav>
     
-    <div class="cs-interview-tip"><strong>Interview tip</strong> Explain lazy evaluation: transformations build DAG → action triggers execution. Mention driver, executors, and shuffle as bottleneck.</div>
-    <div class="cs-paper">
-        <h2 class="cs-section-title">Spark building blocks</h2>
-        <div class="cs-layer-diagram">
-            <div class="cs-layer l1">Driver — SparkContext, DAG scheduler</div>
-            <div class="cs-layer l2">Executors — run tasks, store cache</div>
-            <div class="cs-layer l3">Cluster Manager — YARN, K8s, standalone</div>
-        </div>
-        <div class="cs-table-wrap"><table class="cs-table"><tr><th>API</th><th>Use</th></tr>
-        <tr><td>RDD</td><td>Low-level, distributed collections</td></tr>
-        <tr><td>DataFrame/Dataset</td><td>Structured — Catalyst optimizer</td></tr>
-        <tr><td>Spark SQL</td><td>SQL on DataFrames + Hive support</td></tr></table></div>
+    <div class="cs-paper" id="cs-section-0">
+        <h2 class="cs-section-title">① Spark architecture overview</h2>
+        <div class="cs-diagram"><div class="cs-diagram-title">Spark cluster</div><div class="cs-arch-grid"><div class="cs-arch-row"><div class="cs-arch-cell purple">Driver (SparkContext / SparkSession)</div></div><div class="cs-arch-row"><div class="cs-arch-cell ">Cluster Manager (YARN / K8s / standalone)</div></div><div class="cs-arch-row"><div class="cs-arch-cell green">Executor 1</div><div class="cs-arch-cell green">Executor 2</div><div class="cs-arch-cell green">Executor N</div></div></div></div><div class="cs-note"><strong>Driver:</strong> builds DAG, schedules tasks, tracks stages.<br><br><strong>Executors:</strong> run tasks, store cached data, shuffle read/write.<br><br><strong>Lazy evaluation:</strong> transformations build plan; actions (count, collect, write) trigger execution.</div>
     </div>
-    <div class="cs-paper">
-        <h2 class="cs-section-title">Transformations vs actions</h2>
-        <div class="cs-note"><strong>Transformations (lazy):</strong> map, filter, join, groupBy — build lineage.<br>
-        <strong>Actions:</strong> count, collect, save — trigger job.<br>
-        <strong>Wide deps:</strong> shuffle (groupBy, join) — expensive — minimize!</div>
-        <div class="cs-diagram">
-            <div class="cs-diagram-title">Shuffle</div>
-            <div class="cs-flow">
-                <span class="cs-box">Map tasks</span><span class="cs-arrow">→</span>
-                <span class="cs-box orange">Shuffle / Sort</span><span class="cs-arrow">→</span>
-                <span class="cs-box green">Reduce tasks</span>
-            </div>
-        </div>
+    <div class="cs-paper" id="cs-section-1">
+        <h2 class="cs-section-title">② RDD vs DataFrame vs Dataset</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>API</th><th>Typing</th><th>Optimization</th><th>Status</th></tr><tr><td>RDD</td><td>Low-level, opaque objects</td><td>Manual — you optimize</td><td>Legacy — use when need fine control</td></tr><tr><td>DataFrame</td><td>Untyped rows + schema (Spark SQL)</td><td>Catalyst optimizer + Tungsten</td><td>Default for ETL</td></tr><tr><td>Dataset</td><td>Typed (Scala/Java)</td><td>Catalyst + encoder</td><td>Scala/Java — type-safe</td></tr></table></div><div class="cs-note">Python PySpark uses DataFrame API almost exclusively. Prefer DataFrame over RDD unless you need custom partition-level logic.</div>
     </div>
-    <div class="cs-paper">
-        <h2 class="cs-section-title">Tuning checklist</h2>
-        <div class="cs-note"><ul>
-            <li><strong>Partitions:</strong> default 200 — increase for large data, avoid tiny files</li>
-            <li><strong>Memory:</strong> executor memory + overhead, spill to disk if OOM</li>
-            <li><strong>Broadcast join:</strong> small table broadcast to avoid shuffle</li>
-            <li><strong>Cache:</strong> persist() for reused DataFrames — MEMORY_AND_DISK</li>
-            <li><strong>Structured Streaming:</strong> micro-batch or continuous processing</li>
-        </ul></div>
+    <div class="cs-paper" id="cs-section-2">
+        <h2 class="cs-section-title">③ Transformations — narrow vs wide</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Type</th><th>Examples</th><th>Shuffle?</th></tr><tr><td>Narrow</td><td>map, filter, select, union (same partition count)</td><td>No — pipelined in same stage</td></tr><tr><td>Wide</td><td>groupByKey, reduceByKey, join, repartition, distinct</td><td>Yes — shuffle exchange</td></tr></table></div><div class="cs-diagram"><div class="cs-diagram-title">Shuffle exchange</div><div class="cs-flow"><span class="cs-box purple">Map side write</span><span class="cs-arrow">→</span><span class="cs-box orange">Shuffle files</span><span class="cs-arrow">→</span><span class="cs-box green">Reduce side read</span></div></div><div class="cs-note"><strong>groupByKey vs reduceByKey:</strong> reduceByKey combines locally before shuffle — almost always prefer reduceByKey over groupByKey + mapValues.</div>
     </div>
-    <div class="cs-paper">
-        <h2 class="cs-section-title">Spark vs MapReduce</h2>
-        <div class="cs-note">In-memory lineage, 10–100× faster for iterative jobs. Fault tolerance via RDD lineage recomputation (not HDFS replication per step).</div>
+    <div class="cs-paper" id="cs-section-3">
+        <h2 class="cs-section-title">④ Partitioning & parallelism</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Operation</th><th>Effect</th></tr><tr><td>repartition(n)</td><td>Full shuffle — increase/decrease partitions evenly</td></tr><tr><td>coalesce(n)</td><td>Narrow — decrease partitions without full shuffle (if shuffle=false)</td></tr><tr><td>partitionBy(col)</td><td>Hash/range partition on write</td></tr><tr><td>spark.default.parallelism</td><td>Default partitions for shuffle operations</td></tr></table></div><div class="cs-note"><strong>Rule of thumb:</strong> 2–3× cores for partition count; too many tiny partitions → task overhead; too few → skew and memory pressure. Target 128MB–256MB per partition.</div>
     </div>
-    <div class="cs-related">
-        <h3>More in this category</h3>
-        <div class="cs-related-links"><a href="/cheat-sheets/data-engineering/kafka">Apache Kafka</a></div>
+    <div class="cs-paper" id="cs-section-4">
+        <h2 class="cs-section-title">⑤ Join strategies</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Strategy</th><th>When</th><th>Risk</th></tr><tr><td>Broadcast hash join</td><td>Small table fits in memory (spark.sql.autoBroadcastJoinThreshold)</td><td>Driver/executor OOM if table too large</td></tr><tr><td>Sort-merge join</td><td>Large-large join</td><td>Expensive shuffle — both sides sorted</td></tr><tr><td>Shuffle hash join</td><td>Medium tables</td><td>Memory for hash table</td></tr><tr><td>Cartesian</td><td>Missing join condition bug</td><td>Explosion — always avoid accidentally</td></tr></table></div><div class="cs-note">Fix skew: salting hot keys, AQE skew join (Spark 3), isolate heavy key to separate processing.</div>
     </div>
+    <div class="cs-paper" id="cs-section-5">
+        <h2 class="cs-section-title">⑥ Caching & persistence</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Level</th><th>Storage</th><th>Use</th></tr><tr><td>MEMORY_ONLY</td><td>Deserialized JVM objects</td><td>Fast if fits RAM</td></tr><tr><td>MEMORY_AND_DISK</td><td>Spill to disk on overflow</td><td>Default safe choice for iterative</td></tr><tr><td>DISK_ONLY</td><td>Disk</td><td>Too large for memory</td></tr><tr><td>MEMORY_ONLY_SER</td><td>Serialized bytes</td><td>Less memory, more CPU deserialize</td></tr></table></div><div class="cs-note"><strong>When to cache:</strong> DataFrame reused in multiple downstream branches (ML iterations, graph loops). Unpersist when done. <code>df.cache()</code> = MEMORY_AND_DISK.</div>
+    </div>
+    <div class="cs-paper" id="cs-section-6">
+        <h2 class="cs-section-title">⑦ Structured Streaming (brief)</h2>
+        <div class="cs-note"><strong>Micro-batch model:</strong> treat stream as append table — trigger queries on new data. Checkpoint dir for fault tolerance and exactly-once sinks.<br><br><strong>Watermark:</strong> handle late-arriving events in windowed aggregations.<br><br><strong>Output modes:</strong> append, complete, update.</div><div class="cs-diagram"><div class="cs-diagram-title">Streaming pipeline</div><div class="cs-flow"><span class="cs-box gray">Kafka source</span><span class="cs-arrow">→</span><span class="cs-box purple">Spark transform</span><span class="cs-arrow">→</span><span class="cs-box orange">Checkpoint</span><span class="cs-arrow">→</span><span class="cs-box green">Delta / Parquet sink</span></div></div>
+    </div>
+    <div class="cs-paper" id="cs-section-7">
+        <h2 class="cs-section-title">⑧ Optimization checklist</h2>
+        <ul class="cs-checklist"><li>Filter early — push predicates before join</li><li>Select only needed columns — avoid SELECT *</li><li>Broadcast small dimension tables explicitly</li><li>Replace UDFs with Spark SQL built-ins (Catalyst cannot optimize UDFs well)</li><li>Avoid collect() on large data — use write or take/sample</li><li>Enable AQE (Adaptive Query Execution) Spark 3+</li><li>Fix data skew before scaling cluster</li></ul>
+    </div>
+    <div class="cs-paper" id="cs-section-8">
+        <h2 class="cs-section-title">⑨ Debugging slow jobs</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Symptom</th><th>Likely cause</th><th>Fix</th></tr><tr><td>One task much slower</td><td>Data skew on key</td><td>Salt keys, AQE, isolate hot key</td></tr><tr><td>Executor OOM</td><td>Too much data per partition, large broadcast</td><td>Repartition, increase memory, reduce broadcast size</td></tr><tr><td>Many small tasks</td><td>Too many partitions</td><td>coalesce after filter</td></tr><tr><td>4+ hour shuffle</td><td>Cartesian or missing filter</td><td>Check join condition, filter early</td></tr><tr><td>Spill to disk</td><td>Memory pressure</td><td>Increase executor memory or reduce partition size</td></tr></table></div><div class="cs-note">Use Spark UI: Stages tab → skewed task duration histogram; SQL tab → physical plan (broadcast hint visible).</div>
+    </div>
+    <div class="cs-paper" id="cs-section-9">
+        <h2 class="cs-section-title">⑩ Interview Q&A & revision</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Question</th><th>Answer sketch</th></tr><tr><td>What triggers shuffle?</td><td>Wide transformation requiring data redistribution across partitions</td></tr><tr><td>Lazy evaluation benefit?</td><td>Optimize full DAG — predicate pushdown, combine filters</td></tr><tr><td>RDD lineage?</td><td>Graph of transformations — rebuild lost partitions from lineage + checkpoints</td></tr><tr><td>Spark vs MapReduce?</td><td>In-memory iteratives, DAG scheduler, 10–100× faster for iterative ML/ETL</td></tr><tr><td>When Spark over pandas?</td><td>Data does not fit in memory, distributed cluster, production ETL pipelines</td></tr></table></div><ul class="cs-checklist"><li>Explained narrow vs wide transformations</li><li>Named shuffle cause and mitigation</li><li>Compared RDD vs DataFrame</li><li>Described broadcast join use case</li><li>Listed skew debugging steps</li></ul><div class="cs-tags"><span class="cs-tag">spark</span><span class="cs-tag">shuffle</span><span class="cs-tag">dataframe</span><span class="cs-tag">partitioning</span><span class="cs-tag">optimization</span></div>
+    </div>
+    <div class="cs-related"><h3>More in this category</h3><div class="cs-related-links"><a href="/cheat-sheets/data-engineering/kafka">Apache Kafka</a></div></div>
+
 </div>
 </main>
 <script src="/js/cheat-sheet-videos.js"></script>
+<script src="/js/cheat-sheet-prompts.js"></script>
 <script src="/js/cheat-sheet.js"></script>
 <script src="/js/site-nav.js"></script>
 </body>

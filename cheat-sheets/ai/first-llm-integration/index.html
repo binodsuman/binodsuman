@@ -20,38 +20,60 @@
         <p class="cs-subtitle">From zero to a working API call — keys, prompts, streaming, and safe defaults.</p>
     </header>
     <div class="cs-interview-tip"><strong>Interview tip</strong> Walk through: pick provider → env vars for keys → one sync call → add streaming → add retries + timeouts.</div>
+    <nav class="cs-toc" aria-label="On this page">
+    <div class="cs-toc-title">On this page</div>
+    <ol><li><a href="#cs-section-0">① What you must know (30 sec)</a></li><li><a href="#cs-section-1">② How it works</a></li><li><a href="#cs-section-2">③ Step-by-step (hands-on)</a></li><li><a href="#cs-section-3">④ Code / config patterns</a></li><li><a href="#cs-section-4">⑤ Production & pitfalls</a></li><li><a href="#cs-section-5">⑥ Interview / on-the-job Q&A</a></li><li><a href="#cs-section-6">⑦ Tools & ecosystem</a></li><li><a href="#cs-section-7">⑧ Revision checklist</a></li></ol>
+  </nav>
     
-    <div class="cs-paper">
-        <h2 class="cs-section-title">Minimal integration checklist</h2>
-        <div class="cs-note"><ul>
-        <li>Create API key; never commit — use <code>.env</code></li>
-        <li>Pick model tier (fast vs smart): gpt-4o-mini, Claude Haiku, Gemini Flash for dev</li>
-        <li>Start with <strong>one user message</strong> → string response</li>
-        <li>Add <strong>system prompt</strong> for role + guardrails</li>
-        <li>Log token usage & latency from day one</li>
-        </ul></div>
+    <div class="cs-paper" id="cs-section-0">
+        <h2 class="cs-section-title">① What you must know (30 sec)</h2>
+        <div class="cs-note">Your first LLM integration is a <strong>backend API call</strong> to a provider (OpenAI, Anthropic, Google) with a structured prompt and safe defaults. Master the basics — keys in env vars, system + user messages, parsing the response, handling errors — before adding RAG, agents, or fine-tuning. Always proxy through your server to protect credentials and enforce rate limits.</div><div class="cs-note"><strong>Analogy:</strong> Like adding a payment gateway: start with one successful charge, then add webhooks, retries, and monitoring — not a custom bank on day one.</div>
     </div>
-    <div class="cs-paper">
-        <h2 class="cs-section-title">Request flow</h2>
-        <div class="cs-diagram"><div class="cs-diagram-title">Your app → LLM</div>
-        <div class="cs-flow"><span class="cs-box">Frontend</span><span class="cs-arrow">→</span>
-        <span class="cs-box purple">Your API</span><span class="cs-arrow">→</span>
-        <span class="cs-box green">LLM provider</span><span class="cs-arrow">→</span>
-        <span class="cs-box orange">Response</span></div></div>
-        <div class="cs-note">Always call LLMs from <strong>your backend</strong> — not browser — to protect keys and apply rate limits.</div>
+    <div class="cs-paper" id="cs-section-1">
+        <h2 class="cs-section-title">② How it works</h2>
+        <div class="cs-diagram"><div class="cs-diagram-title">Request flow</div><div class="cs-flow"><span class="cs-box">Frontend / client</span><span class="cs-arrow">→</span><span class="cs-box purple">Your API (auth, rate limit)</span><span class="cs-arrow">→</span><span class="cs-box green">LLM provider</span><span class="cs-arrow">→</span><span class="cs-box orange">Stream or JSON response</span></div></div><div class="cs-layer-diagram"><div class="cs-layer l1">Client sends user input to your endpoint — never the raw API key</div><div class="cs-layer l2">Your server validates input, applies auth, checks quotas</div><div class="cs-layer l3">Build messages array: system (role) + user (content) + optional history</div><div class="cs-layer l4">Call provider SDK with model, temperature, max_tokens, timeout</div><div class="cs-layer l1">Return text to client; log tokens, latency, and errors</div></div><div class="cs-note">Use a fast/cheap model (gpt-4o-mini, Claude Haiku, Gemini Flash) for development; swap to smarter models only where quality demands it.</div>
     </div>
-    <div class="cs-paper">
-        <h2 class="cs-section-title">Production basics</h2>
-        <div class="cs-note"><strong>Retries:</strong> exponential backoff on 429/5xx<br>
-        <strong>Timeout:</strong> 30–60s max<br>
-        <strong>Fallback:</strong> smaller model or cached answer<br>
-        <strong>PII:</strong> scrub logs; consider data residency</div>
+    <div class="cs-paper" id="cs-section-2">
+        <h2 class="cs-section-title">③ Step-by-step (hands-on)</h2>
+        <div class="cs-roadmap"><div class="cs-roadmap-step"><div><h4>Step 1 — Create provider account and key</h4><p>Sign up, generate API key, set billing alerts. Store key in .env locally and in your secrets manager (AWS Secrets Manager, Vault) in production.</p></div></div><div class="cs-roadmap-step"><div><h4>Step 2 — Install SDK and hello-world</h4><p>pip install openai or npm @anthropic-ai/sdk. One function: send "Hello" → print response. Confirm key works before building UI.</p></div></div><div class="cs-roadmap-step"><div><h4>Step 3 — Add system prompt</h4><p>Define persona, output format, and boundaries: "You are a support bot. Answer in 3 bullets. Do not invent refund policies."</p></div></div><div class="cs-roadmap-step"><div><h4>Step 4 — Expose via your API</h4><p>POST /api/chat with body { message }. Validate length, sanitize input, attach user ID for rate limiting. Return { reply, usage }.</p></div></div><div class="cs-roadmap-step"><div><h4>Step 5 — Add streaming (optional)</h4><p>Use SSE or WebSocket so tokens appear incrementally. Flush chunks to client; handle client disconnect to cancel upstream.</p></div></div><div class="cs-roadmap-step"><div><h4>Step 6 — Harden for production</h4><p>Retries with backoff on 429/5xx, 30–60s timeout, structured logging, PII scrubbing in logs, and a circuit breaker or fallback model.</p></div></div></div>
+    </div>
+    <div class="cs-paper" id="cs-section-3">
+        <h2 class="cs-section-title">④ Code / config patterns</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Concern</th><th>Dev default</th><th>Production</th></tr><tr><td>Model</td><td>gpt-4o-mini / Haiku</td><td>Tier by task complexity</td></tr><tr><td>Temperature</td><td>0–0.3 for facts</td><td>0 for deterministic; higher for creative</td></tr><tr><td>Max tokens</td><td>512–1024</td><td>Cap to control cost</td></tr><tr><td>Retries</td><td>None</td><td>3 attempts, exponential backoff</td></tr><tr><td>Timeout</td><td>60s</td><td>30s with cancel on client disconnect</td></tr></table></div><div class="cs-code-block"><pre>// Node.js — minimal chat endpoint
+const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const res = await client.chat.completions.create({
+  model: "gpt-4o-mini",
+  messages: [
+    { role: "system", content: "You are a helpful assistant." },
+    { role: "user", content: userMessage }
+  ],
+  max_tokens: 512,
+  temperature: 0.2
+});
+return res.choices[0].message.content;</pre></div>
+    </div>
+    <div class="cs-paper" id="cs-section-4">
+        <h2 class="cs-section-title">⑤ Production & pitfalls</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Pitfall</th><th>Why it hurts</th><th>Fix</th></tr><tr><td>API key in frontend</td><td>Key stolen, unlimited spend</td><td>Always call LLM from backend; use session auth</td></tr><tr><td>No timeout</td><td>Hung requests pile up</td><td>Set client timeout; cancel on disconnect</td></tr><tr><td>Ignoring token usage</td><td>Surprise bills</td><td>Log prompt + completion tokens per request</td></tr><tr><td>No input validation</td><td>Prompt injection, huge payloads</td><td>Max length, block patterns, rate limit per user</td></tr><tr><td>Blind retries on 400</td><td>Amplified errors and cost</td><td>Retry only 429/5xx with backoff</td></tr><tr><td>Logging raw PII</td><td>Compliance violations</td><td>Redact emails, SSNs before logging</td></tr></table></div><div class="cs-note"><strong>Production tips:</strong><ul><li>Feature flag to disable LLM calls without deploy</li><li>Per-user and global rate limits</li><li>Cost dashboard by endpoint and model</li><li>Content moderation layer for user-generated prompts</li></ul></div>
+    </div>
+    <div class="cs-paper" id="cs-section-5">
+        <h2 class="cs-section-title">⑥ Interview / on-the-job Q&A</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Question</th><th>Answer</th></tr><tr><td>Why backend-only?</td><td>Protects API keys, enables rate limits, audit logs, and prompt templates you control.</td></tr><tr><td>What is a system prompt?</td><td>Instructions to the model defining role, tone, format, and constraints — not shown as user input.</td></tr><tr><td>Streaming vs non-streaming?</td><td>Streaming improves perceived latency for chat UIs; batch is fine for background jobs.</td></tr><tr><td>What is temperature?</td><td>Randomness knob: 0 = deterministic, higher = more creative variation.</td></tr><tr><td>How handle 429?</td><td>Exponential backoff, queue requests, or route to fallback model/provider.</td></tr><tr><td>What to log?</td><td>Latency, model, token counts, error codes — not full prompts if they contain secrets.</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-6">
+        <h2 class="cs-section-title">⑦ Tools & ecosystem</h2>
+        <div class="cs-note"><ul><li><strong>SDKs:</strong> openai (Python/Node), anthropic, google-generativeai</li><li><strong>Proxies:</strong> LiteLLM, Portkey — unified API across providers</li><li><strong>Observability:</strong> LangSmith, Helicone, OpenTelemetry spans</li><li><strong>Secrets:</strong> dotenv (dev), AWS/GCP secret managers (prod)</li></ul></div><div class="cs-tags"><span class="cs-tag">api</span><span class="cs-tag">openai</span><span class="cs-tag">streaming</span><span class="cs-tag">security</span><span class="cs-tag">observability</span></div>
+    </div>
+    <div class="cs-paper" id="cs-section-7">
+        <h2 class="cs-section-title">⑧ Revision checklist</h2>
+        <ul class="cs-checklist"><li>API key in environment variable, never committed</li><li>Hello-world call works from backend script</li><li>System prompt defines role and output format</li><li>Endpoint behind authentication</li><li>Input length and rate limits enforced</li><li>Timeout and retry policy documented</li><li>Token usage logged per request</li><li>Error responses user-friendly without leaking internals</li><li>Billing alerts configured on provider dashboard</li></ul>
     </div>
     <div class="cs-related"><h3>More in this category</h3><div class="cs-related-links"><a href="/cheat-sheets/ai/">All AI cheat sheets</a><a href="/cheat-sheets/ai/rag">RAG</a><a href="/cheat-sheets/ai/agents-intro">What is an Agent?</a></div></div>
 
 </div>
 </main>
 <script src="/js/cheat-sheet-videos.js"></script>
+<script src="/js/cheat-sheet-prompts.js"></script>
 <script src="/js/cheat-sheet.js"></script>
 <script src="/js/site-nav.js"></script>
 </body>

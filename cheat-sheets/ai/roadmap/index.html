@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Master Roadmap | Binod Suman Cheat Sheet</title>
-    <meta name="description" content="Step-by-step roadmap to master AI and ML for interviews — foundations, deep learning, LLMs, and projects.">
+    <meta name="description" content="From math foundations to LLMs and MLOps — phased learning path with projects and interview milestones.">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Kalam:wght@400;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/css/site-nav.css">
@@ -13,75 +13,64 @@
 <body class="cheat-sheet-page">
 <main class="cheat-sheet-page">
 <div class="cs-container">
-    <nav class="cs-breadcrumb"><a href="/">Home</a> · <a href="/cheat-sheets/">Cheat Sheets</a> · AI · Master Roadmap</nav>
+    <nav class="cs-breadcrumb"><a href="/">Home</a> · <a href="/cheat-sheets/">Cheat Sheets</a> · <a href="/cheat-sheets/ai/">AI</a> · Master Roadmap</nav>
     <header class="cs-hero">
         <span class="cs-category-badge ai">AI</span>
-        <h1 class="cs-title">Roadmap to Become an AI Master</h1>
-        <p class="cs-subtitle">A practical learning path from math basics to production LLMs — designed for engineers targeting AI/ML interviews.</p>
+        <h1 class="cs-title">AI Master Roadmap</h1>
+        <p class="cs-subtitle">From math foundations to LLMs and MLOps — phased learning path with projects and interview milestones.</p>
     </header>
+    <div class="cs-interview-tip"><strong>Interview tip</strong> Pick ONE phase to go deep this month. Ship a project per phase — hiring managers care about demos, not certificates.</div>
+    <nav class="cs-toc" aria-label="On this page">
+    <div class="cs-toc-title">On this page</div>
+    <ol><li><a href="#cs-section-0">① Roadmap overview — five phases</a></li><li><a href="#cs-section-1">② Phase 0 — Math & programming foundations</a></li><li><a href="#cs-section-2">③ Phase 1 — Classical machine learning</a></li><li><a href="#cs-section-3">④ Phase 2 — Deep learning</a></li><li><a href="#cs-section-4">⑤ Phase 3 — LLMs & generative AI</a></li><li><a href="#cs-section-5">⑥ Phase 4 — MLOps & production</a></li><li><a href="#cs-section-6">⑦ Role-specific tracks</a></li><li><a href="#cs-section-7">⑧ 12-week sprint plan (template)</a></li><li><a href="#cs-section-8">⑨ Interview prep milestones</a></li><li><a href="#cs-section-9">⑩ Revision checklist</a></li></ol>
+  </nav>
     
-    <div class="cs-interview-tip"><strong>Interview tip</strong> Employers want depth in one area + breadth across the stack. Say: "I strong on ML fundamentals + one domain (NLP or CV) + I can ship with Python & cloud."</div>
-    <div class="cs-paper">
-        <h2 class="cs-section-title">Phase 1 — Foundations (4–8 weeks)</h2>
-        <div class="cs-note"><strong>Math:</strong> linear algebra (vectors, matrices, eigen), calculus (gradients), probability (Bayes, distributions).<br>
-        <strong>Python:</strong> NumPy, pandas, matplotlib, basic OOP.<br>
-        <strong>Stats:</strong> mean/variance, hypothesis testing, overfitting vs underfitting.</div>
-        <div class="cs-roadmap">
-            <div class="cs-roadmap-step"><div><h4>Week 1–2: Math refresh</h4><p>3Blue1Brown linear algebra + Khan probability. Practice matrix multiplication by hand once.</p></div></div>
-            <div class="cs-roadmap-step"><div><h4>Week 3–4: Python for data</h4><p>NumPy broadcasting, pandas groupby, train/test split manually.</p></div></div>
-            <div class="cs-roadmap-step"><div><h4>Week 5–8: Classical ML</h4><p>Linear/logistic regression, decision trees, random forest, SVM intuition, k-means.</p></div></div>
-        </div>
+    <div class="cs-paper" id="cs-section-0">
+        <h2 class="cs-section-title">① Roadmap overview — five phases</h2>
+        <div class="cs-diagram"><div class="cs-diagram-title">AI learning path</div><div class="cs-flow"><span class="cs-box gray">Math & Stats</span><span class="cs-arrow">→</span><span class="cs-box">Classical ML</span><span class="cs-arrow">→</span><span class="cs-box purple">Deep Learning</span><span class="cs-arrow">→</span><span class="cs-box green">LLMs & Apps</span><span class="cs-arrow">→</span><span class="cs-box orange">MLOps</span></div></div><div class="cs-table-wrap"><table class="cs-table"><tr><th>Phase</th><th>Duration</th><th>Outcome</th><th>Project</th></tr><tr><td>0 — Foundations</td><td>4–6 weeks</td><td>Linear algebra, probability, Python</td><td>NumPy matrix ops + EDA notebook</td></tr><tr><td>1 — Classical ML</td><td>6–8 weeks</td><td>Supervised/unsupervised, sklearn</td><td>Kaggle tabular competition top 50%</td></tr><tr><td>2 — Deep Learning</td><td>8–10 weeks</td><td>CNNs, RNNs, training loops</td><td>Image classifier or seq2seq model</td></tr><tr><td>3 — LLMs & GenAI</td><td>6–8 weeks</td><td>Transformers, RAG, agents, fine-tuning</td><td>RAG chatbot over your docs</td></tr><tr><td>4 — MLOps</td><td>4–6 weeks</td><td>Deploy, monitor, CI/CD for models</td><td>API endpoint + drift monitoring</td></tr></table></div>
     </div>
-    <div class="cs-paper">
-        <h2 class="cs-section-title">Phase 2 — Deep Learning (8–12 weeks)</h2>
-        <div class="cs-diagram">
-            <div class="cs-diagram-title">Neural network flow</div>
-            <div class="cs-flow">
-                <span class="cs-box">Input</span><span class="cs-arrow">→</span>
-                <span class="cs-box purple">Hidden + ReLU</span><span class="cs-arrow">→</span>
-                <span class="cs-box green">Output + Loss</span><span class="cs-arrow">→</span>
-                <span class="cs-box orange">Backprop</span>
-            </div>
-        </div>
-        <div class="cs-note"><ul>
-            <li><strong>CNN:</strong> conv, pooling, ResNet — images & spatial data</li>
-            <li><strong>RNN/LSTM:</strong> sequences, time series, early NLP</li>
-            <li><strong>Transformers:</strong> attention, BERT, GPT — modern NLP default</li>
-            <li><strong>Frameworks:</strong> PyTorch (preferred for research/interviews)</li>
-        </ul></div>
-        <div class="cs-tags"><span class="cs-tag">CNN</span><span class="cs-tag">RNN</span><span class="cs-tag">Transformers</span><span class="cs-tag">PyTorch</span></div>
+    <div class="cs-paper" id="cs-section-1">
+        <h2 class="cs-section-title">② Phase 0 — Math & programming foundations</h2>
+        <ul class="cs-checklist"><li>Linear algebra: vectors, matrices, dot product, eigenvalues (PCA intuition)</li><li>Calculus: derivatives, chain rule (backprop intuition)</li><li>Probability: Bayes, distributions, expectation, variance</li><li>Statistics: hypothesis testing, confidence intervals</li><li>Python: NumPy, pandas, matplotlib; comfortable with Jupyter</li><li>Git basics: commit, branch, push — all projects in GitHub</li></ul><div class="cs-note"><strong>Resources:</strong> 3Blue1Brown (Essence of LA), StatQuest (YouTube), Khan Academy, "Mathematics for ML" (Deisenroth). Don't get stuck — 80% intuition, move on when you can follow ML lectures.</div>
     </div>
-    <div class="cs-paper">
-        <h2 class="cs-section-title">Phase 3 — Modern AI & LLMs (6–10 weeks)</h2>
-        <div class="cs-layer-diagram">
-            <div class="cs-layer l1">Embeddings & Vector DBs (RAG)</div>
-            <div class="cs-layer l2">Fine-tuning & LoRA</div>
-            <div class="cs-layer l3">Agents & Tool use</div>
-            <div class="cs-layer l4">MLOps: deploy, monitor, drift</div>
-        </div>
-        <div class="cs-note">Build 2–3 portfolio projects: sentiment classifier, RAG chatbot on your notes, fine-tuned small model. Document on GitHub + 1-page architecture diagram each.</div>
+    <div class="cs-paper" id="cs-section-2">
+        <h2 class="cs-section-title">③ Phase 1 — Classical machine learning</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Topic</th><th>Key concepts</th><th>Interview must-know</th></tr><tr><td>Supervised</td><td>Regression, classification, train/val/test split</td><td>Bias-variance, cross-validation</td></tr><tr><td>Algorithms</td><td>Linear/logistic regression, trees, RF, XGBoost, SVM</td><td>When to use which; interpretability</td></tr><tr><td>Unsupervised</td><td>K-means, PCA, anomaly detection</td><td>Choosing k; PCA for dimensionality reduction</td></tr><tr><td>Evaluation</td><td>Accuracy, precision, recall, F1, ROC-AUC</td><td>Imbalanced classes → do not trust accuracy</td></tr><tr><td>Feature eng</td><td>Scaling, encoding, missing values, leakage</td><td>Target leakage is a common interview trap</td></tr></table></div><div class="cs-note"><strong>Project:</strong> End-to-end sklearn pipeline on a real dataset — document EDA, feature choices, and why you picked the final model. Deploy nothing yet; focus on methodology.</div>
     </div>
-    <div class="cs-paper">
-        <h2 class="cs-section-title">Interview checklist</h2>
-        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Topic</th><th>Must explain</th></tr>
-        <tr><td>Bias-variance</td><td>Trade-off + regularization fix</td></tr>
-        <tr><td>Gradient descent</td><td>SGD, learning rate, vanishing gradients</td></tr>
-        <tr><td>Attention</td><td>Q, K, V in one sentence + why parallelizable</td></tr>
-        <tr><td>RAG</td><td>Retrieve → augment → generate pipeline</td></tr>
-        <tr><td>Evaluation</td><td>Precision/recall/F1, BLEU, human eval for LLMs</td></tr></table></div>
+    <div class="cs-paper" id="cs-section-3">
+        <h2 class="cs-section-title">④ Phase 2 — Deep learning</h2>
+        <div class="cs-layer-diagram"><div class="cs-layer l1">Neural network basics — layers, activations, loss, optimizer</div><div class="cs-layer l2">Backpropagation intuition — chain rule through the graph</div><div class="cs-layer l3">CNNs — conv, pool, ResNet; image classification</div><div class="cs-layer l4">RNNs/LSTMs — sequences, vanishing gradient; time-series/NLP pre-transformer</div><div class="cs-layer l1">Training — batch size, learning rate schedule, regularization (dropout, weight decay)</div><div class="cs-layer l2">Frameworks — PyTorch preferred for research/jobs; TensorFlow for some enterprise</div></div><div class="cs-note"><strong>Resources:</strong> fast.ai Practical Deep Learning, Andrew Ng Deep Learning Specialization, PyTorch tutorials. <strong>Project:</strong> Train a CNN on CIFAR-10 or fine-tune a small model — log metrics in TensorBoard or W&B.</div>
     </div>
-    <div class="cs-related">
-        <h3>More in this category</h3>
-        <div class="cs-related-links">
-            <a href="/cheat-sheets/ai/">All AI cheat sheets</a>
-            <a href="/cheat-sheets/ai/rag">RAG</a>
-            <a href="/cheat-sheets/ai/agents-intro">What is an Agent?</a>
-            <a href="/cheat-sheets/ai/ml-interview">ML/DL Interview Guide</a>
-        </div>
+    <div class="cs-paper" id="cs-section-4">
+        <h2 class="cs-section-title">⑤ Phase 3 — LLMs & generative AI</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Topic</th><th>What to learn</th><th>Hands-on</th></tr><tr><td>Transformers</td><td>Self-attention, positional encoding, encoder-decoder</td><td>Read "Attention Is All You Need" summary</td></tr><tr><td>Pre-trained models</td><td>GPT, BERT, T5 — pretrain vs fine-tune vs prompt</td><td>Hugging Face model hub experiments</td></tr><tr><td>Prompt engineering</td><td>System prompts, few-shot, chain-of-thought</td><td>Build eval set of 20 prompts</td></tr><tr><td>RAG</td><td>Embeddings, chunking, vector DB, retrieval + generation</td><td>Chatbot over PDF/wiki</td></tr><tr><td>Fine-tuning</td><td>LoRA, RLHF concept, when to fine-tune vs RAG</td><td>Fine-tune small model on domain data</td></tr><tr><td>Agents</td><td>Tool use, ReAct loop, guardrails</td><td>Agent with 2 tools (search + calculator)</td></tr></table></div><div class="cs-note">Use cheat sheets on this site: RAG, First LLM Integration, Agents Intro, Prompt Engineering.</div>
     </div>
+    <div class="cs-paper" id="cs-section-5">
+        <h2 class="cs-section-title">⑥ Phase 4 — MLOps & production</h2>
+        <ul class="cs-checklist"><li>Model serving: FastAPI + ONNX/TorchServe/vLLM for LLMs</li><li>Containerization: Docker basics; deploy to AWS/GCP/Fly.io</li><li>Monitoring: latency, error rate, data drift, model drift</li><li>CI/CD: retrain pipeline triggered on new data</li><li>Cost: token usage, GPU hours, cache embeddings</li><li>Security: API keys in secrets manager, input validation, PII in logs</li></ul><div class="cs-diagram"><div class="cs-diagram-title">Minimal ML production stack</div><div class="cs-arch-grid"><div class="cs-arch-row"><div class="cs-arch-cell gray">Client / App</div></div><div class="cs-arch-row"><div class="cs-arch-cell ">API Gateway + Auth</div></div><div class="cs-arch-row"><div class="cs-arch-cell purple">Model Server (GPU/CPU)</div></div><div class="cs-arch-row"><div class="cs-arch-cell green">Vector DB + Feature Store</div></div><div class="cs-arch-row"><div class="cs-arch-cell orange">Logging / Metrics (Prometheus, Grafana)</div></div></div></div>
+    </div>
+    <div class="cs-paper" id="cs-section-6">
+        <h2 class="cs-section-title">⑦ Role-specific tracks</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Target role</th><th>Emphasize</th><th>De-emphasize</th></tr><tr><td>ML Engineer</td><td>Training pipelines, distributed training, model optimization</td><td>Heavy frontend</td></tr><tr><td>Data Scientist</td><td>EDA, experimentation, causal inference, storytelling</td><td>CUDA kernel tuning</td></tr><tr><td>AI App Developer</td><td>LLM APIs, RAG, agents, product UX</td><td>Proof of convergence theorems</td></tr><tr><td>Research Scientist</td><td>Paper reading, novel architectures, benchmarks</td><td>CRUD app building</td></tr></table></div><div class="cs-note">Most industry roles in 2025–2026 are <strong>AI application + ML engineering hybrid</strong> — strong Python, LLM integration, and evaluation beat pure theory.</div>
+    </div>
+    <div class="cs-paper" id="cs-section-7">
+        <h2 class="cs-section-title">⑧ 12-week sprint plan (template)</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Weeks</th><th>Focus</th><th>Deliverable</th></tr><tr><td>1–2</td><td>Math refresh + Python</td><td>GitHub repo with NumPy exercises</td></tr><tr><td>3–4</td><td>Classical ML + Kaggle</td><td>One competition submission + write-up</td></tr><tr><td>5–6</td><td>PyTorch + CNN project</td><td>Image model with training curves logged</td></tr><tr><td>7–8</td><td>Transformers + Hugging Face</td><td>Fine-tune or zero-shot eval notebook</td></tr><tr><td>9–10</td><td>RAG application</td><td>Deployed chatbot (even on free tier)</td></tr><tr><td>11</td><td>Mock ML interviews</td><td>5 timed Q&A sessions recorded</td></tr><tr><td>12</td><td>Portfolio polish</td><td>README, demo video, LinkedIn post</td></tr></table></div><div class="cs-note">Adjust pace: 10–15 hrs/week realistic alongside a job. Double timeline if &lt;8 hrs/week.</div>
+    </div>
+    <div class="cs-paper" id="cs-section-8">
+        <h2 class="cs-section-title">⑨ Interview prep milestones</h2>
+        <ul class="cs-checklist"><li>Explain bias-variance without notes in under 2 minutes</li><li>Whiteboard: train/val/test split and k-fold CV</li><li>Describe attention mechanism at high level</li><li>Compare RAG vs fine-tuning with a concrete example</li><li>Walk through one project end-to-end (problem → data → model → metric → result)</li><li>Answer "what would you do with imbalanced classes?" with 3 techniques</li><li>Discuss one failure: wrong metric, data leakage, or overfitting you fixed</li></ul><div class="cs-tags"><span class="cs-tag">roadmap</span><span class="cs-tag">ML</span><span class="cs-tag">deep-learning</span><span class="cs-tag">LLM</span><span class="cs-tag">MLOps</span><span class="cs-tag">career</span></div>
+    </div>
+    <div class="cs-paper" id="cs-section-9">
+        <h2 class="cs-section-title">⑩ Revision checklist</h2>
+        <ul class="cs-checklist"><li>Identified current phase and next project</li><li>Balanced theory with shipped projects on GitHub</li><li>Know which role track to optimize for</li><li>Have 12-week plan with weekly deliverables</li><li>Prepared 2-minute project stories for interviews</li><li>Connected roadmap to site cheat sheets (RAG, agents, etc.)</li></ul>
+    </div>
+    <div class="cs-related"><h3>More in this category</h3><div class="cs-related-links"><a href="/cheat-sheets/ai/">All AI cheat sheets</a><a href="/cheat-sheets/ai/ml-interview">ML/DL Interview Guide</a><a href="/cheat-sheets/ai/rag">RAG</a></div></div>
+
 </div>
 </main>
 <script src="/js/cheat-sheet-videos.js"></script>
+<script src="/js/cheat-sheet-prompts.js"></script>
 <script src="/js/cheat-sheet.js"></script>
 <script src="/js/site-nav.js"></script>
 </body>

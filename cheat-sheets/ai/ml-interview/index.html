@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ML/DL Interview Guide | Binod Suman Cheat Sheet</title>
-    <meta name="description" content="Machine learning and deep learning interview cheat sheet — algorithms, metrics, and must-know concepts.">
+    <title>ML / Deep Learning Interview Guide | Binod Suman Cheat Sheet</title>
+    <meta name="description" content="CNN, RNN, Transformers, metrics, training pitfalls, and the Q&A senior ML interviews expect.">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Kalam:wght@400;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/css/site-nav.css">
@@ -13,58 +13,64 @@
 <body class="cheat-sheet-page">
 <main class="cheat-sheet-page">
 <div class="cs-container">
-    <nav class="cs-breadcrumb"><a href="/">Home</a> · <a href="/cheat-sheets/">Cheat Sheets</a> · AI · ML/DL Interview</nav>
+    <nav class="cs-breadcrumb"><a href="/">Home</a> · <a href="/cheat-sheets/">Cheat Sheets</a> · <a href="/cheat-sheets/ai/">AI</a> · ML/DL Interview</nav>
     <header class="cs-hero">
         <span class="cs-category-badge ai">AI</span>
-        <h1 class="cs-title">ML & Deep Learning Interview Guide</h1>
-        <p class="cs-subtitle">Core concepts recruiters ask — with handwritten-style notes for quick revision before interviews.</p>
+        <h1 class="cs-title">ML / Deep Learning Interview Guide</h1>
+        <p class="cs-subtitle">CNN, RNN, Transformers, metrics, training pitfalls, and the Q&A senior ML interviews expect.</p>
     </header>
+    <div class="cs-interview-tip"><strong>Interview tip</strong> For architecture questions: input shape → layers → output shape → loss → why this beats baseline.</div>
+    <nav class="cs-toc" aria-label="On this page">
+    <div class="cs-toc-title">On this page</div>
+    <ol><li><a href="#cs-section-0">① ML fundamentals — must know cold</a></li><li><a href="#cs-section-1">② CNN — convolutional neural networks</a></li><li><a href="#cs-section-2">③ RNN / LSTM — sequential models</a></li><li><a href="#cs-section-3">④ Transformers & attention</a></li><li><a href="#cs-section-4">⑤ Evaluation metrics</a></li><li><a href="#cs-section-5">⑥ Training — optimization & pitfalls</a></li><li><a href="#cs-section-6">⑦ Model serving (system design angle)</a></li><li><a href="#cs-section-7">⑧ Interview Q&A — rapid fire</a></li><li><a href="#cs-section-8">⑨ Whiteboard problem — fraud detection metrics</a></li><li><a href="#cs-section-9">⑩ Revision checklist</a></li></ol>
+  </nav>
     
-    <div class="cs-interview-tip"><strong>Interview tip</strong> Always connect algorithm → use case → limitation. Example: "Random forest — tabular data, handles non-linearity, but slower inference than linear models."</div>
-    <div class="cs-paper">
-        <h2 class="cs-section-title">Supervised learning essentials</h2>
-        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Algorithm</th><th>When to use</th><th>Watch out</th></tr>
-        <tr><td>Linear/Logistic</td><td>Baseline, interpretable</td><td>Linear boundaries only</td></tr>
-        <tr><td>Random Forest</td><td>Tabular, mixed features</td><td>Large models, latency</td></tr>
-        <tr><td>Gradient Boosting (XGB)</td><td>Kaggle tabular winners</td><td>Tuning sensitive</td></tr>
-        <tr><td>SVM</td><td>Small data, kernels</td><td>Bad on huge data</td></tr>
-        <tr><td>k-NN</td><td>Simple, no training</td><td>Slow at scale</td></tr></table></div>
+    <div class="cs-paper" id="cs-section-0">
+        <h2 class="cs-section-title">① ML fundamentals — must know cold</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Concept</th><th>One-liner</th><th>Follow-up they ask</th></tr><tr><td>Bias-variance</td><td>Underfit = high bias; overfit = high variance</td><td>How detect on learning curves?</td></tr><tr><td>Regularization</td><td>Penalize complexity — L1 sparsity, L2 weight decay, dropout</td><td>L1 vs L2 when?</td></tr><tr><td>Gradient descent</td><td>SGD, mini-batch, Adam — update weights via loss gradient</td><td>Why Adam over SGD?</td></tr><tr><td>Cross-validation</td><td>k-fold estimates generalization</td><td>Leakage if preprocess on full data?</td></tr><tr><td>Imbalanced data</td><td>SMOTE, class weights, threshold tuning</td><td>Why accuracy misleading?</td></tr></table></div><div class="cs-note"><strong>Learning curves:</strong> train loss ↓ but val loss ↑ = overfitting → more data, regularization, simpler model. Both high = underfitting → bigger model, more features, train longer.</div>
     </div>
-    <div class="cs-paper">
-        <h2 class="cs-section-title">Deep learning must-knows</h2>
-        <div class="cs-note"><ul>
-            <li><strong>Activation:</strong> ReLU fixes vanishing gradient; sigmoid for binary output</li>
-            <li><strong>Batch norm:</strong> stabilizes training; different train vs inference behavior</li>
-            <li><strong>Dropout:</strong> regularization — randomly zero neurons during training</li>
-            <li><strong>CNN:</strong> parameter sharing + translation equivariance</li>
-            <li><strong>Transfer learning:</strong> pretrained backbone + new head — always mention for limited data</li>
-        </ul></div>
-        <div class="cs-diagram">
-            <div class="cs-diagram-title">Transformer attention (simplified)</div>
-            <div class="cs-flow">
-                <span class="cs-box">Query (Q)</span><span class="cs-arrow">×</span>
-                <span class="cs-box purple">Key (K)</span><span class="cs-arrow">→</span>
-                <span class="cs-box">Softmax</span><span class="cs-arrow">×</span>
-                <span class="cs-box green">Value (V)</span>
-            </div>
-        </div>
+    <div class="cs-paper" id="cs-section-1">
+        <h2 class="cs-section-title">② CNN — convolutional neural networks</h2>
+        <div class="cs-layer-diagram"><div class="cs-layer l1">Conv layer — learn local filters (edges, textures, parts)</div><div class="cs-layer l2">Pooling — reduce spatial size (max/avg pool)</div><div class="cs-layer l3">Stack depth — VGG, ResNet skip connections solve vanishing gradient</div><div class="cs-layer l4">Output — flatten + FC layers or global average pool</div><div class="cs-layer l1">Use cases — image classification, detection, segmentation</div></div><div class="cs-table-wrap"><table class="cs-table"><tr><th>Layer</th><th>Typical effect</th><th>Param intuition</th></tr><tr><td>Conv 3×3</td><td>Local feature detection</td><td>C_out × C_in × 3 × 3 weights</td></tr><tr><td>MaxPool 2×2</td><td>Translation invariance, downsampling</td><td>No learnable params</td></tr><tr><td>BatchNorm</td><td>Stabilize training, allow higher LR</td><td>Per-channel scale/shift</td></tr><tr><td>ResNet block</td><td>Skip connection — gradient flows directly</td><td>Enables very deep nets</td></tr></table></div><div class="cs-note">Interview: "Why CNN for images?" — local connectivity, parameter sharing, translation equivariance.</div>
     </div>
-    <div class="cs-paper">
-        <h2 class="cs-section-title">Metrics cheat sheet</h2>
-        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Metric</th><th>Formula idea</th><th>Use when</th></tr>
-        <tr><td>Accuracy</td><td>Correct / total</td><td>Balanced classes only</td></tr>
-        <tr><td>Precision</td><td>TP / (TP+FP)</td><td>False positives costly</td></tr>
-        <tr><td>Recall</td><td>TP / (TP+FN)</td><td>False negatives costly</td></tr>
-        <tr><td>F1</td><td>Harmonic mean P & R</td><td>Imbalanced classification</td></tr>
-        <tr><td>ROC-AUC</td><td>Ranking quality</td><td>Threshold-independent</td></tr></table></div>
+    <div class="cs-paper" id="cs-section-2">
+        <h2 class="cs-section-title">③ RNN / LSTM — sequential models</h2>
+        <div class="cs-note"><strong>RNN:</strong> hidden state carries information across time steps. <strong>Problem:</strong> vanishing/exploding gradients on long sequences.<br><br><strong>LSTM/GRU:</strong> gating mechanisms (forget, input, output) preserve long-range dependencies. Still sequential — hard to parallelize on GPU.</div><div class="cs-diagram"><div class="cs-diagram-title">RNN unrolled</div><div class="cs-flow"><span class="cs-box gray">x₁</span><span class="cs-arrow">→</span><span class="cs-box purple">h₁</span><span class="cs-arrow">→</span><span class="cs-box gray">x₂</span><span class="cs-arrow">→</span><span class="cs-box purple">h₂</span><span class="cs-arrow">→</span><span class="cs-box green">y</span></div></div><div class="cs-table-wrap"><table class="cs-table"><tr><th>Architecture</th><th>Best for</th><th>Limitation</th></tr><tr><td>RNN/LSTM</td><td>Short sequences, small data, time-series</td><td>Slow training, long-range still hard</td></tr><tr><td>Transformer</td><td>Long context, parallel training, NLP/SOTA</td><td>Quadratic memory in sequence length</td></tr><tr><td>1D CNN</td><td>Fixed-length sequences, audio</td><td>Limited receptive field without dilated conv</td></tr></table></div>
     </div>
-    <div class="cs-related">
-        <h3>More in this category</h3>
-        <div class="cs-related-links"><a href="/cheat-sheets/ai/roadmap">AI Master Roadmap</a></div>
+    <div class="cs-paper" id="cs-section-3">
+        <h2 class="cs-section-title">④ Transformers & attention</h2>
+        <div class="cs-note"><strong>Self-attention:</strong> each token attends to all tokens — computes Query, Key, Value; attention weights = softmax(QKᵀ/√d); output = weighted sum of Values. Parallelizable; captures long-range deps.</div><div class="cs-diagram"><div class="cs-diagram-title">Transformer block</div><div class="cs-flow"><span class="cs-box purple">Multi-head attention</span><span class="cs-arrow">→</span><span class="cs-box">Add & Norm</span><span class="cs-arrow">→</span><span class="cs-box green">Feed-forward</span><span class="cs-arrow">→</span><span class="cs-box">Add & Norm</span></div></div><div class="cs-table-wrap"><table class="cs-table"><tr><th>Component</th><th>Purpose</th></tr><tr><td>Positional encoding</td><td>Inject order — sin/cos or learned</td></tr><tr><td>Multi-head attention</td><td>Multiple representation subspaces</td></tr><tr><td>Layer norm</td><td>Stabilize activations</td></tr><tr><td>Encoder-decoder</td><td>T5, original Transformer — seq2seq</td></tr><tr><td>Decoder-only</td><td>GPT — autoregressive generation</td></tr><tr><td>Encoder-only</td><td>BERT — classification, embeddings</td></tr></table></div>
     </div>
+    <div class="cs-paper" id="cs-section-4">
+        <h2 class="cs-section-title">⑤ Evaluation metrics</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Metric</th><th>Formula / meaning</th><th>Use when</th></tr><tr><td>Accuracy</td><td>Correct / total</td><td>Balanced classes only</td></tr><tr><td>Precision</td><td>TP / (TP+FP)</td><td>Cost of false positives high (spam filter)</td></tr><tr><td>Recall</td><td>TP / (TP+FN)</td><td>Cost of false negatives high (cancer screening)</td></tr><tr><td>F1</td><td>Harmonic mean P & R</td><td>Balance both</td></tr><tr><td>ROC-AUC</td><td>Area under TPR vs FPR curve</td><td>Threshold-independent ranking</td></tr><tr><td>RMSE / MAE</td><td>Regression error</td><td>MAE robust to outliers</td></tr></table></div><div class="cs-note"><strong>Confusion matrix</strong> is your friend — draw it in interviews. <strong>Calibration:</strong> predicted probabilities match true frequencies — important for threshold tuning.</div>
+    </div>
+    <div class="cs-paper" id="cs-section-5">
+        <h2 class="cs-section-title">⑥ Training — optimization & pitfalls</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Technique</th><th>What it does</th><th>When</th></tr><tr><td>Learning rate schedule</td><td>Warmup, cosine decay, step decay</td><td>Transformers need warmup</td></tr><tr><td>Batch normalization</td><td>Normalize activations per batch</td><td>CNNs; less common in LLMs (LayerNorm)</td></tr><tr><td>Dropout</td><td>Randomly zero neurons — regularization</td><td>FC layers; 0.1–0.5 typical</td></tr><tr><td>Early stopping</td><td>Stop when val loss stops improving</td><td>Default regularization</td></tr><tr><td>Data augmentation</td><td>Flip, crop, noise — synthetic diversity</td><td>Images, text paraphrase</td></tr><tr><td>Gradient clipping</td><td>Cap gradient norm</td><td>RNNs, unstable training</td></tr></table></div><div class="cs-note"><strong>Debugging:</strong> loss NaN → LR too high, bad initialization, label errors. Val train gap → overfit. Both flat → underfit or bug in pipeline.</div>
+    </div>
+    <div class="cs-paper" id="cs-section-6">
+        <h2 class="cs-section-title">⑦ Model serving (system design angle)</h2>
+        <div class="cs-diagram"><div class="cs-diagram-title">Model serving at scale</div><div class="cs-arch-grid"><div class="cs-arch-row"><div class="cs-arch-cell gray">Clients</div></div><div class="cs-arch-row"><div class="cs-arch-cell ">API Gateway + batching</div></div><div class="cs-arch-row"><div class="cs-arch-cell purple">Model servers (GPU pool)</div></div><div class="cs-arch-row"><div class="cs-arch-cell green">Feature store / embedding cache</div></div></div></div><ul class="cs-checklist"><li>Batch requests for GPU efficiency (dynamic batching)</li><li>Quantization (INT8) and distillation for latency</li><li>Cache frequent queries / embeddings</li><li>A/B test model versions with shadow traffic</li><li>Monitor: latency p99, throughput, prediction drift</li></ul>
+    </div>
+    <div class="cs-paper" id="cs-section-7">
+        <h2 class="cs-section-title">⑧ Interview Q&A — rapid fire</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Question</th><th>Strong answer sketch</th></tr><tr><td>Explain backprop</td><td>Chain rule applied layer-by-layer; compute gradients via computational graph</td></tr><tr><td>Batch vs layer norm</td><td>BatchNorm across batch dim; LayerNorm across features — LLMs use LayerNorm</td></tr><tr><td>Why transformers beat RNNs?</td><td>Parallel training, long-range attention, scaled pretraining</td></tr><tr><td>Transfer learning?</td><td>Pretrain on large dataset, fine-tune head on small target task</td></tr><tr><td>Overfitting fixes?</td><td>More data, regularization, dropout, simpler model, early stopping</td></tr><tr><td>Attention complexity?</td><td>O(n²) in sequence length — sparse/local attention variants</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-8">
+        <h2 class="cs-section-title">⑨ Whiteboard problem — fraud detection metrics</h2>
+        <div class="cs-note"><strong>Scenario:</strong> fraud is 0.1% of transactions. False negative = lost money. False positive = customer friction.<br><br><strong>Answer structure:</strong> Don't use accuracy (99.9% by predicting all legit). Optimize recall at acceptable precision, or cost-sensitive metric: <code>Cost = 10×FN + 1×FP</code>. Use PR curve not ROC when imbalanced. Threshold tune on validation set with business cost matrix.</div>
+    </div>
+    <div class="cs-paper" id="cs-section-9">
+        <h2 class="cs-section-title">⑩ Revision checklist</h2>
+        <ul class="cs-checklist"><li>Explained bias-variance with learning curve interpretation</li><li>Compared CNN, RNN, Transformer with use cases</li><li>Drew confusion matrix and picked metrics for imbalanced problem</li><li>Named 3 overfitting fixes and 3 training debug steps</li><li>Described attention mechanism without hand-waving</li><li>Outlined model serving architecture for latency SLA</li></ul><div class="cs-tags"><span class="cs-tag">CNN</span><span class="cs-tag">RNN</span><span class="cs-tag">transformer</span><span class="cs-tag">metrics</span><span class="cs-tag">training</span><span class="cs-tag">interview</span></div>
+    </div>
+    <div class="cs-related"><h3>More in this category</h3><div class="cs-related-links"><a href="/cheat-sheets/ai/roadmap">AI Master Roadmap</a><a href="/cheat-sheets/ai/rag">RAG</a><a href="/cheat-sheets/ai/embeddings-basics">Embeddings Basics</a></div></div>
+
 </div>
 </main>
 <script src="/js/cheat-sheet-videos.js"></script>
+<script src="/js/cheat-sheet-prompts.js"></script>
 <script src="/js/cheat-sheet.js"></script>
 <script src="/js/site-nav.js"></script>
 </body>

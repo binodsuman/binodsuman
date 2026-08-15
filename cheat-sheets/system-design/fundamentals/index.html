@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>System Design Fundamentals | Binod Suman Cheat Sheet</title>
-    <meta name="description" content="System design interview fundamentals — scalability, CAP theorem, load balancing, caching, and databases.">
+    <meta name="description" content="Core building blocks every senior interview expects — scalability, CAP, caching, load balancing, databases, CDN, and estimation.">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Kalam:wght@400;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/css/site-nav.css">
@@ -13,65 +13,64 @@
 <body class="cheat-sheet-page">
 <main class="cheat-sheet-page">
 <div class="cs-container">
-    <nav class="cs-breadcrumb"><a href="/">Home</a> · <a href="/cheat-sheets/">Cheat Sheets</a> · System Design · Fundamentals</nav>
+    <nav class="cs-breadcrumb"><a href="/">Home</a> · <a href="/cheat-sheets/">Cheat Sheets</a> · <a href="/cheat-sheets/system-design/">System Design</a> · Fundamentals</nav>
     <header class="cs-hero">
         <span class="cs-category-badge system-design">System Design</span>
         <h1 class="cs-title">System Design Fundamentals</h1>
-        <p class="cs-subtitle">Core building blocks every senior interview expects — explained like handwritten revision notes.</p>
+        <p class="cs-subtitle">Core building blocks every senior interview expects — scalability, CAP, caching, load balancing, databases, CDN, and estimation.</p>
     </header>
-    
     <div class="cs-interview-tip"><strong>Interview tip</strong> Start every answer: requirements (functional + non-functional) → estimate scale → high-level diagram → deep dive 2 components → trade-offs.</div>
-    <div class="cs-paper">
-        <h2 class="cs-section-title">Scalability basics</h2>
-        <div class="cs-note"><ul>
-            <li><strong>Vertical scale:</strong> bigger machine — simple but has limits</li>
-            <li><strong>Horizontal scale:</strong> more machines — needs load balancing & shared state strategy</li>
-            <li><strong>Stateless services:</strong> session in Redis/DB — easier to scale out</li>
-            <li><strong>Back-of-envelope:</strong> 1M DAU × 10 req/day = ~116 req/s average (plan for 10× peaks)</li>
-        </ul></div>
-        <div class="cs-diagram">
-            <div class="cs-diagram-title">Request path</div>
-            <div class="cs-flow">
-                <span class="cs-box gray">Client</span><span class="cs-arrow">→</span>
-                <span class="cs-box">CDN</span><span class="cs-arrow">→</span>
-                <span class="cs-box">Load Balancer</span><span class="cs-arrow">→</span>
-                <span class="cs-box purple">App Servers</span><span class="cs-arrow">→</span>
-                <span class="cs-box green">Cache</span><span class="cs-arrow">→</span>
-                <span class="cs-box orange">Database</span>
-            </div>
-        </div>
+    <nav class="cs-toc" aria-label="On this page">
+    <div class="cs-toc-title">On this page</div>
+    <ol><li><a href="#cs-section-0">① The 45-minute interview framework</a></li><li><a href="#cs-section-1">② Scalability — vertical vs horizontal</a></li><li><a href="#cs-section-2">③ Back-of-envelope estimation</a></li><li><a href="#cs-section-3">④ Load balancing</a></li><li><a href="#cs-section-4">⑤ Caching strategies</a></li><li><a href="#cs-section-5">⑥ CAP theorem & consistency</a></li><li><a href="#cs-section-6">⑦ Database types — when to use what</a></li><li><a href="#cs-section-7">⑧ CDN & edge delivery</a></li><li><a href="#cs-section-8">⑨ End-to-end request path</a></li><li><a href="#cs-section-9">⑩ Revision checklist</a></li></ol>
+  </nav>
+    
+    <div class="cs-paper" id="cs-section-0">
+        <h2 class="cs-section-title">① The 45-minute interview framework</h2>
+        <div class="cs-note"><strong>Every system design answer follows the same skeleton:</strong><ol><li><strong>Clarify (5 min):</strong> functional requirements, non-functional (latency, availability, consistency, scale), out of scope</li><li><strong>Estimate (5 min):</strong> DAU, QPS, storage, bandwidth — round numbers, state assumptions</li><li><strong>High-level design (10 min):</strong> boxes and arrows — client, CDN, LB, services, cache, DB, async queues</li><li><strong>Deep dive (15 min):</strong> pick 2 components the interviewer cares about — data model, hot path, sharding</li><li><strong>Trade-offs (5 min):</strong> SQL vs NoSQL, sync vs async, strong vs eventual consistency</li><li><strong>Wrap-up (5 min):</strong> failure modes, monitoring, future scale</li></ol></div><div class="cs-note"><strong>Say aloud:</strong> "I'll start with requirements and scale, then draw the architecture, then go deep on X and Y." Interviewers reward structure over jumping to Redis.</div>
     </div>
-    <div class="cs-paper">
-        <h2 class="cs-section-title">CAP & databases</h2>
-        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Type</th><th>Examples</th><th>Best for</th></tr>
-        <tr><td>SQL (ACID)</td><td>PostgreSQL, MySQL</td><td>Transactions, relations</td></tr>
-        <tr><td>NoSQL wide-column</td><td>Cassandra, HBase</td><td>High write, time-series</td></tr>
-        <tr><td>Document</td><td>MongoDB</td><td>Flexible schema</td></tr>
-        <tr><td>Key-value cache</td><td>Redis, Memcached</td><td>Sessions, hot data</td></tr>
-        <tr><td>Search</td><td>Elasticsearch</td><td>Full-text, logs</td></tr>
-        <tr><td>Vector</td><td>Pinecone, pgvector</td><td>Embeddings, RAG</td></tr></table></div>
-        <div class="cs-note"><strong>CAP:</strong> Pick 2 of Consistency, Availability, Partition tolerance. CP = strong consistency (banking). AP = availability (social feeds).</div>
+    <div class="cs-paper" id="cs-section-1">
+        <h2 class="cs-section-title">② Scalability — vertical vs horizontal</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Approach</th><th>How</th><th>Pros</th><th>Cons</th></tr><tr><td>Vertical scale</td><td>Bigger CPU/RAM/disk on one machine</td><td>Simple, no code changes</td><td>Hard ceiling, single point of failure, expensive at top tier</td></tr><tr><td>Horizontal scale</td><td>More machines behind a load balancer</td><td>Near-unlimited, fault tolerant</td><td>Needs stateless apps, data partitioning, ops complexity</td></tr><tr><td>Auto-scaling</td><td>Add/remove instances on metrics</td><td>Handles traffic spikes</td><td>Cold start latency, config tuning</td></tr><tr><td>Read replicas</td><td>Copy DB for read-heavy workloads</td><td>Offload reads from primary</td><td>Replication lag, write still on primary</td></tr></table></div><div class="cs-note"><strong>Stateless services scale easily:</strong> session data lives in Redis or DB, not in app memory. Sticky sessions reduce flexibility — prefer shared session store.<br><br><strong>Stateful services</strong> (WebSocket rooms, in-memory counters) need sharding, consistent hashing, or dedicated state stores.</div><div class="cs-diagram"><div class="cs-diagram-title">Scaling decision tree</div><div class="cs-flow"><span class="cs-box gray">Traffic growing?</span><span class="cs-arrow">→</span><span class="cs-box">Optimize first</span><span class="cs-arrow">→</span><span class="cs-box purple">Cache + CDN</span><span class="cs-arrow">→</span><span class="cs-box green">Scale reads</span><span class="cs-arrow">→</span><span class="cs-box orange">Scale writes</span></div></div>
     </div>
-    <div class="cs-paper">
-        <h2 class="cs-section-title">Caching strategies</h2>
-        <div class="cs-note"><ul>
-            <li><strong>Cache-aside:</strong> app reads cache → miss → read DB → write cache</li>
-            <li><strong>Write-through:</strong> write cache + DB together — consistent but slower writes</li>
-            <li><strong>TTL:</strong> always set — prevents stale forever</li>
-            <li><strong>Eviction:</strong> LRU common; watch hot-key problem</li>
-        </ul></div>
+    <div class="cs-paper" id="cs-section-2">
+        <h2 class="cs-section-title">③ Back-of-envelope estimation</h2>
+        <div class="cs-note"><strong>Assumptions</strong><ul><li>1M DAU × 10 requests/day = 10M req/day ≈ 116 req/s average</li><li>Plan for 10× peak → ~1,200 req/s at peak</li><li>Avg request 1 KB in + 5 KB out → 1.2K × 6 KB ≈ 7 MB/s bandwidth</li><li>100 bytes per record × 1B records = 100 GB raw (plus indexes ~2–3×)</li><li>1 photo 200 KB × 10M uploads/month ≈ 2 TB/month storage growth</li></ul></div><div class="cs-table-wrap"><table class="cs-table"><tr><th>Resource</th><th>Formula</th><th>Example</th></tr><tr><td>QPS</td><td>DAU × actions/day ÷ 86,400</td><td>10M DAU × 20 ÷ 86,400 ≈ 2,300 avg</td></tr><tr><td>Storage</td><td>records × size × retention</td><td>1B users × 500 B × 5 yr</td></tr><tr><td>Bandwidth</td><td>QPS × avg payload</td><td>5K RPS × 50 KB = 250 MB/s</td></tr><tr><td>Memory (cache)</td><td>hot data % × total dataset</td><td>20% of 100 GB = 20 GB Redis</td></tr></table></div><div class="cs-note"><strong>Rules of thumb:</strong> round to nearest power of 10; state assumptions ("assuming 10:1 read:write"); latency budget: CDN 10ms + LB 5ms + app 50ms + cache 1ms + DB 10ms = ~76ms p99 target.</div>
     </div>
-    <div class="cs-related">
-        <h3>More in this category</h3>
-        <div class="cs-related-links">
-            <a href="/cheat-sheets/system-design/">SD Top 15 Hub</a>
-            <a href="/cheat-sheets/system-design/patterns">SD Interview Patterns</a>
-            <a href="/cheat-sheets/system-design/url-shortener">URL Shortener</a>
-        </div>
+    <div class="cs-paper" id="cs-section-3">
+        <h2 class="cs-section-title">④ Load balancing</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Algorithm</th><th>Behavior</th><th>Best for</th></tr><tr><td>Round robin</td><td>Rotate requests evenly</td><td>Homogeneous stateless servers</td></tr><tr><td>Least connections</td><td>Send to server with fewest active conns</td><td>Long-lived connections, varying request times</td></tr><tr><td>Weighted round robin</td><td>More traffic to stronger machines</td><td>Mixed hardware capacity</td></tr><tr><td>IP hash / consistent hash</td><td>Same client → same server</td><td>Session affinity without shared store (limited)</td></tr><tr><td>Layer 4 (TCP)</td><td>Route by IP/port, fast</td><td>Raw throughput, WebSocket</td></tr><tr><td>Layer 7 (HTTP)</td><td>Route by URL, headers, cookies</td><td>Microservices, A/B tests, canary</td></tr></table></div><div class="cs-diagram"><div class="cs-diagram-title">Load balancer placement</div><div class="cs-arch-grid"><div class="cs-arch-row"><div class="cs-arch-cell gray">Clients</div></div><div class="cs-arch-row"><div class="cs-arch-cell ">DNS (geo-routing)</div><div class="cs-arch-cell purple">Global LB</div></div><div class="cs-arch-row"><div class="cs-arch-cell ">Regional LB (L7)</div></div><div class="cs-arch-row"><div class="cs-arch-cell green">App Server 1</div><div class="cs-arch-cell green">App Server 2</div><div class="cs-arch-cell green">App Server N</div></div></div></div><div class="cs-note"><strong>Health checks:</strong> LB polls <code>/health</code> — remove unhealthy nodes within seconds. <strong>SSL termination</strong> at LB offloads crypto from app servers. <strong>Active-passive</strong> for stateful components; <strong>active-active</strong> for stateless.</div>
     </div>
+    <div class="cs-paper" id="cs-section-4">
+        <h2 class="cs-section-title">⑤ Caching strategies</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Pattern</th><th>Read path</th><th>Write path</th><th>Risk</th></tr><tr><td>Cache-aside</td><td>App → cache → miss → DB → populate cache</td><td>App writes DB, invalidates cache</td><td>Stale data if invalidation missed</td></tr><tr><td>Read-through</td><td>Cache fetches from DB on miss</td><td>Same as cache-aside writes</td><td>Cache library must support it</td></tr><tr><td>Write-through</td><td>Read from cache</td><td>Write cache + DB together</td><td>Write latency; cache and DB must sync</td></tr><tr><td>Write-behind</td><td>Read from cache</td><td>Write cache; async flush to DB</td><td>Data loss if cache crashes before flush</td></tr></table></div><div class="cs-note"><strong>Always set TTL</strong> — even with invalidation, TTL is your safety net. <strong>Eviction:</strong> LRU (common), LFU (frequency), TTL-based.<br><br><strong>Hot key problem:</strong> one viral key hammers a single Redis shard — replicate hot keys, local in-process cache, or pre-warm.<br><br><strong>Cache stampede:</strong> many requests miss simultaneously — use singleflight/locking so only one thread repopulates.</div><div class="cs-diagram"><div class="cs-diagram-title">Cache-aside flow</div><div class="cs-flow"><span class="cs-box gray">Read request</span><span class="cs-arrow">→</span><span class="cs-box purple">Check Redis</span><span class="cs-arrow">→</span><span class="cs-box green">Hit → return</span><span class="cs-arrow">→</span><span class="cs-box orange">Miss → DB</span><span class="cs-arrow">→</span><span class="cs-box">Set cache + return</span></div></div>
+    </div>
+    <div class="cs-paper" id="cs-section-5">
+        <h2 class="cs-section-title">⑥ CAP theorem & consistency</h2>
+        <div class="cs-note"><strong>CAP:</strong> During a network partition, you choose between <strong>Consistency</strong> (all nodes see same data) and <strong>Availability</strong> (every request gets a response). Partition tolerance is non-negotiable in distributed systems — so you pick CP or AP.</div><div class="cs-table-wrap"><table class="cs-table"><tr><th>Choice</th><th>Example systems</th><th>Use when</th></tr><tr><td>CP (Consistency + Partition)</td><td>ZooKeeper, etcd, HBase</td><td>Banking, inventory, leader election</td></tr><tr><td>AP (Availability + Partition)</td><td>Cassandra, DynamoDB, CouchDB</td><td>Social feeds, shopping carts, analytics</td></tr><tr><td>Strong consistency</td><td>Single-leader replication, sync writes</td><td>Financial transactions, unique constraints</td></tr><tr><td>Eventual consistency</td><td>Async replication, quorum reads</td><td>User profiles, like counts, metrics</td></tr></table></div><div class="cs-note"><strong>PACELC extension:</strong> Else (no partition), choose Latency vs Consistency. Most web apps pick low latency with eventual consistency for non-critical reads.<br><br><strong>Read-your-writes:</strong> user sees their own updates immediately — route to primary or use session stickiness + version checks.</div>
+    </div>
+    <div class="cs-paper" id="cs-section-6">
+        <h2 class="cs-section-title">⑦ Database types — when to use what</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Type</th><th>Examples</th><th>Strengths</th><th>Weak for</th></tr><tr><td>Relational (SQL)</td><td>PostgreSQL, MySQL</td><td>ACID, joins, complex queries</td><td>Massive horizontal write scale</td></tr><tr><td>Wide-column</td><td>Cassandra, HBase</td><td>High write throughput, time-series</td><td>Ad-hoc joins, transactions</td></tr><tr><td>Document</td><td>MongoDB, DynamoDB</td><td>Flexible schema, nested JSON</td><td>Multi-document ACID (improving)</td></tr><tr><td>Key-value</td><td>Redis, Memcached</td><td>Sub-ms reads, sessions, counters</td><td>Complex queries, durability (Redis)</td></tr><tr><td>Search</td><td>Elasticsearch, OpenSearch</td><td>Full-text, aggregations, logs</td><td>Primary transactional store</td></tr><tr><td>Graph</td><td>Neo4j, Neptune</td><td>Relationship traversals</td><td>Simple CRUD at huge scale</td></tr><tr><td>Vector</td><td>Pinecone, pgvector</td><td>Similarity search, RAG</td><td>Exact lookups by primary key</td></tr></table></div><div class="cs-note"><strong>Polyglot persistence:</strong> PostgreSQL for orders, Redis for sessions, Elasticsearch for search, S3 for blobs — each store optimized for its access pattern.<br><br><strong>Sharding:</strong> split rows by user_id hash or range when single-node limits hit (~10K writes/sec PG, higher with Citus/Cockroach).</div>
+    </div>
+    <div class="cs-paper" id="cs-section-7">
+        <h2 class="cs-section-title">⑧ CDN & edge delivery</h2>
+        <div class="cs-layer-diagram"><div class="cs-layer l1">Origin server — your app or object storage (S3)</div><div class="cs-layer l2">CDN edge PoPs — cache static assets and cacheable API responses globally</div><div class="cs-layer l3">DNS / anycast — route user to nearest edge</div><div class="cs-layer l4">Client — receives content from edge, not origin (lower latency, less origin load)</div></div><div class="cs-note"><strong>Cache at CDN:</strong> static files (JS, CSS, images), video segments, and cacheable GET responses with <code>Cache-Control</code> headers.<br><br><strong>Do NOT cache:</strong> personalized pages, auth tokens, POST responses, data with <code>Cache-Control: private/no-store</code>.<br><br><strong>Invalidation:</strong> versioned URLs (<code>app.v2.js</code>) beat purge APIs. Edge compute (Cloudflare Workers) for redirects and A/B at edge.</div><div class="cs-diagram"><div class="cs-diagram-title">CDN in request path</div><div class="cs-arch-grid"><div class="cs-arch-row"><div class="cs-arch-cell gray">User (Tokyo)</div><div class="cs-arch-cell gray">User (London)</div></div><div class="cs-arch-row"><div class="cs-arch-cell purple">CDN Edge Tokyo</div><div class="cs-arch-cell purple">CDN Edge London</div></div><div class="cs-arch-row"><div class="cs-arch-cell green">Origin / API (US)</div></div></div></div>
+    </div>
+    <div class="cs-paper" id="cs-section-8">
+        <h2 class="cs-section-title">⑨ End-to-end request path</h2>
+        <div class="cs-diagram"><div class="cs-diagram-title">Typical web request path</div><div class="cs-flow"><span class="cs-box gray">Client</span><span class="cs-arrow">→</span><span class="cs-box">DNS</span><span class="cs-arrow">→</span><span class="cs-box purple">CDN</span><span class="cs-arrow">→</span><span class="cs-box">Load Balancer</span><span class="cs-arrow">→</span><span class="cs-box green">App Server</span><span class="cs-arrow">→</span><span class="cs-box orange">Cache</span><span class="cs-arrow">→</span><span class="cs-box green">Database</span></div></div><div class="cs-note"><strong>Latency budget example (p99 &lt; 200ms):</strong><ul><li>DNS + TLS: 20ms</li><li>CDN hit: 10ms (miss adds origin round-trip)</li><li>LB + routing: 5ms</li><li>App logic: 30ms</li><li>Redis: 1ms</li><li>DB query (indexed): 10ms</li><li>Serialization + network: 20ms</li></ul></div><div class="cs-note"><strong>Async off critical path:</strong> analytics, emails, search indexing → message queue (Kafka/SQS) → workers. User-facing response returns before side effects complete.</div>
+    </div>
+    <div class="cs-paper" id="cs-section-9">
+        <h2 class="cs-section-title">⑩ Revision checklist</h2>
+        <ul class="cs-checklist"><li>Opened with functional + non-functional requirements</li><li>Calculated QPS, storage, bandwidth with stated assumptions</li><li>Drew CDN → LB → App → Cache → DB diagram</li><li>Explained vertical vs horizontal scaling choice</li><li>Named caching strategy and invalidation approach</li><li>Applied CAP with CP vs AP example relevant to the problem</li><li>Picked SQL vs NoSQL with access-pattern justification</li><li>Mentioned CDN for static assets and cacheable reads</li><li>Identified async processing for non-critical work</li><li>Discussed failure modes: DB down, cache stampede, hot keys</li></ul><div class="cs-tags"><span class="cs-tag">scalability</span><span class="cs-tag">CAP</span><span class="cs-tag">caching</span><span class="cs-tag">load-balancing</span><span class="cs-tag">estimation</span><span class="cs-tag">CDN</span></div>
+    </div>
+    <div class="cs-related"><h3>More in this category</h3><div class="cs-related-links"><a href="/cheat-sheets/system-design/">SD Top 15 Hub</a><a href="/cheat-sheets/system-design/patterns">SD Interview Patterns</a><a href="/cheat-sheets/system-design/url-shortener">URL Shortener</a></div></div>
+
 </div>
 </main>
 <script src="/js/cheat-sheet-videos.js"></script>
+<script src="/js/cheat-sheet-prompts.js"></script>
 <script src="/js/cheat-sheet.js"></script>
 <script src="/js/site-nav.js"></script>
 </body>

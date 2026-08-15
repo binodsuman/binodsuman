@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>System Design Interview Patterns | Binod Suman Cheat Sheet</title>
-    <meta name="description" content="Top system design interview patterns — URL shortener, chat, rate limiter, feed, and payment flows.">
+    <meta name="description" content="Reusable patterns for fan-out, sharding, queues, idempotency, sagas, circuit breakers — and when to apply each.">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Kalam:wght@400;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/css/site-nav.css">
@@ -13,56 +13,64 @@
 <body class="cheat-sheet-page">
 <main class="cheat-sheet-page">
 <div class="cs-container">
-    <nav class="cs-breadcrumb"><a href="/">Home</a> · <a href="/cheat-sheets/">Cheat Sheets</a> · System Design · Patterns</nav>
+    <nav class="cs-breadcrumb"><a href="/">Home</a> · <a href="/cheat-sheets/">Cheat Sheets</a> · <a href="/cheat-sheets/system-design/">System Design</a> · Patterns</nav>
     <header class="cs-hero">
         <span class="cs-category-badge system-design">System Design</span>
         <h1 class="cs-title">System Design Interview Patterns</h1>
-        <p class="cs-subtitle">The 6 designs that cover 80% of interview questions — with architecture sketches.</p>
+        <p class="cs-subtitle">Reusable patterns for fan-out, sharding, queues, idempotency, sagas, circuit breakers — and when to apply each.</p>
     </header>
+    <div class="cs-interview-tip"><strong>Interview tip</strong> For any scenario, name 2–3 patterns aloud: "fan-out on write for notifications, idempotent consumers, circuit breaker on payment API."</div>
+    <nav class="cs-toc" aria-label="On this page">
+    <div class="cs-toc-title">On this page</div>
+    <ol><li><a href="#cs-section-0">① Pattern map — quick reference</a></li><li><a href="#cs-section-1">② Fan-out on write vs read</a></li><li><a href="#cs-section-2">③ Sharding & consistent hashing</a></li><li><a href="#cs-section-3">④ Message queues & event streaming</a></li><li><a href="#cs-section-4">⑤ Idempotency</a></li><li><a href="#cs-section-5">⑥ Sagas vs two-phase commit</a></li><li><a href="#cs-section-6">⑦ Circuit breaker</a></li><li><a href="#cs-section-7">⑧ Rate limiting (companion pattern)</a></li><li><a href="#cs-section-8">⑨ Scenario — notification system patterns</a></li><li><a href="#cs-section-9">⑩ Revision checklist</a></li></ol>
+  </nav>
     
-    <div class="cs-interview-tip"><strong>Interview tip</strong> Name the pattern: "This is read-heavy → CDN + cache. Writes are bursty → queue + async workers."</div>
-    <div class="cs-paper">
-        <h2 class="cs-section-title">1. URL Shortener</h2>
-        <div class="cs-flow">
-            <span class="cs-box">POST /shorten</span><span class="cs-arrow">→</span>
-            <span class="cs-box purple">Hash / counter ID</span><span class="cs-arrow">→</span>
-            <span class="cs-box green">DB mapping</span>
-        </div>
-        <div class="cs-note">Key: base62 encoding, collision handling, redirect GET is cacheable, analytics optional via async queue.</div>
+    <div class="cs-paper" id="cs-section-0">
+        <h2 class="cs-section-title">① Pattern map — quick reference</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Pattern</th><th>Problem it solves</th><th>Watch out for</th></tr><tr><td>Fan-out on write</td><td>Precompute feeds/notifications at write time</td><td>Celebrity problem — too many followers</td></tr><tr><td>Fan-out on read</td><td>Merge at read time — simpler writes</td><td>Slow reads for users following many accounts</td></tr><tr><td>Sharding</td><td>Split data across nodes by key</td><td>Cross-shard queries, rebalancing pain</td></tr><tr><td>Consistent hashing</td><td>Minimal key redistribution when nodes change</td><td>Hot spots if key distribution skewed</td></tr><tr><td>Message queue</td><td>Decouple producers/consumers, absorb spikes</td><td>Ordering, duplicate delivery, poison messages</td></tr><tr><td>Idempotency</td><td>Safe retries without duplicate side effects</td><td>Key storage TTL, scope of "same" operation</td></tr><tr><td>Saga</td><td>Multi-step workflow without 2PC locks</td><td>Compensating transactions complexity</td></tr><tr><td>Circuit breaker</td><td>Stop calling failing dependency</td><td>Half-open state tuning, cascading if misconfigured</td></tr></table></div>
     </div>
-    <div class="cs-paper">
-        <h2 class="cs-section-title">2. Chat / messaging</h2>
-        <div class="cs-diagram">
-            <div class="cs-diagram-title">Real-time chat</div>
-            <div class="cs-flow">
-                <span class="cs-box">WebSocket</span><span class="cs-arrow">→</span>
-                <span class="cs-box purple">Chat service</span><span class="cs-arrow">→</span>
-                <span class="cs-box">Message queue</span><span class="cs-arrow">→</span>
-                <span class="cs-box green">DB + push</span>
-            </div>
-        </div>
-        <div class="cs-note">Mention: presence (online), delivery guarantees (at-least-once), fan-out for groups, partition by conversation ID.</div>
+    <div class="cs-paper" id="cs-section-1">
+        <h2 class="cs-section-title">② Fan-out on write vs read</h2>
+        <div class="cs-note"><strong>Fan-out on write (push model):</strong> When user A posts, push post ID into every follower's feed cache (Redis sorted set). Read = O(1) fetch prebuilt feed. Write = O(followers) — expensive for celebrities.</div><div class="cs-note"><strong>Fan-out on read (pull model):</strong> Store posts by user; at read time merge posts from all followed users. Write = O(1). Read = O(following count) — slow for users following 10K accounts.</div><div class="cs-diagram"><div class="cs-diagram-title">Hybrid (Twitter-style)</div><div class="cs-flow"><span class="cs-box gray">New post</span><span class="cs-arrow">→</span><span class="cs-box purple">Fan-out write</span><span class="cs-arrow">→</span><span class="cs-box green">&lt;10K followers</span><span class="cs-arrow">→</span><span class="cs-box orange">Fan-out read</span><span class="cs-arrow">→</span><span class="cs-box">Celebrity accounts</span></div></div><div class="cs-note"><strong>Hybrid:</strong> fan-out on write for normal users; celebrities fetched separately at read time. Precompute for active users only.</div>
     </div>
-    <div class="cs-paper">
-        <h2 class="cs-section-title">3. Rate limiter</h2>
-        <div class="cs-note"><strong>Token bucket:</strong> tokens refill at rate R, burst allowed.<br>
-        <strong>Sliding window:</strong> more accurate, use Redis + sorted sets.<br>
-        <strong>Where:</strong> API gateway or sidecar — return 429 + Retry-After header.</div>
+    <div class="cs-paper" id="cs-section-2">
+        <h2 class="cs-section-title">③ Sharding & consistent hashing</h2>
+        <div class="cs-note"><strong>Sharding strategies:</strong><ul><li><strong>Hash sharding:</strong> <code>shard = hash(user_id) % N</code> — even spread; changing N requires resharding</li><li><strong>Range sharding:</strong> user_id 1–1M on shard A — range queries easy; hot ranges possible</li><li><strong>Directory sharding:</strong> lookup service maps key → shard — flexible; lookup service is bottleneck</li></ul></div><div class="cs-diagram"><div class="cs-diagram-title">Consistent hashing ring</div><div class="cs-flow"><span class="cs-box gray">Key hash</span><span class="cs-arrow">→</span><span class="cs-box purple">Clockwise to node</span><span class="cs-arrow">→</span><span class="cs-box green">Virtual nodes</span><span class="cs-arrow">→</span><span class="cs-box">Even load</span></div></div><div class="cs-note"><strong>Virtual nodes:</strong> each physical node owns multiple points on the ring — better load balance. Adding a node only moves ~1/N keys. Used in: Cassandra, DynamoDB, Redis Cluster, CDNs.</div>
     </div>
-    <div class="cs-paper">
-        <h2 class="cs-section-title">4–6 quick hits</h2>
-        <div class="cs-table-wrap"><table class="cs-table"><tr><th>System</th><th>Core idea</th></tr>
-        <tr><td>News feed</td><td>Fan-out on write vs read — hybrid for celebrities</td></tr>
-        <tr><td>Video streaming</td><td>CDN, chunked upload, transcoding pipeline</td></tr>
-        <tr><td>Payment</td><td>Idempotency keys, saga pattern, exactly-once illusion</td></tr></table></div>
+    <div class="cs-paper" id="cs-section-3">
+        <h2 class="cs-section-title">④ Message queues & event streaming</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>System</th><th>Model</th><th>Ordering</th><th>Retention</th></tr><tr><td>RabbitMQ / SQS</td><td>Queue — one consumer per message</td><td>Single consumer: yes; competing: no guarantee</td><td>Until ack / TTL</td></tr><tr><td>Kafka</td><td>Log — multiple consumer groups</td><td>Per-partition ordering</td><td>Configurable retention (days)</td></tr><tr><td>Redis Streams</td><td>Lightweight log</td><td>Per stream</td><td>Memory-bound</td></tr></table></div><div class="cs-diagram"><div class="cs-diagram-title">Queue decoupling</div><div class="cs-arch-grid"><div class="cs-arch-row"><div class="cs-arch-cell gray">API Server (producer)</div></div><div class="cs-arch-row"><div class="cs-arch-cell purple">Message Queue / Kafka</div></div><div class="cs-arch-row"><div class="cs-arch-cell green">Email Worker</div><div class="cs-arch-cell green">Push Worker</div><div class="cs-arch-cell ">Analytics</div></div></div></div><div class="cs-note"><strong>At-least-once delivery</strong> is default — consumers must be idempotent. <strong>Dead letter queue (DLQ)</strong> for poison messages after N retries. <strong>Backpressure:</strong> slow consumers → queue depth grows → alert and scale workers.</div>
     </div>
-    <div class="cs-related">
-        <h3>More in this category</h3>
-        <div class="cs-related-links"><a href="/cheat-sheets/system-design/fundamentals">SD Fundamentals</a></div>
+    <div class="cs-paper" id="cs-section-4">
+        <h2 class="cs-section-title">⑤ Idempotency</h2>
+        <div class="cs-note"><strong>Idempotent operation:</strong> performing it multiple times has the same effect as once. Critical for retries, network duplicates, and at-least-once queues.</div><div class="cs-table-wrap"><table class="cs-table"><tr><th>Technique</th><th>How</th><th>Example</th></tr><tr><td>Idempotency key</td><td>Client sends UUID; server stores result keyed by it</td><td>Stripe <code>Idempotency-Key</code> header</td></tr><tr><td>Natural idempotency</td><td>Operation is inherently safe to repeat</td><td>PUT /users/123 with full body</td></tr><tr><td>DB unique constraint</td><td>Duplicate insert fails cleanly</td><td>UNIQUE(order_id, payment_id)</td></tr><tr><td>State check</td><td>Only act if status is PENDING</td><td>Charge only if order.status != PAID</td></tr></table></div><div class="cs-note"><strong>Store idempotency keys</strong> in Redis/DB with TTL (24–72h). Return cached response on duplicate key. Payment APIs: never double-charge — idempotency is non-negotiable.</div>
     </div>
+    <div class="cs-paper" id="cs-section-5">
+        <h2 class="cs-section-title">⑥ Sagas vs two-phase commit</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Approach</th><th>Mechanism</th><th>Pros</th><th>Cons</th></tr><tr><td>2PC</td><td>Coordinator locks all participants; commit or abort</td><td>Strong atomicity</td><td>Blocking, coordinator SPOF, does not scale</td></tr><tr><td>Choreography saga</td><td>Each service emits events; others react</td><td>Decoupled, no coordinator</td><td>Hard to trace, cyclic risk</td></tr><tr><td>Orchestration saga</td><td>Central saga manager calls steps + compensations</td><td>Clear flow, easier debug</td><td>Orchestrator is dependency</td></tr></table></div><div class="cs-diagram"><div class="cs-diagram-title">Saga: book flight + hotel</div><div class="cs-flow"><span class="cs-box green">Book flight ✓</span><span class="cs-arrow">→</span><span class="cs-box orange">Book hotel ✗</span><span class="cs-arrow">→</span><span class="cs-box purple">Compensate: cancel flight</span></div></div><div class="cs-note"><strong>Compensating transactions</strong> undo prior steps (cancel reservation, refund). Not all steps are compensatable (email sent). Prefer sagas for microservices; 2PC rare outside databases.</div>
+    </div>
+    <div class="cs-paper" id="cs-section-6">
+        <h2 class="cs-section-title">⑦ Circuit breaker</h2>
+        <div class="cs-note"><strong>States:</strong> <strong>Closed</strong> (normal) → failures exceed threshold → <strong>Open</strong> (fail fast, no calls) → after timeout → <strong>Half-open</strong> (trial request) → success → Closed; failure → Open.</div><div class="cs-diagram"><div class="cs-diagram-title">Circuit breaker in call chain</div><div class="cs-arch-grid"><div class="cs-arch-row"><div class="cs-arch-cell gray">Your Service</div></div><div class="cs-arch-row"><div class="cs-arch-cell purple">Circuit Breaker</div></div><div class="cs-arch-row"><div class="cs-arch-cell green">Payment API (healthy)</div><div class="cs-arch-cell orange">Payment API (down → open)</div></div></div></div><div class="cs-table-wrap"><table class="cs-table"><tr><th>Setting</th><th>Typical value</th><th>Purpose</th></tr><tr><td>Failure threshold</td><td>5 failures in 10s</td><td>Trip to open</td></tr><tr><td>Open duration</td><td>30–60s</td><td>Let dependency recover</td></tr><tr><td>Half-open probes</td><td>1–3 requests</td><td>Test recovery</td></tr><tr><td>Fallback</td><td>Cached response / queue for retry</td><td>Graceful degradation</td></tr></table></div><div class="cs-note">Libraries: Resilience4j (Java), Polly (.NET), Hystrix (legacy). Pair with timeouts — circuit breaker without timeout still hangs threads.</div>
+    </div>
+    <div class="cs-paper" id="cs-section-7">
+        <h2 class="cs-section-title">⑧ Rate limiting (companion pattern)</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Algorithm</th><th>Behavior</th><th>Use case</th></tr><tr><td>Token bucket</td><td>Burst allowed up to bucket size; steady refill rate</td><td>API rate limits with burst tolerance</td></tr><tr><td>Leaky bucket</td><td>Smooth output rate regardless of input spikes</td><td>Traffic shaping</td></tr><tr><td>Fixed window</td><td>Count requests per window (e.g. per minute)</td><td>Simple; boundary spike at window edges</td></tr><tr><td>Sliding window</td><td>Rolling count over last N seconds</td><td>Smoother than fixed window</td></tr></table></div><div class="cs-note"><strong>Distributed rate limiting:</strong> Redis INCR + EXPIRE or sliding window in Redis (Lua for atomicity). Return <code>429 Too Many Requests</code> with <code>Retry-After</code> header. Per-user, per-IP, per-API-key tiers.</div>
+    </div>
+    <div class="cs-paper" id="cs-section-8">
+        <h2 class="cs-section-title">⑨ Scenario — notification system patterns</h2>
+        <div class="cs-layer-diagram"><div class="cs-layer l1">Write path: event → Kafka topic (partitioned by user_id)</div><div class="cs-layer l2">Fan-out workers: read event, lookup preferences, enqueue per-channel jobs</div><div class="cs-layer l3">Idempotent consumers: dedupe by (user_id, event_id, channel)</div><div class="cs-layer l4">Circuit breaker on Twilio/SendGrid — fallback to in-app only</div><div class="cs-layer l1">Rate limit: max 10 push/hour/user to prevent spam</div><div class="cs-layer l2">Inbox storage: sharded by user_id, sorted by timestamp</div></div><div class="cs-note"><strong>Interview script:</strong> "I'd use a queue to decouple the write path from delivery, idempotency keys to handle retries, circuit breakers on external providers, and shard the inbox by user_id."</div>
+    </div>
+    <div class="cs-paper" id="cs-section-9">
+        <h2 class="cs-section-title">⑩ Revision checklist</h2>
+        <ul class="cs-checklist"><li>Named fan-out on write vs read with celebrity/hybrid mitigation</li><li>Explained sharding strategy and consistent hashing for cache/cluster</li><li>Used message queue for async decoupling with at-least-once semantics</li><li>Designed idempotency for payments or duplicate-prone operations</li><li>Contrasted saga vs 2PC for distributed transactions</li><li>Described circuit breaker states and fallback behavior</li><li>Mentioned rate limiting with algorithm choice</li><li>Mapped patterns to a concrete scenario (feed, payments, notifications)</li></ul><div class="cs-tags"><span class="cs-tag">fan-out</span><span class="cs-tag">sharding</span><span class="cs-tag">queues</span><span class="cs-tag">idempotency</span><span class="cs-tag">saga</span><span class="cs-tag">circuit-breaker</span></div>
+    </div>
+    <div class="cs-related"><h3>More in this category</h3><div class="cs-related-links"><a href="/cheat-sheets/system-design/fundamentals">SD Fundamentals</a><a href="/cheat-sheets/system-design/notification-system">Notification System</a><a href="/cheat-sheets/system-design/rate-limiter">Rate Limiter</a></div></div>
+
 </div>
 </main>
 <script src="/js/cheat-sheet-videos.js"></script>
+<script src="/js/cheat-sheet-prompts.js"></script>
 <script src="/js/cheat-sheet.js"></script>
 <script src="/js/site-nav.js"></script>
 </body>

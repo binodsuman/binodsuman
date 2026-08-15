@@ -20,29 +20,61 @@
         <p class="cs-subtitle">Turn text into vectors so similarity search powers RAG, recommendations, and clustering.</p>
     </header>
     <div class="cs-interview-tip"><strong>Interview tip</strong> Explain: same embedding model for index + query; cosine similarity; dimension size affects cost.</div>
+    <nav class="cs-toc" aria-label="On this page">
+    <div class="cs-toc-title">On this page</div>
+    <ol><li><a href="#cs-section-0">① What you must know (30 sec)</a></li><li><a href="#cs-section-1">② How it works</a></li><li><a href="#cs-section-2">③ Step-by-step (hands-on)</a></li><li><a href="#cs-section-3">④ Code / config patterns</a></li><li><a href="#cs-section-4">⑤ Production & pitfalls</a></li><li><a href="#cs-section-5">⑥ Interview / on-the-job Q&A</a></li><li><a href="#cs-section-6">⑦ Tools & ecosystem</a></li><li><a href="#cs-section-7">⑧ Revision checklist</a></li></ol>
+  </nav>
     
-    <div class="cs-paper">
-        <h2 class="cs-section-title">Core idea</h2>
-        <div class="cs-note">Embedding model maps sentence → vector (e.g. 1536 floats). <strong>Similar meaning → close vectors.</strong> Used for search, dedup, classification.</div>
-        <div class="cs-diagram"><div class="cs-diagram-title">Similarity</div>
-        <div class="cs-flow"><span class="cs-box">"dog"</span><span class="cs-arrow">≈</span>
-        <span class="cs-box purple">"puppy"</span><span class="cs-arrow">≠</span>
-        <span class="cs-box orange">"car"</span></div></div>
+    <div class="cs-paper" id="cs-section-0">
+        <h2 class="cs-section-title">① What you must know (30 sec)</h2>
+        <div class="cs-note">An <strong>embedding</strong> is a dense vector (list of floats) representing text semantics. <strong>Similar meanings map to nearby vectors</strong>, enabling similarity search, clustering, deduplication, and RAG retrieval. Use the <strong>same model</strong> when indexing documents and embedding queries; compare with <strong>cosine similarity</strong> (or dot product on normalized vectors).</div><div class="cs-note"><strong>Analogy:</strong> Embeddings are GPS coordinates for meaning — "puppy" and "dog" sit close; "dog" and "airplane" are far apart.</div>
     </div>
-    <div class="cs-paper">
-        <h2 class="cs-section-title">Practical tips</h2>
-        <div class="cs-note"><ul>
-        <li>Normalize vectors for cosine dot product</li>
-        <li>Batch embed for indexing speed</li>
-        <li>Don't mix models in one index</li>
-        <li>Evaluate retrieval with labeled Q→doc pairs</li>
-        </ul></div>
+    <div class="cs-paper" id="cs-section-1">
+        <h2 class="cs-section-title">② How it works</h2>
+        <div class="cs-diagram"><div class="cs-diagram-title">Similarity in vector space</div><div class="cs-flow"><span class="cs-box">"refund policy"</span><span class="cs-arrow">→</span><span class="cs-box purple">Embed</span><span class="cs-arrow">→</span><span class="cs-box green">[0.02, -0.15, ...]</span><span class="cs-arrow">→</span><span class="cs-box orange">Nearest neighbors</span><span class="cs-arrow">→</span><span class="cs-box">Top matches</span></div></div><div class="cs-note"><strong>Cosine similarity</strong> measures angle between vectors (0–1). <strong>Euclidean distance</strong> measures straight-line distance — cosine is standard for text because magnitude matters less than direction.</div><div class="cs-note">Batch embed documents offline (cheap, parallel); embed queries online (low latency, one string at a time).</div>
+    </div>
+    <div class="cs-paper" id="cs-section-2">
+        <h2 class="cs-section-title">③ Step-by-step (hands-on)</h2>
+        <div class="cs-roadmap"><div class="cs-roadmap-step"><div><h4>Step 1 — Choose an embedding model</h4><p>OpenAI text-embedding-3-small/large, Cohere embed-v3, BGE, Voyage — pick one and stick with it for the index.</p></div></div><div class="cs-roadmap-step"><div><h4>Step 2 — Preprocess text</h4><p>Lowercase optional; strip HTML; keep meaningful headers. Very short strings embed poorly — add context prefix.</p></div></div><div class="cs-roadmap-step"><div><h4>Step 3 — Batch embed documents</h4><p>Send 100–500 chunks per API call. Store vector + metadata (doc_id, chunk_index, text snippet).</p></div></div><div class="cs-roadmap-step"><div><h4>Step 4 — Index in vector store</h4><p>Pinecone, pgvector, Chroma — create index with correct dimension count from model spec.</p></div></div><div class="cs-roadmap-step"><div><h4>Step 5 — Embed query at search time</h4><p>Same model, same dimensions. Normalize if using dot product as cosine proxy.</p></div></div><div class="cs-roadmap-step"><div><h4>Step 6 — Evaluate retrieval</h4><p>Labeled question → relevant doc pairs. Measure recall@k and MRR before tuning chunking or model.</p></div></div></div>
+    </div>
+    <div class="cs-paper" id="cs-section-3">
+        <h2 class="cs-section-title">④ Code / config patterns</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Model tier</th><th>Dims (approx)</th><th>Trade-off</th></tr><tr><td>Small / fast</td><td>384–768</td><td>Lower cost, good for POC</td></tr><tr><td>Standard</td><td>1024–1536</td><td>Best balance for RAG</td></tr><tr><td>Large</td><td>3072+</td><td>Higher quality, storage cost</td></tr><tr><td>Multimodal</td><td>Varies</td><td>Image + text same space (CLIP-style)</td></tr></table></div><div class="cs-code-block"><pre>from openai import OpenAI
+client = OpenAI()
+# Index time (batch)
+resp = client.embeddings.create(
+    model="text-embedding-3-small",
+    input=["chunk one text", "chunk two text"]
+)
+vectors = [d.embedding for d in resp.data]
+# Query time — same model
+q_vec = client.embeddings.create(
+    model="text-embedding-3-small", input=[user_query]
+).data[0].embedding
+scores = cosine_similarity(q_vec, indexed_vectors)</pre></div>
+    </div>
+    <div class="cs-paper" id="cs-section-4">
+        <h2 class="cs-section-title">⑤ Production & pitfalls</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Pitfall</th><th>Why it hurts</th><th>Fix</th></tr><tr><td>Mixed models in one index</td><td>Nonsense similarity scores</td><td>Re-embed entire corpus on model change</td></tr><tr><td>Not normalizing vectors</td><td>Wrong ranking with dot product</td><td>L2-normalize or use cosine metric in DB</td></tr><tr><td>Embedding tiny chunks</td><td>Weak semantic signal</td><td>Minimum ~50 tokens or prepend title/context</td></tr><tr><td>Ignoring multilingual needs</td><td>Poor cross-language retrieval</td><td>Use multilingual model (e.g. multilingual-e5)</td></tr><tr><td>No retrieval eval</td><td>Blind chunk/model tweaks</td><td>recall@k on 50+ labeled pairs</td></tr><tr><td>Storing only vectors</td><td>Cannot show user source text</td><td>Keep text or doc_id in metadata</td></tr></table></div><div class="cs-note"><strong>Production tips:</strong><ul><li>Cache query embeddings for frequent searches</li><li>Quantization (PQ) for large indexes to cut memory</li><li>Monitor embedding API latency and error rate</li><li>Version index when model changes — blue/green re-index</li></ul></div>
+    </div>
+    <div class="cs-paper" id="cs-section-5">
+        <h2 class="cs-section-title">⑥ Interview / on-the-job Q&A</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Question</th><th>Answer</th></tr><tr><td>What is an embedding?</td><td>Fixed-size vector capturing semantic meaning of text for similarity comparison.</td></tr><tr><td>Cosine vs Euclidean?</td><td>Cosine compares direction (standard for text); Euclidean compares magnitude and direction.</td></tr><tr><td>Why same model for index and query?</td><td>Different models use incompatible vector spaces — similarity would be meaningless.</td></tr><tr><td>What affects embedding quality?</td><td>Model choice, text preprocessing, chunk size, and domain match.</td></tr><tr><td>Embeddings vs keywords?</td><td>Embeddings capture semantic similarity; keywords need exact term overlap (BM25).</td></tr><tr><td>How many dimensions?</td><td>Set by model — trade storage/cost vs quality; cannot mix dims in one index.</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-6">
+        <h2 class="cs-section-title">⑦ Tools & ecosystem</h2>
+        <div class="cs-note"><ul><li><strong>APIs:</strong> OpenAI embeddings, Cohere, Voyage AI</li><li><strong>Open models:</strong> sentence-transformers, BGE, E5</li><li><strong>Stores:</strong> Pinecone, pgvector, Weaviate, FAISS (local)</li><li><strong>Eval:</strong> custom recall@k scripts, RAGAS</li></ul></div><div class="cs-tags"><span class="cs-tag">embeddings</span><span class="cs-tag">vectors</span><span class="cs-tag">cosine-similarity</span><span class="cs-tag">rag</span><span class="cs-tag">semantic-search</span></div>
+    </div>
+    <div class="cs-paper" id="cs-section-7">
+        <h2 class="cs-section-title">⑧ Revision checklist</h2>
+        <ul class="cs-checklist"><li>Single embedding model chosen and documented</li><li>Dimension matches vector DB index config</li><li>Documents batch-embedded with metadata</li><li>Queries embedded with identical model</li><li>Cosine similarity or normalized dot product used</li><li>Chunk size tested — not too small</li><li>recall@k measured on labeled set</li><li>Re-index plan documented for model upgrades</li><li>Query embedding cache considered for hot queries</li></ul>
     </div>
     <div class="cs-related"><h3>More in this category</h3><div class="cs-related-links"><a href="/cheat-sheets/ai/">All AI cheat sheets</a><a href="/cheat-sheets/ai/rag">RAG</a><a href="/cheat-sheets/ai/agents-intro">What is an Agent?</a></div></div>
 
 </div>
 </main>
 <script src="/js/cheat-sheet-videos.js"></script>
+<script src="/js/cheat-sheet-prompts.js"></script>
 <script src="/js/cheat-sheet.js"></script>
 <script src="/js/site-nav.js"></script>
 </body>

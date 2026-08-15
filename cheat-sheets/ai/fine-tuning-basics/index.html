@@ -20,26 +20,59 @@
         <p class="cs-subtitle">When to train vs prompt — customize behavior, tone, or format on your examples.</p>
     </header>
     <div class="cs-interview-tip"><strong>Interview tip</strong> Default order: prompt engineering → RAG → fine-tune. Fine-tune for style/format or niche domain with lots of examples.</div>
+    <nav class="cs-toc" aria-label="On this page">
+    <div class="cs-toc-title">On this page</div>
+    <ol><li><a href="#cs-section-0">① What you must know (30 sec)</a></li><li><a href="#cs-section-1">② How it works</a></li><li><a href="#cs-section-2">③ Step-by-step (hands-on)</a></li><li><a href="#cs-section-3">④ Code / config patterns</a></li><li><a href="#cs-section-4">⑤ Production & pitfalls</a></li><li><a href="#cs-section-5">⑥ Interview / on-the-job Q&A</a></li><li><a href="#cs-section-6">⑦ Tools & ecosystem</a></li><li><a href="#cs-section-7">⑧ Revision checklist</a></li></ol>
+  </nav>
     
-    <div class="cs-paper">
-        <h2 class="cs-section-title">When to fine-tune</h2>
-        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Fine-tune</th><th>Don't fine-tune yet</th></tr>
-        <tr><td>Consistent output format</td><td>Need fresh facts → RAG</td></tr>
-        <tr><td>Brand tone at scale</td><td>&lt; 100 good examples</td></tr>
-        <tr><td>Specialized classification</td><td>Can solve with prompt</td></tr></table></div>
+    <div class="cs-paper" id="cs-section-0">
+        <h2 class="cs-section-title">① What you must know (30 sec)</h2>
+        <div class="cs-note"><strong>Fine-tuning</strong> continues training a base model on <strong>your labeled examples</strong> so it internalizes style, format, or domain patterns. Default path: <strong>prompt engineering → RAG → fine-tune</strong>. Fine-tune when you have hundreds of quality examples and need consistent behavior at scale — not when you need up-to-date facts (use RAG).</div><div class="cs-note"><strong>Analogy:</strong> Fine-tuning is hiring someone who already studied your company style guide — versus giving them the guide every morning (prompting) or a searchable wiki (RAG).</div>
     </div>
-    <div class="cs-paper">
-        <h2 class="cs-section-title">Process sketch</h2>
-        <div class="cs-roadmap">
-        <div class="cs-roadmap-step"><div><h4>Curate JSONL examples</h4><p>input → ideal output, diverse edge cases.</p></div></div>
-        <div class="cs-roadmap-step"><div><h4>Train + validate holdout</h4><p>Compare vs base model on same prompts.</p></div></div>
-        <div class="cs-roadmap-step"><div><h4>Deploy + monitor drift</h4><p>Re-train when product changes.</p></div></div></div>
+    <div class="cs-paper" id="cs-section-1">
+        <h2 class="cs-section-title">② How it works</h2>
+        <div class="cs-diagram"><div class="cs-diagram-title">Fine-tune pipeline</div><div class="cs-flow"><span class="cs-box gray">Curate JSONL</span><span class="cs-arrow">→</span><span class="cs-box purple">Upload + train</span><span class="cs-arrow">→</span><span class="cs-box green">Eval holdout</span><span class="cs-arrow">→</span><span class="cs-box orange">Deploy model ID</span><span class="cs-arrow">→</span><span class="cs-box">Monitor drift</span></div></div><div class="cs-layer-diagram"><div class="cs-layer l1">Data — 100–10K+ high-quality input→output pairs in JSONL format</div><div class="cs-layer l2">Train — provider fine-tuning job (OpenAI, Anthropic, open models on GPU)</div><div class="cs-layer l3">Validate — compare fine-tuned vs base on held-out prompts</div><div class="cs-layer l4">Deploy — custom model name in API calls</div><div class="cs-layer l1">Maintain — re-train when product, policies, or format change</div></div><div class="cs-note">Garbage in, garbage out — 200 perfect examples beat 2000 noisy ones. Audit labels before uploading.</div>
+    </div>
+    <div class="cs-paper" id="cs-section-2">
+        <h2 class="cs-section-title">③ Step-by-step (hands-on)</h2>
+        <div class="cs-roadmap"><div class="cs-roadmap-step"><div><h4>Step 1 — Confirm fine-tune is needed</h4><p>Try structured outputs, few-shot, and RAG first. Document failure cases fine-tuning must fix.</p></div></div><div class="cs-roadmap-step"><div><h4>Step 2 — Curate training data</h4><p>JSONL: each line messages array or prompt/completion. Cover edge cases, refusals, and diverse phrasing.</p></div></div><div class="cs-roadmap-step"><div><h4>Step 3 — Hold out test set</h4><p>10–20% never seen in training. Define metrics: exact match, F1, human preference, or LLM judge.</p></div></div><div class="cs-roadmap-step"><div><h4>Step 4 — Run training job</h4><p>Upload via API or dashboard. Note job ID, hyperparameters, and base model version.</p></div></div><div class="cs-roadmap-step"><div><h4>Step 5 — Evaluate vs baseline</h4><p>Same prompts on base model and fine-tuned model. Fine-tune must win clearly to justify cost.</p></div></div><div class="cs-roadmap-step"><div><h4>Step 6 — Deploy and monitor</h4><p>Route traffic to ft model; track quality regressions; schedule re-train quarterly or on policy change.</p></div></div></div>
+    </div>
+    <div class="cs-paper" id="cs-section-3">
+        <h2 class="cs-section-title">④ Code / config patterns</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Fine-tune when</th><th>Don't fine-tune yet</th></tr><tr><td>Consistent output format at scale</td><td>Need current facts → RAG</td></tr><tr><td>Brand tone across millions of calls</td><td>< 100 quality examples</td></tr><tr><td>Niche classification with labels</td><td>Prompt + few-shot works on eval</td></tr><tr><td>Reduce prompt length/cost</td><td>Can solve with structured outputs</td></tr></table></div><div class="cs-code-block"><pre># OpenAI fine-tune data format (chat)
+{"messages": [
+  {"role": "system", "content": "You are support bot."},
+  {"role": "user", "content": "Where is my order?"},
+  {"role": "assistant", "content": "Please share order ID..."}
+]}
+# After training:
+client.chat.completions.create(
+    model="ft:gpt-4o-mini:org:custom:abc123",
+    messages=[...]
+)</pre></div>
+    </div>
+    <div class="cs-paper" id="cs-section-4">
+        <h2 class="cs-section-title">⑤ Production & pitfalls</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Pitfall</th><th>Why it hurts</th><th>Fix</th></tr><tr><td>Fine-tuning for facts</td><td>Model still hallucinates dates</td><td>RAG for knowledge; fine-tune for behavior</td></tr><tr><td>Too few examples</td><td>Overfits, poor generalization</td><td>500+ diverse examples or stay with prompting</td></tr><tr><td>Noisy labels</td><td>Learns wrong patterns</td><td>Human review sample; inter-annotator agreement</td></tr><tr><td>No holdout eval</td><td>False confidence from train set</td><td>Blind test set compared to base model</td></tr><tr><td>Skipping version control on data</td><td>Cannot reproduce model</td><td>Git LFS or DVC for JSONL datasets</td></tr><tr><td>Ignoring inference cost</td><td>Custom model may cost more per token</td><td>Calculate TCO vs long prompts</td></tr></table></div><div class="cs-note"><strong>Production tips:</strong><ul><li>A/B test fine-tuned vs base in production</li><li>Rollback to base model via feature flag</li><li>Document training data provenance for compliance</li><li>Re-train pipeline triggered on labeled data threshold</li></ul></div>
+    </div>
+    <div class="cs-paper" id="cs-section-5">
+        <h2 class="cs-section-title">⑥ Interview / on-the-job Q&A</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Question</th><th>Answer</th></tr><tr><td>Fine-tune vs RAG?</td><td>Fine-tune: behavior/style. RAG: fresh external facts at query time.</td></tr><tr><td>How many examples?</td><td>Rough guide: 100 minimum viable, 500+ for solid classification, quality > quantity.</td></tr><tr><td>What format?</td><td>Provider-specific JSONL — chat messages or prompt/completion pairs.</td></tr><tr><td>How evaluate?</td><td>Held-out set vs base model on same metrics; human eval for tone tasks.</td></tr><tr><td>When re-train?</td><td>Policy change, product pivot, or measured quality drift.</td></tr><tr><td>Open vs API fine-tune?</td><td>API fine-tune easy; open models (LoRA) need GPU ops but more control.</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-6">
+        <h2 class="cs-section-title">⑦ Tools & ecosystem</h2>
+        <div class="cs-note"><ul><li><strong>API fine-tune:</strong> OpenAI, Anthropic (where offered)</li><li><strong>Open:</strong> Hugging Face, Axolotl, LoRA/QLoRA</li><li><strong>Data:</strong> Label Studio, spreadsheets → JSONL scripts</li><li><strong>Eval:</strong> promptfoo, human review panels</li></ul></div><div class="cs-tags"><span class="cs-tag">fine-tuning</span><span class="cs-tag">training-data</span><span class="cs-tag">lora</span><span class="cs-tag">evaluation</span><span class="cs-tag">jsonl</span></div>
+    </div>
+    <div class="cs-paper" id="cs-section-7">
+        <h2 class="cs-section-title">⑧ Revision checklist</h2>
+        <ul class="cs-checklist"><li>Prompting and RAG attempted first</li><li>Clear success metric defined</li><li>500+ curated examples OR strong justification for fewer</li><li>10–20% holdout test set locked</li><li>Labels audited for consistency</li><li>Fine-tuned model beats base on holdout</li><li>Training data versioned in git/DVC</li><li>Rollback to base model planned</li><li>Inference cost compared to long-prompt baseline</li></ul>
     </div>
     <div class="cs-related"><h3>More in this category</h3><div class="cs-related-links"><a href="/cheat-sheets/ai/">All AI cheat sheets</a><a href="/cheat-sheets/ai/rag">RAG</a><a href="/cheat-sheets/ai/agents-intro">What is an Agent?</a></div></div>
 
 </div>
 </main>
 <script src="/js/cheat-sheet-videos.js"></script>
+<script src="/js/cheat-sheet-prompts.js"></script>
 <script src="/js/cheat-sheet.js"></script>
 <script src="/js/site-nav.js"></script>
 </body>

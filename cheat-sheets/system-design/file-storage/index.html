@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Design Dropbox / File Storage | Binod Suman Cheat Sheet</title>
-    <meta name="description" content="Sync, versioning, metadata vs blob split, and multi-device consistency.">
+    <meta name="description" content="Sync, versioning, metadata vs blob split, chunking, delta sync, and multi-device consistency.">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Kalam:wght@400;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/css/site-nav.css">
@@ -17,25 +17,60 @@
     <header class="cs-hero">
         <span class="cs-category-badge system-design">System Design</span>
         <h1 class="cs-title">Design Dropbox / File Storage</h1>
-        <p class="cs-subtitle">Sync, versioning, metadata vs blob split, and multi-device consistency.</p>
+        <p class="cs-subtitle">Sync, versioning, metadata vs blob split, chunking, delta sync, and multi-device consistency.</p>
     </header>
-    <div class="cs-interview-tip"><strong>Interview tip</strong> Metadata in DB, files in object storage. Chunk large files for delta sync. Eventual consistency across devices.</div>
+    <div class="cs-interview-tip"><strong>Interview tip</strong> Metadata in DB, files in object storage. Chunk large files (4MB blocks) with content-hash for dedup and delta sync. Eventual consistency across devices with conflict resolution.</div>
+    <nav class="cs-toc" aria-label="On this page">
+    <div class="cs-toc-title">On this page</div>
+    <ol><li><a href="#cs-section-0">① Clarify requirements</a></li><li><a href="#cs-section-1">② Back-of-the-envelope scale</a></li><li><a href="#cs-section-2">③ High-level architecture</a></li><li><a href="#cs-section-3">④ API & interfaces</a></li><li><a href="#cs-section-4">⑤ Data model & storage</a></li><li><a href="#cs-section-5">⑥ Deep dive — core components</a></li><li><a href="#cs-section-6">⑦ Trade-offs & alternatives</a></li><li><a href="#cs-section-7">⑧ 45-minute interview script</a></li><li><a href="#cs-section-8">⑨ Likely follow-up questions</a></li><li><a href="#cs-section-9">⑩ Revision checklist</a></li></ol>
+  </nav>
     
-    <div class="cs-paper">
-        <h2 class="cs-section-title">Split storage</h2>
-        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Metadata DB</th><th>Blob store</th></tr>
-        <tr><td>path, owner, versions</td><td>actual file bytes</td></tr>
-        <tr><td>permissions, shares</td><td>S3 / GCS with CDN</td></tr></table></div>
+    <div class="cs-paper" id="cs-section-0">
+        <h2 class="cs-section-title">① Clarify requirements</h2>
+        <div class="cs-note"><strong>Functional</strong><ul><li>Upload, download, delete files and folders</li><li>Sync changes across user's devices automatically</li><li>File versioning — keep last N versions (default 30 days)</li><li>Share files/folders with other users (read/write permissions)</li><li>Offline access — sync when back online</li><li>Block-level dedup: same content stored once globally</li><li>Search files by name (metadata only)</li></ul><strong>Non-functional</strong><ul><li>Sync notification &lt; 5s after change on another device</li><li>Upload/download utilizes available bandwidth</li><li>99.9% durability — no data loss</li><li>Support files up to 50GB</li><li>Efficient sync — only changed chunks transferred</li></ul></div><div class="cs-note"><strong>Out of scope (say in interview)</strong><ul><li>Real-time collaborative editing (Google Docs style)</li><li>End-to-end encryption (mention as premium feature)</li><li>Desktop full-disk backup</li><li>Video streaming from storage</li></ul></div>
     </div>
-    <div class="cs-paper">
-        <h2 class="cs-section-title">Sync model</h2>
-        <div class="cs-note">Client uploads chunks with hashes → server detects what changed → only transfer deltas. Conflict: last-write-wins or version branches.</div>
+    <div class="cs-paper" id="cs-section-1">
+        <h2 class="cs-section-title">② Back-of-the-envelope scale</h2>
+        <div class="cs-note"><strong>Assumptions</strong><ul><li>500M users, 100B files, avg 500KB → 50 PB logical (before dedup)</li><li>Dedup ratio ~3:1 → ~17 PB physical blob storage</li><li>10M sync ops/day → ~115/sec; peak 10× during work hours</li><li>Chunk size 4MB → avg file = 1–2 chunks; 100B chunks metadata entries</li><li>Metadata: 100B files × 500B metadata ≈ 50 TB index</li><li>Notification: 115 sync events/sec → long-polling or WebSocket per device</li></ul></div><div class="cs-note">Content-addressable storage: chunk identified by SHA256 hash. Same chunk uploaded by different users stored once. Metadata DB is the bottleneck — shard by user_id. Blob store (S3) is cheap and unlimited.</div>
+    </div>
+    <div class="cs-paper" id="cs-section-2">
+        <h2 class="cs-section-title">③ High-level architecture</h2>
+        <div class="cs-diagram"><div class="cs-diagram-title">Dropbox File Sync System</div><div class="cs-arch-grid"><div class="cs-arch-row"><div class="cs-arch-cell gray">Desktop / Mobile Clients</div></div><div class="cs-arch-row"><div class="cs-arch-cell purple">Sync API + WebSocket Notifications</div><div class="cs-arch-cell ">Upload/Download API</div></div><div class="cs-arch-row"><div class="cs-arch-cell green">Metadata Service</div><div class="cs-arch-cell orange">Block Service (chunking)</div><div class="cs-arch-cell ">Sharing & Permissions</div></div><div class="cs-arch-row"><div class="cs-arch-cell green">Metadata DB (sharded SQL)</div><div class="cs-arch-cell green">Block Storage (S3, content-addressed)</div></div><div class="cs-arch-row"><div class="cs-arch-cell orange">Notification Service (long-poll/WS)</div><div class="cs-arch-cell gray">Version History Store</div></div></div></div><div class="cs-flow"><span class="cs-box gray">File change</span><span class="cs-arrow">→</span><span class="cs-box">Chunk + hash</span><span class="cs-arrow">→</span><span class="cs-box purple">Upload new chunks</span><span class="cs-arrow">→</span><span class="cs-box green">Update metadata</span></div><div class="cs-note">Client splits file into 4MB chunks, hashes each (SHA256). Uploads only chunks not already on server (check hash existence). Metadata service records file → chunk list mapping. Sync = exchange metadata diff, then fetch missing chunks.</div>
+    </div>
+    <div class="cs-paper" id="cs-section-3">
+        <h2 class="cs-section-title">④ API & interfaces</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Endpoint / flow</th><th>Purpose</th><th>Notes</th></tr><tr><td>POST /v1/blocks/check</td><td>Check chunk existence</td><td>Body: {hashes[]} → {missing[]} — client uploads only missing</td></tr><tr><td>PUT /v1/blocks/{hash}</td><td>Upload chunk</td><td>Content-addressed; idempotent; returns 200 if exists</td></tr><tr><td>POST /v1/files</td><td>Create/update file metadata</td><td>{path, chunks[], parent_folder, device_id} → version</td></tr><tr><td>GET /v1/sync/cursor</td><td>Get changes since cursor</td><td>Returns changed files/folders since last sync cursor</td></tr><tr><td>GET /v1/files/{id}/download</td><td>Download file</td><td>Returns presigned URLs for chunk assembly</td></tr><tr><td>POST /v1/shares</td><td>Share folder</td><td>{folder_id, user_email, permission: read|write}</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-4">
+        <h2 class="cs-section-title">⑤ Data model & storage</h2>
+        <div class="cs-note"><strong>files</strong>: <code>file_id</code>, <code>user_id</code>, <code>path</code>, <code>parent_id</code>, <code>chunk_hashes[]</code>, <code>version</code>, <code>modified_at</code>, <code>device_id</code><br><br><strong>blocks</strong>: <code>hash</code> (PK SHA256), <code>s3_path</code>, <code>size</code>, <code>ref_count</code><br><br><strong>shares</strong>: <code>resource_id</code>, <code>owner_id</code>, <code>grantee_id</code>, <code>permission</code></div><div class="cs-table-wrap"><table class="cs-table"><tr><th>Store</th><th>What</th><th>Why</th></tr><tr><td>S3 (content-addressed)</td><td>File chunks/blocks</td><td>SHA256 key; dedup across all users; 11 nines durability</td></tr><tr><td>PostgreSQL (sharded by user_id)</td><td>File metadata, folder tree</td><td>ACID for metadata; shard at 100M users</td></tr><tr><td>Redis</td><td>Sync cursors + notifications</td><td>Pub/sub per user for change notifications</td></tr><tr><td>S3 Glacier</td><td>Old versions</td><td>Lifecycle policy after 30 days</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-5">
+        <h2 class="cs-section-title">⑥ Deep dive — core components</h2>
+        <h3 class="cs-subheading">Block-level dedup and delta sync</h3><div class="cs-note">Client computes rolling hash (Rabin fingerprint) for content-defined chunking — boundaries shift minimally on small edits (vs fixed 4MB blocks where any edit changes all subsequent chunks). Each chunk SHA256 checked against server — upload only new chunks. 1MB edit in 1GB file → upload ~1–2 chunks (4–8MB) not 1GB.</div><h3 class="cs-subheading">Sync protocol</h3><div class="cs-note">Each device maintains sync cursor (server monotonic version per user). On change: client pushes metadata + new chunks. Server increments user version, notifies other devices via WebSocket. Other devices: <code>GET /sync?since=cursor</code> → list of changed paths → download missing chunks.</div><div class="cs-note">Initial sync on new device: full metadata tree download, then parallel chunk download for all files.</div><h3 class="cs-subheading">Conflict resolution</h3><div class="cs-note">Two devices edit same file offline: both push on reconnect. Server detects version conflict (expected_version mismatch). Strategy: <strong>last-write-wins</strong> (simpler) OR <strong>conflict copies</strong> (Dropbox model — save both as "file (conflicted copy).ext"). User resolves manually.</div><div class="cs-note">For folders: rename/move conflicts create duplicate paths. Operational transform not needed — file-level granularity sufficient for sync (not real-time co-editing).</div><h3 class="cs-subheading">Sharing and permissions</h3><div class="cs-note">Share grants grantee read/write on folder subtree. Permission check on every API call: traverse parent chain for ACL. Cache ACL in Redis per (user, resource). Shared files reference owner's chunks — no duplication. Revoke: delete share record; async cache invalidation.</div>
+    </div>
+    <div class="cs-paper" id="cs-section-6">
+        <h2 class="cs-section-title">⑦ Trade-offs & alternatives</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Decision</th><th>Option A</th><th>Option B</th><th>Pick when</th></tr><tr><td>Chunking</td><td>Fixed 4MB</td><td>Content-defined (Rabin)</td><td>Content-defined for better delta sync</td></tr><tr><td>Conflict</td><td>Last-write-wins</td><td>Conflict copies</td><td>LWW simple; copies safer for users</td></tr><tr><td>Sync notify</td><td>WebSocket</td><td>Long polling</td><td>WebSocket lower latency; polling simpler</td></tr><tr><td>Dedup scope</td><td>Global cross-user</td><td>Per-user only</td><td>Global saves 60%+ storage; privacy consideration</td></tr><tr><td>Versioning</td><td>30-day window</td><td>Unlimited versions</td><td>30-day balances storage; unlimited costly</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-7">
+        <h2 class="cs-section-title">⑧ 45-minute interview script</h2>
+        <div class="cs-note"><ol><li>0–5 min: Clarify sync, sharing, versioning, offline</li><li>5–12 min: Scale — files, storage PB, dedup ratio</li><li>12–22 min: Metadata vs blob split architecture</li><li>22–30 min: Chunking and content-hash dedup deep dive</li><li>30–36 min: Sync protocol with cursors</li><li>36–42 min: Conflict resolution strategies</li><li>42–45 min: Sharing permissions model</li></ol></div>
+    </div>
+    <div class="cs-paper" id="cs-section-8">
+        <h2 class="cs-section-title">⑨ Likely follow-up questions</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Question</th><th>Short answer</th></tr><tr><td>Two devices edit offline?</td><td>Conflict copies saved; user picks winner; or last-write-wins with timestamp</td></tr><tr><td>Delete file — chunks garbage collected?</td><td>Decrement ref_count on chunks; GC worker deletes ref_count=0 from S3</td></tr><tr><td>User deletes account?</td><td>Mark metadata deleted; async chunk GC if ref_count hits 0 globally</td></tr><tr><td>50GB file upload?</td><td>Multipart chunk upload; resume from last confirmed chunk hash</td></tr><tr><td>Malware in shared file?</td><td>Out of scope; mention async virus scan on upload</td></tr><tr><td>Cross-region sync latency?</td><td>Multi-region S3 replication; metadata DB primary in user home region</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-9">
+        <h2 class="cs-section-title">⑩ Revision checklist</h2>
+        <ul class="cs-checklist"><li>Metadata vs blob storage separation</li><li>Content-addressed chunks (SHA256)</li><li>Delta sync — upload only changed chunks</li><li>Sync cursor / changelog protocol</li><li>Conflict resolution strategy stated</li><li>Block dedup across users</li><li>WebSocket notification for sync</li><li>File versioning with retention</li><li>Sharing ACL model</li><li>ref_count for chunk garbage collection</li></ul><div class="cs-tags"><span class="cs-tag">sync</span><span class="cs-tag">dedup</span><span class="cs-tag">object storage</span><span class="cs-tag">metadata</span><span class="cs-tag">chunking</span></div>
     </div>
     <div class="cs-related"><h3>More in this category</h3><div class="cs-related-links"><a href="/cheat-sheets/system-design/">All SD cheat sheets</a><a href="/cheat-sheets/system-design/fundamentals">SD Fundamentals</a><a href="/cheat-sheets/system-design/url-shortener">URL Shortener</a></div></div>
 
 </div>
 </main>
 <script src="/js/cheat-sheet-videos.js"></script>
+<script src="/js/cheat-sheet-prompts.js"></script>
 <script src="/js/cheat-sheet.js"></script>
 <script src="/js/site-nav.js"></script>
 </body>

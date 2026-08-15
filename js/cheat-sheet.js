@@ -44,7 +44,68 @@
         if (!container) return;
 
         injectActionBar(container);
+        injectPromptBox(container);
         injectYouTubeSection(container);
+    }
+
+    function injectPromptBox(container) {
+        if (container.querySelector('.cs-prompt-box')) return;
+
+        const path = window.location.pathname.replace(/\/$/, '') || '/';
+        const prompt = window.CHEAT_SHEET_PROMPTS?.[path];
+        if (!prompt) return;
+
+        const gptUrl = `https://chatgpt.com/?q=${encodeURIComponent(prompt)}`;
+        const claudeUrl = `https://claude.ai/new?q=${encodeURIComponent(prompt)}`;
+
+        const box = document.createElement('div');
+        box.className = 'cs-prompt-box';
+        box.innerHTML = `
+            <div class="cs-prompt-header">
+                <h3><i class="fas fa-wand-magic-sparkles"></i> Practice with AI</h3>
+                <p>Open ChatGPT or Claude with a tailored mock-interview / tutor prompt for this topic.</p>
+            </div>
+            <div class="cs-prompt-preview">${escapeHtml(prompt)}</div>
+            <div class="cs-prompt-actions">
+                <a href="${gptUrl}" class="cs-prompt-btn cs-prompt-gpt" target="_blank" rel="noopener noreferrer">
+                    <i class="fas fa-external-link-alt"></i> Open in ChatGPT
+                </a>
+                <a href="${claudeUrl}" class="cs-prompt-btn cs-prompt-claude" target="_blank" rel="noopener noreferrer">
+                    <i class="fas fa-external-link-alt"></i> Open in Claude
+                </a>
+                <button type="button" class="cs-prompt-btn cs-prompt-copy" id="csPromptCopy">
+                    <i class="fas fa-copy"></i> Copy prompt
+                </button>
+            </div>`;
+
+        const related = container.querySelector('.cs-related');
+        if (related) {
+            related.after(box);
+        } else {
+            container.appendChild(box);
+        }
+
+        document.getElementById('csPromptCopy')?.addEventListener('click', async () => {
+            try {
+                await navigator.clipboard.writeText(prompt);
+                const btn = document.getElementById('csPromptCopy');
+                if (btn) {
+                    const orig = btn.innerHTML;
+                    btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                    setTimeout(() => { btn.innerHTML = orig; }, 2000);
+                }
+            } catch {
+                /* fallback ignored */
+            }
+        });
+    }
+
+    function escapeHtml(str) {
+        return str
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
     }
 
     function injectActionBar(container) {

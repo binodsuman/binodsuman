@@ -20,39 +20,58 @@
         <p class="cs-subtitle">Chains, prompts, retrievers, and agents — the popular Python framework for LLM apps.</p>
     </header>
     <div class="cs-interview-tip"><strong>Interview tip</strong> Know: LCEL (pipe syntax), ChatModel vs LLM, RunnableSequence. Say when you'd use LangChain vs raw SDK.</div>
+    <nav class="cs-toc" aria-label="On this page">
+    <div class="cs-toc-title">On this page</div>
+    <ol><li><a href="#cs-section-0">① What you must know (30 sec)</a></li><li><a href="#cs-section-1">② How it works</a></li><li><a href="#cs-section-2">③ Step-by-step (hands-on)</a></li><li><a href="#cs-section-3">④ Code / config patterns</a></li><li><a href="#cs-section-4">⑤ Production & pitfalls</a></li><li><a href="#cs-section-5">⑥ Interview / on-the-job Q&A</a></li><li><a href="#cs-section-6">⑦ Tools & ecosystem</a></li><li><a href="#cs-section-7">⑧ Revision checklist</a></li></ol>
+  </nav>
     
-    <div class="cs-paper">
-        <h2 class="cs-section-title">Key concepts</h2>
-        <div class="cs-note"><ul>
-        <li><strong>Models:</strong> ChatOpenAI, ChatAnthropic wrappers</li>
-        <li><strong>Prompts:</strong> PromptTemplate, ChatPromptTemplate</li>
-        <li><strong>Chains:</strong> prompt | model | parser</li>
-        <li><strong>Retrievers:</strong> wrap vector stores for RAG</li>
-        <li><strong>Agents:</strong> AgentExecutor + toolkits</li>
-        </ul></div>
+    <div class="cs-paper" id="cs-section-0">
+        <h2 class="cs-section-title">① What you must know (30 sec)</h2>
+        <div class="cs-note"><strong>LangChain</strong> is a Python/JS framework that composes LLM apps from reusable pieces: <strong>prompts</strong>, <strong>models</strong>, <strong>retrievers</strong>, <strong>parsers</strong>, and <strong>agents</strong>. <strong>LCEL</strong> (LangChain Expression Language) chains them with the pipe operator: <code>chain = prompt | model | parser</code>. Ideal for RAG and agent prototypes; consider raw SDK for minimal latency microservices.</div><div class="cs-note"><strong>Analogy:</strong> LangChain is like React for LLM apps — components and composition — whereas raw SDK is vanilla JS when you want zero dependencies.</div>
     </div>
-    <div class="cs-paper">
-        <h2 class="cs-section-title">LCEL pipe example</h2>
-        <div class="cs-note cs-handwritten">chain = prompt | model | StrOutputParser()<br>
-        answer = chain.invoke({"question": "..."})</div>
-        <div class="cs-diagram"><div class="cs-diagram-title">Chain flow</div>
-        <div class="cs-flow"><span class="cs-box">Input dict</span><span class="cs-arrow">→</span>
-        <span class="cs-box purple">Prompt</span><span class="cs-arrow">→</span>
-        <span class="cs-box green">Model</span><span class="cs-arrow">→</span>
-        <span class="cs-box orange">Parser</span></div></div>
+    <div class="cs-paper" id="cs-section-1">
+        <h2 class="cs-section-title">② How it works</h2>
+        <div class="cs-diagram"><div class="cs-diagram-title">LCEL chain</div><div class="cs-flow"><span class="cs-box">Input dict</span><span class="cs-arrow">→</span><span class="cs-box purple">PromptTemplate</span><span class="cs-arrow">→</span><span class="cs-box green">ChatModel</span><span class="cs-arrow">→</span><span class="cs-box orange">OutputParser</span><span class="cs-arrow">→</span><span class="cs-box">String / JSON</span></div></div><div class="cs-layer-diagram"><div class="cs-layer l1">Models — ChatOpenAI, ChatAnthropic wrappers with unified .invoke()</div><div class="cs-layer l2">Prompts — ChatPromptTemplate with {variables}</div><div class="cs-layer l3">Retrievers — vector store .as_retriever() for RAG</div><div class="cs-layer l4">Output parsers — StrOutputParser, JsonOutputParser, Pydantic</div><div class="cs-layer l1">Agents — LangGraph or create_react_agent with tool binding</div></div><div class="cs-note">LangChain v0.2+ favors LCEL and langchain-core; avoid deprecated Chain classes in new code.</div>
     </div>
-    <div class="cs-paper">
-        <h2 class="cs-section-title">LangChain vs raw API</h2>
-        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Use LangChain</th><th>Use raw SDK</th></tr>
-        <tr><td>RAG + agents prototypes</td><td>Simple one-off calls</td></tr>
-        <tr><td>Many integrations</td><td>Full control, less deps</td></tr>
-        <tr><td>Team already uses it</td><td>Latency-critical microservice</td></tr></table></div>
+    <div class="cs-paper" id="cs-section-2">
+        <h2 class="cs-section-title">③ Step-by-step (hands-on)</h2>
+        <div class="cs-roadmap"><div class="cs-roadmap-step"><div><h4>Step 1 — Install core packages</h4><p>pip install langchain langchain-openai langchain-community. Set OPENAI_API_KEY in environment.</p></div></div><div class="cs-roadmap-step"><div><h4>Step 2 — Build a simple chain</h4><p>from langchain_core.prompts import ChatPromptTemplate; from langchain_openai import ChatOpenAI; chain = prompt | ChatOpenAI() | StrOutputParser()</p></div></div><div class="cs-roadmap-step"><div><h4>Step 3 — Invoke with dict</h4><p>result = chain.invoke({"question": "What is RAG?"}) — input keys match prompt variables.</p></div></div><div class="cs-roadmap-step"><div><h4>Step 4 — Add a retriever for RAG</h4><p>retriever = vectorstore.as_retriever(search_kwargs={"k": 4}); use create_retrieval_chain or custom LCEL with RunnablePassthrough.</p></div></div><div class="cs-roadmap-step"><div><h4>Step 5 — Stream tokens</h4><p>for chunk in chain.stream({"question": "..."}): print(chunk, end="") — same chain, streaming API.</p></div></div><div class="cs-roadmap-step"><div><h4>Step 6 — Move agents to LangGraph</h4><p>For multi-step agents, prefer langgraph StateGraph over legacy AgentExecutor for control and checkpoints.</p></div></div></div>
+    </div>
+    <div class="cs-paper" id="cs-section-3">
+        <h2 class="cs-section-title">④ Code / config patterns</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Use LangChain</th><th>Use raw SDK</th></tr><tr><td>RAG + agent prototypes</td><td>Single chat completion endpoint</td></tr><tr><td>Many third-party integrations</td><td>Latency-critical microservice</td></tr><tr><td>Team standardizes on LC</td><td>Minimal dependencies, full control</td></tr><tr><td>LangSmith tracing out of box</td><td>Simple CRUD wrapper around GPT</td></tr></table></div><div class="cs-code-block"><pre>from langchain_core.prompts import ChatPromptTemplate
+from langchain_openai import ChatOpenAI
+from langchain_core.output_parsers import StrOutputParser
+
+prompt = ChatPromptTemplate.from_messages([
+    ("system", "Answer concisely."),
+    ("human", "{question}")
+])
+chain = prompt | ChatOpenAI(model="gpt-4o-mini") | StrOutputParser()
+answer = chain.invoke({"question": "What is LCEL?"})</pre></div>
+    </div>
+    <div class="cs-paper" id="cs-section-4">
+        <h2 class="cs-section-title">⑤ Production & pitfalls</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Pitfall</th><th>Why it hurts</th><th>Fix</th></tr><tr><td>Deprecated APIs in tutorials</td><td>Copy-paste breaks on upgrade</td><td>Check docs version; prefer langchain-core LCEL</td></tr><tr><td>Over-abstraction for one call</td><td>Harder debug than 10-line SDK</td><td>Raw SDK for trivial endpoints</td></tr><tr><td>Implicit prompt injection via retriever</td><td>Malicious doc content in context</td><td>Sanitize retrieved text; system guardrails</td></tr><tr><td>No tracing enabled</td><td>Black box failures</td><td>LangSmith or custom callbacks on chain</td></tr><tr><td>Giant monolithic chains</td><td>Untestable spaghetti</td><td>Split into named sub-chains with unit tests</td></tr><tr><td>Wrong retriever k</td><td>Noise or missed context</td><td>Tune k on eval set; add reranker</td></tr></table></div><div class="cs-note"><strong>Production tips:</strong><ul><li>Pin langchain package versions; test upgrades in staging</li><li>Use RunnableConfig for run_name and metadata in traces</li><li>Cache embeddings and frequent retrievals</li><li>LangGraph checkpoints for resumable long agents</li></ul></div>
+    </div>
+    <div class="cs-paper" id="cs-section-5">
+        <h2 class="cs-section-title">⑥ Interview / on-the-job Q&A</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Question</th><th>Answer</th></tr><tr><td>What is LCEL?</td><td>Pipe syntax to compose Runnables: prompt | model | parser with .invoke() and .stream().</td></tr><tr><td>ChatModel vs LLM?</td><td>ChatModel uses message objects (system/user/assistant); legacy LLM uses plain strings.</td></tr><tr><td>LangChain vs LlamaIndex?</td><td>LangChain general composition; LlamaIndex indexing/retrieval focus. Many use both.</td></tr><tr><td>What is a retriever?</td><td>Interface that returns relevant documents for a query — wraps vector store search.</td></tr><tr><td>AgentExecutor vs LangGraph?</td><td>LangGraph offers explicit state machine, persistence, and human-in-the-loop — preferred for prod agents.</td></tr><tr><td>How debug chains?</td><td>LangSmith traces, verbose=True on older chains, or log intermediate Runnable outputs.</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-6">
+        <h2 class="cs-section-title">⑦ Tools & ecosystem</h2>
+        <div class="cs-note"><ul><li><strong>Core:</strong> langchain-core, langchain-openai, langchain-anthropic</li><li><strong>Vector:</strong> langchain-chroma, langchain-pinecone, langchain-postgres</li><li><strong>Agents:</strong> langgraph, langchain-community tools</li><li><strong>Observability:</strong> LangSmith</li></ul></div><div class="cs-tags"><span class="cs-tag">langchain</span><span class="cs-tag">lcel</span><span class="cs-tag">python</span><span class="cs-tag">rag</span><span class="cs-tag">langgraph</span></div>
+    </div>
+    <div class="cs-paper" id="cs-section-7">
+        <h2 class="cs-section-title">⑧ Revision checklist</h2>
+        <ul class="cs-checklist"><li>Using LCEL pipe syntax, not deprecated LLMChain</li><li>ChatPromptTemplate variables match .invoke() keys</li><li>StrOutputParser or JsonOutputParser on chain end</li><li>Retriever k tuned on sample questions</li><li>Package versions pinned in requirements.txt</li><li>LangSmith or logging enabled for dev</li><li>Agents use LangGraph for new projects</li><li>Simple endpoints evaluated for raw SDK alternative</li><li>Integration tests on chain with mocked model</li></ul>
     </div>
     <div class="cs-related"><h3>More in this category</h3><div class="cs-related-links"><a href="/cheat-sheets/ai/">All AI cheat sheets</a><a href="/cheat-sheets/ai/rag">RAG</a><a href="/cheat-sheets/ai/agents-intro">What is an Agent?</a></div></div>
 
 </div>
 </main>
 <script src="/js/cheat-sheet-videos.js"></script>
+<script src="/js/cheat-sheet-prompts.js"></script>
 <script src="/js/cheat-sheet.js"></script>
 <script src="/js/site-nav.js"></script>
 </body>

@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Design Instagram / Photo Sharing | Binod Suman Cheat Sheet</title>
-    <meta name="description" content="Photo upload, feed, likes, comments, and object storage at global scale.">
+    <meta name="description" content="Photo upload, feed, likes, comments, stories, and object storage at 2B+ users with global CDN delivery.">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Kalam:wght@400;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/css/site-nav.css">
@@ -17,31 +17,60 @@
     <header class="cs-hero">
         <span class="cs-category-badge system-design">System Design</span>
         <h1 class="cs-title">Design Instagram / Photo Sharing</h1>
-        <p class="cs-subtitle">Photo upload, feed, likes, comments, and object storage at global scale.</p>
+        <p class="cs-subtitle">Photo upload, feed, likes, comments, stories, and object storage at 2B+ users with global CDN delivery.</p>
     </header>
-    <div class="cs-interview-tip"><strong>Interview tip</strong> Photos → S3 + CDN thumbnails. Metadata in SQL/NoSQL. Feed same as news feed patterns.</div>
+    <div class="cs-interview-tip"><strong>Interview tip</strong> Photos → S3 + CDN thumbnails (multiple sizes). Metadata in Cassandra. Feed uses same hybrid fan-out as news feed. Separate hot path for image bytes vs metadata.</div>
+    <nav class="cs-toc" aria-label="On this page">
+    <div class="cs-toc-title">On this page</div>
+    <ol><li><a href="#cs-section-0">① Clarify requirements</a></li><li><a href="#cs-section-1">② Back-of-the-envelope scale</a></li><li><a href="#cs-section-2">③ High-level architecture</a></li><li><a href="#cs-section-3">④ API & interfaces</a></li><li><a href="#cs-section-4">⑤ Data model & storage</a></li><li><a href="#cs-section-5">⑥ Deep dive — core components</a></li><li><a href="#cs-section-6">⑦ Trade-offs & alternatives</a></li><li><a href="#cs-section-7">⑧ 45-minute interview script</a></li><li><a href="#cs-section-8">⑨ Likely follow-up questions</a></li><li><a href="#cs-section-9">⑩ Revision checklist</a></li></ol>
+  </nav>
     
-    <div class="cs-paper">
-        <h2 class="cs-section-title">Components</h2>
-        <div class="cs-note"><ul>
-        <li>Media service — resize, filter, store variants</li>
-        <li>Feed service — ranked photo stream</li>
-        <li>Social graph — follows</li>
-        <li>Notification — likes/comments</li>
-        </ul></div>
+    <div class="cs-paper" id="cs-section-0">
+        <h2 class="cs-section-title">① Clarify requirements</h2>
+        <div class="cs-note"><strong>Functional</strong><ul><li>Upload photo with optional filter applied client-side or server-side</li><li>Generate thumbnails: 150px, 320px, 640px, 1080px</li><li>Home feed: photos from followed users, ranked</li><li>Like and unlike photos; display like count</li><li>Comment on photos (flat comments, paginated)</li><li>User profile: grid of user's photos</li><li>Follow/unfollow users</li></ul><strong>Non-functional</strong><ul><li>Photo upload complete &lt; 5s on 4G</li><li>Feed load &lt; 2s; images load progressively</li><li>99.9% availability on image CDN</li><li>100M photos/day (~1.2K uploads/sec)</li><li>Global low-latency image delivery</li></ul></div><div class="cs-note"><strong>Out of scope (say in interview)</strong><ul><li>Stories (24h ephemeral)</li><li>Reels / video (brief mention)</li><li>Direct messaging</li><li>Explore/discovery algorithm</li></ul></div>
     </div>
-    <div class="cs-paper">
-        <h2 class="cs-section-title">Upload path</h2>
-        <div class="cs-flow"><span class="cs-box">Mobile</span><span class="cs-arrow">→</span>
-        <span class="cs-box purple">API</span><span class="cs-arrow">→</span>
-        <span class="cs-box green">S3 + workers</span><span class="cs-arrow">→</span>
-        <span class="cs-box orange">CDN URLs in DB</span></div>
+    <div class="cs-paper" id="cs-section-1">
+        <h2 class="cs-section-title">② Back-of-the-envelope scale</h2>
+        <div class="cs-note"><strong>Assumptions</strong><ul><li>100M photos/day → ~1.2K uploads/sec avg, ~5K/sec peak</li><li>Avg 2MB raw → 200KB JPEG after compression; 4 thumbnail sizes ≈ 400KB total per photo</li><li>Storage: 100M × 400KB × 365 ≈ 14.6 PB/year (CDN + S3)</li><li>Feed reads: 2B MAU × 3 sessions × 2 feed loads = 12B/day → ~140K/sec</li><li>Likes: 10 likes/photo avg → 1B likes/day → ~12K writes/sec</li><li>Avg 300 followers → fan-out: 1.2K × 300 = 360K feed writes/sec</li></ul></div><div class="cs-note">Store photo IDs in feed cache (not URLs). CDN URLs derived from photo_id + size template. Image processing async — show placeholder until thumbnails ready. Hybrid fan-out for users with &gt; 100K followers.</div>
+    </div>
+    <div class="cs-paper" id="cs-section-2">
+        <h2 class="cs-section-title">③ High-level architecture</h2>
+        <div class="cs-diagram"><div class="cs-diagram-title">Instagram Photo Platform</div><div class="cs-arch-grid"><div class="cs-arch-row"><div class="cs-arch-cell gray">Mobile Clients</div></div><div class="cs-arch-row"><div class="cs-arch-cell ">API Gateway</div></div><div class="cs-arch-row"><div class="cs-arch-cell purple">Media Service (upload)</div><div class="cs-arch-cell green">Photo Service (metadata)</div><div class="cs-arch-cell green">Feed Service</div><div class="cs-arch-cell orange">Social Graph</div></div><div class="cs-arch-row"><div class="cs-arch-cell orange">Image Processing Workers</div><div class="cs-arch-cell purple">Fan-out Workers</div></div><div class="cs-arch-row"><div class="cs-arch-cell green">S3 + CDN</div><div class="cs-arch-cell green">Cassandra (photos, feeds)</div><div class="cs-arch-cell orange">Redis (feed cache)</div></div></div></div><div class="cs-flow"><span class="cs-box gray">Upload photo</span><span class="cs-arrow">→</span><span class="cs-box">S3 raw</span><span class="cs-arrow">→</span><span class="cs-box purple">Resize + CDN</span><span class="cs-arrow">→</span><span class="cs-box green">Fan-out feed</span></div><div class="cs-note">Upload flow: presigned S3 URL → client uploads → webhook triggers image workers → multiple sizes to CDN → photo metadata written → fan-out to follower feeds. Client polls or push notification when processing complete.</div>
+    </div>
+    <div class="cs-paper" id="cs-section-3">
+        <h2 class="cs-section-title">④ API & interfaces</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Endpoint / flow</th><th>Purpose</th><th>Notes</th></tr><tr><td>POST /v1/photos/upload-url</td><td>Get presigned URL</td><td>Returns {uploadUrl, photoId, expiresAt}</td></tr><tr><td>POST /v1/photos/{id}/complete</td><td>Finalize upload</td><td>Triggers processing; returns status processing|ready</td></tr><tr><td>GET /v1/feed?cursor=</td><td>Home feed</td><td>Photo cards with CDN URLs for thumbnails</td></tr><tr><td>POST /v1/photos/{id}/like</td><td>Like photo</td><td>Idempotent; async counter increment</td></tr><tr><td>GET /v1/photos/{id}/comments?cursor=</td><td>Comments</td><td>Paginated; newest first</td></tr><tr><td>POST /v1/photos/{id}/comments</td><td>Add comment</td><td>Returns commentId; notifies photo owner</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-4">
+        <h2 class="cs-section-title">⑤ Data model & storage</h2>
+        <div class="cs-note"><strong>photos</strong>: <code>photo_id</code>, <code>user_id</code>, <code>caption</code>, <code>filter</code>, <code>cdn_paths</code> {150,320,640,1080}, <code>like_count</code>, <code>created_at</code><br><br><strong>likes</strong>: <code>photo_id</code>, <code>user_id</code> (composite PK for idempotency)<br><br><strong>comments</strong>: <code>comment_id</code>, <code>photo_id</code>, <code>user_id</code>, <code>text</code>, <code>created_at</code></div><div class="cs-table-wrap"><table class="cs-table"><tr><th>Store</th><th>What</th><th>Why</th></tr><tr><td>S3 + CloudFront CDN</td><td>Image blobs (all sizes)</td><td>Immutable; cache 1 year; geo-distributed</td></tr><tr><td>Cassandra</td><td>Photos, comments, likes</td><td>Partition by photo_id; high write throughput</td></tr><tr><td>Redis Sorted Sets</td><td>User feed cache</td><td>Photo IDs ranked by score; hybrid fan-out</td></tr><tr><td>Kafka</td><td>Processing + fan-out queue</td><td>Decouple upload from feed update</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-5">
+        <h2 class="cs-section-title">⑥ Deep dive — core components</h2>
+        <h3 class="cs-subheading">Image processing pipeline</h3><div class="cs-note">On upload complete: worker downloads raw from S3, applies filter (if server-side), generates 4 JPEG sizes with ImageMagick/libvips, uploads each to CDN path <code>/photos/{photo_id}/{size}.jpg</code>. Update photo record status=ready. Typical processing: 2–5 seconds.</div><div class="cs-note">Client shows blurred placeholder (LQIP — low-quality image placeholder, 20×20 base64) until ready. Webhook or polling on <code>GET /photos/{id}/status</code>.</div><h3 class="cs-subheading">Feed with photo metadata hydration</h3><div class="cs-note">Feed cache stores photo_ids in ranked order. On feed read: batch MGET photo metadata from Cassandra (or local cache). Construct CDN URLs from template — no URL stored per feed entry. Progressive loading: 150px in feed list, 640px on tap.</div><h3 class="cs-subheading">Like count consistency</h3><div class="cs-note">Like write: INSERT into likes table (idempotent PK). Async: Redis INCR photo:{id}:likes. Display count from Redis (stale OK by seconds). Periodic reconciliation job syncs Redis → Cassandra like_count. Unlike: DELETE from likes + DECR.</div><h3 class="cs-subheading">Storage cost optimization</h3><div class="cs-note">CDN caches hot images at edge — S3 egress minimal. Lifecycle: move originals to Glacier after 90 days if only thumbnails needed. WebP format saves 30% vs JPEG for supported clients. Deduplicate identical uploads via perceptual hash (optional).</div>
+    </div>
+    <div class="cs-paper" id="cs-section-6">
+        <h2 class="cs-section-title">⑦ Trade-offs & alternatives</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Decision</th><th>Option A</th><th>Option B</th><th>Pick when</th></tr><tr><td>Filter</td><td>Client-side</td><td>Server-side</td><td>Client saves server CPU; server for consistency</td></tr><tr><td>Feed fan-out</td><td>Push (write)</td><td>Pull (read)</td><td>Push for normal; pull for celebrities</td></tr><tr><td>Like count</td><td>Eventually consistent</td><td>Strongly consistent</td><td>Eventual standard for social; strong overkill</td></tr><tr><td>Image format</td><td>JPEG</td><td>WebP/AVIF</td><td>JPEG universal; WebP for bandwidth savings</td></tr><tr><td>Comment model</td><td>Flat list</td><td>Threaded tree</td><td>Flat simpler; threaded for Twitter-style</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-7">
+        <h2 class="cs-section-title">⑧ 45-minute interview script</h2>
+        <div class="cs-note"><ol><li>0–5 min: Clarify upload, feed, likes, comments, followers</li><li>5–12 min: Scale — photos/day, storage PB, fan-out math</li><li>12–22 min: Architecture — media, photo, feed, graph services</li><li>22–30 min: Image processing pipeline and CDN strategy</li><li>30–36 min: Hybrid feed fan-out (reuse news feed pattern)</li><li>36–42 min: Like count async increment</li><li>42–45 min: Storage cost and multi-resolution thumbnails</li></ol></div>
+    </div>
+    <div class="cs-paper" id="cs-section-8">
+        <h2 class="cs-section-title">⑨ Likely follow-up questions</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Question</th><th>Short answer</th></tr><tr><td>Photo upload on slow 3G?</td><td>Client-side resize before upload; chunked upload; retry with exponential backoff</td></tr><tr><td>Celebrity with 50M followers posts?</td><td>Skip fan-out; pull at read time; merge with precomputed feed</td></tr><tr><td>Delete photo?</td><td>Mark deleted in DB; CDN cache expires via TTL; purge from feeds async</td></tr><tr><td>Duplicate photo detection?</td><td>Perceptual hash on upload; flag or block duplicates</td></tr><tr><td>Comments on viral photo (1M comments)?</td><td>Paginate; cache top comments; rate limit comment writes</td></tr><tr><td>Multi-region users?</td><td>S3 cross-region replication; CDN global; Cassandra multi-DC</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-9">
+        <h2 class="cs-section-title">⑩ Revision checklist</h2>
+        <ul class="cs-checklist"><li>Presigned S3 upload flow</li><li>Multiple thumbnail sizes (150–1080px)</li><li>Async image processing workers</li><li>CDN for all image delivery</li><li>Feed stores photo IDs not blobs</li><li>Hybrid fan-out for celebrity users</li><li>Like idempotency via composite PK</li><li>Eventually consistent like counts</li><li>100M photos/day scale math</li><li>Progressive image loading strategy</li></ul><div class="cs-tags"><span class="cs-tag">media</span><span class="cs-tag">CDN</span><span class="cs-tag">fan-out</span><span class="cs-tag">image processing</span><span class="cs-tag">Cassandra</span></div>
     </div>
     <div class="cs-related"><h3>More in this category</h3><div class="cs-related-links"><a href="/cheat-sheets/system-design/">All SD cheat sheets</a><a href="/cheat-sheets/system-design/fundamentals">SD Fundamentals</a><a href="/cheat-sheets/system-design/url-shortener">URL Shortener</a></div></div>
 
 </div>
 </main>
 <script src="/js/cheat-sheet-videos.js"></script>
+<script src="/js/cheat-sheet-prompts.js"></script>
 <script src="/js/cheat-sheet.js"></script>
 <script src="/js/site-nav.js"></script>
 </body>

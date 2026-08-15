@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Design Web Crawler | Binod Suman Cheat Sheet</title>
-    <meta name="description" content="Distributed crawl frontier, politeness, deduplication, and storing billions of pages.">
+    <meta name="description" content="Distributed crawl frontier, robots.txt politeness, deduplication, and storing billions of web pages.">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Kalam:wght@400;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/css/site-nav.css">
@@ -17,31 +17,60 @@
     <header class="cs-hero">
         <span class="cs-category-badge system-design">System Design</span>
         <h1 class="cs-title">Design Web Crawler</h1>
-        <p class="cs-subtitle">Distributed crawl frontier, politeness, deduplication, and storing billions of pages.</p>
+        <p class="cs-subtitle">Distributed crawl frontier, robots.txt politeness, deduplication, and storing billions of web pages.</p>
     </header>
-    <div class="cs-interview-tip"><strong>Interview tip</strong> BFS frontier in queue, robots.txt respect, bloom filter for seen URLs, separate fetch vs parse workers.</div>
+    <div class="cs-interview-tip"><strong>Interview tip</strong> BFS frontier in priority queue, robots.txt cache, Bloom filter for seen URLs, separate fetcher vs parser workers. Per-domain rate limiting is critical.</div>
+    <nav class="cs-toc" aria-label="On this page">
+    <div class="cs-toc-title">On this page</div>
+    <ol><li><a href="#cs-section-0">① Clarify requirements</a></li><li><a href="#cs-section-1">② Back-of-the-envelope scale</a></li><li><a href="#cs-section-2">③ High-level architecture</a></li><li><a href="#cs-section-3">④ API & interfaces</a></li><li><a href="#cs-section-4">⑤ Data model & storage</a></li><li><a href="#cs-section-5">⑥ Deep dive — core components</a></li><li><a href="#cs-section-6">⑦ Trade-offs & alternatives</a></li><li><a href="#cs-section-7">⑧ 45-minute interview script</a></li><li><a href="#cs-section-8">⑨ Likely follow-up questions</a></li><li><a href="#cs-section-9">⑩ Revision checklist</a></li></ol>
+  </nav>
     
-    <div class="cs-paper">
-        <h2 class="cs-section-title">Requirements</h2>
-        <div class="cs-note">Discover URLs from seeds, fetch HTML, extract links, store content, respect rate per domain, avoid duplicates.</div>
+    <div class="cs-paper" id="cs-section-0">
+        <h2 class="cs-section-title">① Clarify requirements</h2>
+        <div class="cs-note"><strong>Functional</strong><ul><li>Start from seed URLs; discover new URLs by parsing HTML links</li><li>Fetch page content (HTML); follow redirects (max 5 hops)</li><li>Extract and normalize URLs (canonical form)</li><li>Respect robots.txt and crawl-delay per domain</li><li>Deduplicate URLs — never fetch same URL twice</li><li>Store raw HTML + metadata (URL, fetch time, status code, checksum)</li><li>Priority queue: important domains/pages crawled first</li></ul><strong>Non-functional</strong><ul><li>Crawl 1B pages/day (~11.5K pages/sec sustained)</li><li>Politeness: default 1 request/sec per domain</li><li>Fault tolerant — failed fetches retried with backoff</li><li>Horizontally scalable fetcher workers</li><li>Detect and avoid spider traps (infinite URL spaces)</li></ul></div><div class="cs-note"><strong>Out of scope (say in interview)</strong><ul><li>JavaScript rendering (headless browser — mention as extension)</li><li>Full-text search index building</li><li>Image/binary file crawling</li><li>Authentication / login walls</li></ul></div>
     </div>
-    <div class="cs-paper">
-        <h2 class="cs-section-title">Architecture</h2>
-        <div class="cs-flow"><span class="cs-box gray">URL frontier</span><span class="cs-arrow">→</span>
-        <span class="cs-box">Fetcher pool</span><span class="cs-arrow">→</span>
-        <span class="cs-box purple">Parser</span><span class="cs-arrow">→</span>
-        <span class="cs-box green">Link extractor</span><span class="cs-arrow">→</span>
-        <span class="cs-box orange">Document store</span></div>
+    <div class="cs-paper" id="cs-section-1">
+        <h2 class="cs-section-title">② Back-of-the-envelope scale</h2>
+        <div class="cs-note"><strong>Assumptions</strong><ul><li>1B pages/day → ~11.5K fetches/sec average, ~50K/sec peak</li><li>Avg page 50KB HTML → 50GB/sec raw bandwidth at peak</li><li>Storage: 1B × 50KB × 365 ≈ 18 PB/year</li><li>URL frontier: ~10B unique URLs discovered; Bloom filter 10B @ 1% FP ≈ 12 GB</li><li>100M domains → robots.txt cache ~5 GB</li><li>DNS lookups: 11.5K/sec → dedicated DNS resolver pool</li></ul></div><div class="cs-note">Per-domain queues are the key scaling unit — 100M domain queues managed by consistent hashing to scheduler shards. Bloom filter gives O(1) "probably seen" check; exact dedup DB for confirmation on Bloom positive.</div>
     </div>
-    <div class="cs-paper">
-        <h2 class="cs-section-title">Politeness</h2>
-        <div class="cs-note">Per-domain queue + delay. robots.txt cache. Max depth / domain caps. Priority for important sites.</div>
+    <div class="cs-paper" id="cs-section-2">
+        <h2 class="cs-section-title">③ High-level architecture</h2>
+        <div class="cs-diagram"><div class="cs-diagram-title">Distributed Web Crawler</div><div class="cs-arch-grid"><div class="cs-arch-row"><div class="cs-arch-cell gray">Seed URL Injector</div></div><div class="cs-arch-row"><div class="cs-arch-cell purple">URL Frontier (priority queues per domain)</div><div class="cs-arch-cell green">Scheduler / Coordinator</div></div><div class="cs-arch-row"><div class="cs-arch-cell orange">Fetcher Pool (10K workers)</div><div class="cs-arch-cell ">Robots.txt Cache</div></div><div class="cs-arch-row"><div class="cs-arch-cell green">Parser + Link Extractor</div><div class="cs-arch-cell purple">URL Dedup (Bloom + DB)</div></div><div class="cs-arch-row"><div class="cs-arch-cell green">Document Store (HDFS/S3)</div><div class="cs-arch-cell gray">URL Metadata DB</div></div></div></div><div class="cs-flow"><span class="cs-box gray">Dequeue URL</span><span class="cs-arrow">→</span><span class="cs-box">Check robots.txt</span><span class="cs-arrow">→</span><span class="cs-box purple">HTTP fetch</span><span class="cs-arrow">→</span><span class="cs-box green">Parse + store</span></div><div class="cs-note">Scheduler assigns URLs to fetchers respecting per-domain rate limits. Fetchers are stateless — pull work from domain-specific Kafka topics. Parser is CPU-bound, separate pool from network-bound fetchers.</div>
+    </div>
+    <div class="cs-paper" id="cs-section-3">
+        <h2 class="cs-section-title">④ API & interfaces</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Endpoint / flow</th><th>Purpose</th><th>Notes</th></tr><tr><td>Internal: enqueue(url, priority)</td><td>Add URL to frontier</td><td>Normalize; Bloom check; assign to domain queue</td></tr><tr><td>Internal: fetch(url)</td><td>HTTP GET</td><td>Returns {status, headers, body, redirect_chain}</td></tr><tr><td>Internal: parse(html, base_url)</td><td>Extract links</td><td>Returns normalized absolute URLs[]</td></tr><tr><td>GET /crawl/status/{domain}</td><td>Ops dashboard</td><td>Queue depth, last fetch time, error rate per domain</td></tr><tr><td>POST /crawl/seeds</td><td>Inject seed URLs</td><td>Bootstrap or recrawl specific domains</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-4">
+        <h2 class="cs-section-title">⑤ Data model & storage</h2>
+        <div class="cs-note"><strong>url_metadata</strong>: <code>url_hash</code> (PK), <code>canonical_url</code>, <code>first_seen</code>, <code>last_crawled</code>, <code>status_code</code>, <code>content_hash</code>, <code>priority</code><br><br><strong>domain_state</strong>: <code>domain</code>, <code>last_fetch_ts</code>, <code>crawl_delay_ms</code>, <code>robots_txt</code>, <code>queue_depth</code><br><br><strong>documents</strong> (object store): path = <code>/{yyyy}/{mm}/{dd}/{url_hash}.html</code></div><div class="cs-table-wrap"><table class="cs-table"><tr><th>Store</th><th>What</th><th>Why</th></tr><tr><td>Kafka (per-domain topics)</td><td>URL frontier queues</td><td>Backpressure; replay on failure</td></tr><tr><td>Redis + Bloom filter</td><td>URL deduplication</td><td>Bloom in-memory per scheduler shard; Redis for exact check</td></tr><tr><td>HDFS / S3</td><td>Raw HTML documents</td><td>Cheap bulk storage; immutable append</td></tr><tr><td>PostgreSQL</td><td>URL metadata + domain state</td><td>Robots.txt cache; crawl history</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-5">
+        <h2 class="cs-section-title">⑥ Deep dive — core components</h2>
+        <h3 class="cs-subheading">URL frontier & politeness</h3><div class="cs-note">Each domain has a priority queue in Kafka (topic = domain hash). Scheduler tracks <code>last_fetch_ts</code> per domain — won't dequeue until <code>crawl_delay</code> elapsed (from robots.txt or default 1s). High-priority domains (news, gov) get dedicated fetcher capacity.</div><div class="cs-note">Consistent hash domains to scheduler shards — each shard manages ~1M domains. On scheduler failure, Kafka retains unconsumed URLs.</div><h3 class="cs-subheading">URL normalization & deduplication</h3><div class="cs-note">Normalize: lowercase host, remove default port, resolve relative paths, strip fragments (#), sort query params, remove tracking params (utm_*). Canonical URL hash (SHA256) as dedup key.</div><div class="cs-note">Two-stage dedup: (1) Bloom filter — if "not seen", definitely new. (2) If "maybe seen", check URL metadata DB. False positive rate 1% acceptable — occasional re-fetch wastes bandwidth but not correctness.</div><h3 class="cs-subheading">Spider trap prevention</h3><div class="cs-note">Detect: same domain queue depth &gt; 100K; URL path depth &gt; 20; calendar/archive pattern generating infinite dates. Action: cap URLs per domain per day; skip URLs matching trap patterns; alert ops.</div><div class="cs-note">robots.txt Disallow paths honored before fetch. Max redirect chain = 5. Reject non-HTTP(S) schemes.</div><h3 class="cs-subheading">Fetcher design & fault tolerance</h3><div class="cs-note">Fetcher pool: stateless workers, connection pooling per domain (respect Keep-Alive). Timeout: connect 5s, read 30s. Retry: 3 attempts with exponential backoff for 5xx/timeout. 4xx (except 429): don't retry, log and skip.</div><div class="cs-note">DNS caching per fetcher (TTL 300s). User-Agent string identifies crawler. Handle 429 with Retry-After header — requeue with delay.</div>
+    </div>
+    <div class="cs-paper" id="cs-section-6">
+        <h2 class="cs-section-title">⑦ Trade-offs & alternatives</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Decision</th><th>Option A</th><th>Option B</th><th>Pick when</th></tr><tr><td>Dedup</td><td>Bloom filter</td><td>Exact DB only</td><td>Bloom + DB confirm; DB-only too slow at 11K/sec</td></tr><tr><td>Frontier</td><td>Kafka per domain</td><td>Central priority queue</td><td>Kafka scales; central queue bottleneck</td></tr><tr><td>Politeness</td><td>Strict 1 req/sec</td><td>Adaptive rate</td><td>Strict default; adaptive for trusted domains</td></tr><tr><td>Storage</td><td>Raw HTML</td><td>Extracted text only</td><td>Raw for reprocessing; text saves 80% storage</td></tr><tr><td>Priority</td><td>PageRank-style</td><td>FIFO per domain</td><td>PageRank for important pages first</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-7">
+        <h2 class="cs-section-title">⑧ 45-minute interview script</h2>
+        <div class="cs-note"><ol><li>0–5 min: Clarify crawl goals, politeness, dedup, storage</li><li>5–12 min: Scale — pages/day, bandwidth, storage PB</li><li>12–22 min: Architecture — frontier, fetcher, parser, store</li><li>22–30 min: Per-domain rate limiting and robots.txt</li><li>30–36 min: URL normalization and Bloom filter dedup</li><li>36–42 min: Spider trap detection</li><li>42–45 min: Priority crawling for news vs static sites</li></ol></div>
+    </div>
+    <div class="cs-paper" id="cs-section-8">
+        <h2 class="cs-section-title">⑨ Likely follow-up questions</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Question</th><th>Short answer</th></tr><tr><td>JavaScript-rendered pages?</td><td>Headless browser pool (Puppeteer) — 10× slower; only for whitelisted domains</td></tr><tr><td>How to recrawl changed pages?</td><td>Store content_hash; recrawl based on Last-Modified header or periodic schedule by PageRank</td></tr><tr><td>Crawler banned by domain?</td><td>Backoff crawl rate; rotate IP (ethical gray area); respect 403 as stop signal</td></tr><tr><td>Duplicate content different URLs?</td><td>Canonical link tag parsing; content_hash dedup across URLs</td></tr><tr><td>Distributed robots.txt fetch?</td><td>Cache robots.txt 24h per domain; refresh on 404/expiry</td></tr><tr><td>How to crawl 10× more tomorrow?</td><td>Add fetcher workers linearly; Kafka partitions scale; Bloom filter sharded</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-9">
+        <h2 class="cs-section-title">⑩ Revision checklist</h2>
+        <ul class="cs-checklist"><li>BFS/priority URL frontier explained</li><li>Per-domain rate limiting (robots.txt)</li><li>URL normalization rules listed</li><li>Bloom filter + exact dedup two-stage</li><li>Separate fetcher and parser workers</li><li>Spider trap detection mentioned</li><li>1B pages/day bandwidth math</li><li>Fault tolerance: retry, Kafka replay</li><li>Document store on HDFS/S3</li><li>DNS caching and connection pooling</li></ul><div class="cs-tags"><span class="cs-tag">crawler</span><span class="cs-tag">distributed</span><span class="cs-tag">Bloom filter</span><span class="cs-tag">politeness</span><span class="cs-tag">BFS</span></div>
     </div>
     <div class="cs-related"><h3>More in this category</h3><div class="cs-related-links"><a href="/cheat-sheets/system-design/">All SD cheat sheets</a><a href="/cheat-sheets/system-design/fundamentals">SD Fundamentals</a><a href="/cheat-sheets/system-design/url-shortener">URL Shortener</a></div></div>
 
 </div>
 </main>
 <script src="/js/cheat-sheet-videos.js"></script>
+<script src="/js/cheat-sheet-prompts.js"></script>
 <script src="/js/cheat-sheet.js"></script>
 <script src="/js/site-nav.js"></script>
 </body>

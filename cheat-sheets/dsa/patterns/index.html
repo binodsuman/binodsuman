@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DSA Patterns Cheat Sheet | Binod Suman Cheat Sheet</title>
-    <meta name="description" content="14 essential DSA patterns for coding interviews — two pointers, sliding window, DP, graphs, and more.">
+    <title>DSA Patterns — Interview Cheat Sheet | Binod Suman Cheat Sheet</title>
+    <meta name="description" content="14 essential patterns — recognize the signal, apply the template, solve in 20 minutes.">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Kalam:wght@400;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/css/site-nav.css">
@@ -13,49 +13,64 @@
 <body class="cheat-sheet-page">
 <main class="cheat-sheet-page">
 <div class="cs-container">
-    <nav class="cs-breadcrumb"><a href="/">Home</a> · <a href="/cheat-sheets/">Cheat Sheets</a> · DSA · Patterns</nav>
+    <nav class="cs-breadcrumb"><a href="/">Home</a> · <a href="/cheat-sheets/">Cheat Sheets</a> · <a href="/cheat-sheets/dsa/">DSA</a> · Patterns</nav>
     <header class="cs-hero">
         <span class="cs-category-badge dsa">DSA</span>
         <h1 class="cs-title">DSA Patterns — Interview Cheat Sheet</h1>
-        <p class="cs-subtitle">Recognize the pattern → pick the template → solve in 20 minutes. The framework top candidates use.</p>
+        <p class="cs-subtitle">14 essential patterns — recognize the signal, apply the template, solve in 20 minutes.</p>
     </header>
-    
     <div class="cs-interview-tip"><strong>Interview tip</strong> Say the pattern aloud: "Sorted array + pair sum → two pointers from both ends."</div>
-    <div class="cs-paper">
-        <h2 class="cs-section-title">14 patterns</h2>
-        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Pattern</th><th>Signal</th><th>Template idea</th></tr>
-        <tr><td>Two pointers</td><td>Sorted array, pairs</td><td>Left/right move based on sum</td></tr>
-        <tr><td>Sliding window</td><td>Subarray/substring constraint</td><td>Expand right, shrink left</td></tr>
-        <tr><td>Binary search</td><td>Monotonic space</td><td>Mid, discard half</td></tr>
-        <tr><td>Fast/slow pointers</td><td>Linked list cycle</td><td>Two speeds meet</td></tr>
-        <tr><td>Merge intervals</td><td>Overlapping ranges</td><td>Sort by start, merge</td></tr>
-        <tr><td>Cyclic sort</td><td>1..n in array</td><td>Place num at index num-1</td></tr>
-        <tr><td>In-place reversal</td><td>Reverse linked list</td><td>Prev/curr/next pointers</td></tr>
-        <tr><td>Tree BFS/DFS</td><td>Level order / paths</td><td>Queue or stack/recursion</td></tr>
-        <tr><td>Two heaps</td><td>Running median</td><td>Max-heap + min-heap</td></tr>
-        <tr><td>Subsets</td><td>Combinations</td><td>Backtrack include/exclude</td></tr>
-        <tr><td>Modified BFS</td><td>Shortest path grid</td><td>Queue + visited matrix</td></tr>
-        <tr><td>Topological sort</td><td>Dependencies</td><td>Kahn or DFS post-order</td></tr>
-        <tr><td>Top K</td><td>K largest/smallest</td><td>Heap size K</td></tr>
-        <tr><td>DP</td><td>Optimal substructure</td><td>Define state, recurrence, base</td></tr></table></div>
+    <nav class="cs-toc" aria-label="On this page">
+    <div class="cs-toc-title">On this page</div>
+    <ol><li><a href="#cs-section-0">① Master pattern table — 14 patterns</a></li><li><a href="#cs-section-1">② Two pointers & sliding window</a></li><li><a href="#cs-section-2">③ Binary search & monotonic space</a></li><li><a href="#cs-section-3">④ Linked list & interval patterns</a></li><li><a href="#cs-section-4">⑤ Tree patterns — BFS vs DFS</a></li><li><a href="#cs-section-5">⑥ Graph — BFS, topo sort, union-find</a></li><li><a href="#cs-section-6">⑦ Heaps & top-K</a></li><li><a href="#cs-section-7">⑧ Backtracking & subsets</a></li><li><a href="#cs-section-8">⑨ Dynamic programming framework</a></li><li><a href="#cs-section-9">⑩ Pattern selection cheat sheet</a></li></ol>
+  </nav>
+    
+    <div class="cs-paper" id="cs-section-0">
+        <h2 class="cs-section-title">① Master pattern table — 14 patterns</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>#</th><th>Pattern</th><th>Signal</th><th>Template idea</th></tr><tr><td>1</td><td>Two pointers</td><td>Sorted array, pairs, palindrome</td><td>Left/right converge based on condition</td></tr><tr><td>2</td><td>Sliding window</td><td>Subarray/substring with constraint</td><td>Expand R, shrink L while invalid</td></tr><tr><td>3</td><td>Binary search</td><td>Monotonic answer space</td><td>Mid, discard half where property fails</td></tr><tr><td>4</td><td>Fast & slow pointers</td><td>Linked list cycle, middle</td><td>Tortoise/hare meet or fast reaches end</td></tr><tr><td>5</td><td>Merge intervals</td><td>Overlapping ranges</td><td>Sort by start, merge if overlap</td></tr><tr><td>6</td><td>Cyclic sort</td><td>Array 1..n, missing/duplicate</td><td>Place num at index num-1</td></tr><tr><td>7</td><td>In-place reversal</td><td>Reverse list/subarray</td><td>Prev/curr/next pointer swap</td></tr><tr><td>8</td><td>Tree BFS</td><td>Level order, shortest path tree</td><td>Queue level-by-level</td></tr><tr><td>9</td><td>Tree DFS</td><td>Paths, sums, validate BST</td><td>Recursion with state passed down/up</td></tr><tr><td>10</td><td>Two heaps</td><td>Stream median, balance</td><td>Max-heap lower half + min-heap upper</td></tr><tr><td>11</td><td>Subsets / backtracking</td><td>Combinations, permutations</td><td>Include/exclude each element</td></tr><tr><td>12</td><td>Modified BFS</td><td>Grid shortest path</td><td>Queue + visited matrix + 4/8 dirs</td></tr><tr><td>13</td><td>Topological sort</td><td>Dependencies, prerequisites</td><td>Kahn indegree zero or DFS post-order</td></tr><tr><td>14</td><td>Dynamic programming</td><td>Optimal substructure + overlap</td><td>Define state, recurrence, base, order</td></tr></table></div>
     </div>
-    <div class="cs-paper">
-        <h2 class="cs-section-title">Sliding window sketch</h2>
-        <div class="cs-diagram">
-            <div class="cs-diagram-title">Window [L ... R]</div>
-            <div class="cs-flow">
-                <span class="cs-box gray">L</span><span class="cs-box purple">window</span><span class="cs-box gray">R</span>
-            </div>
-        </div>
-        <div class="cs-note">Expand R until invalid → shrink L until valid → track best answer at each step.</div>
+    <div class="cs-paper" id="cs-section-1">
+        <h2 class="cs-section-title">② Two pointers & sliding window</h2>
+        <div class="cs-diagram"><div class="cs-diagram-title">Sliding window [L ... R]</div><div class="cs-flow"><span class="cs-box gray">L</span><span class="cs-arrow">→</span><span class="cs-box purple">window</span><span class="cs-arrow">→</span><span class="cs-box gray">R</span></div></div><div class="cs-note"><strong>Two pointers:</strong> 3Sum — sort, fix i, two pointers on rest for sum zero. O(n²).<br><br><strong>Sliding window:</strong> expand R until constraint violated → shrink L until valid → track best. Longest substring without repeat — HashMap of last index. O(n).</div><div class="cs-table-wrap"><table class="cs-table"><tr><th>Problem type</th><th>Pattern</th><th>Complexity</th></tr><tr><td>Pair sum sorted</td><td>Two pointers</td><td>O(n)</td></tr><tr><td>Container most water</td><td>Two pointers</td><td>O(n)</td></tr><tr><td>Min size subarray sum ≥ K</td><td>Sliding window</td><td>O(n)</td></tr><tr><td>Max in each window of size K</td><td>Deque monotonic queue</td><td>O(n)</td></tr></table></div>
     </div>
-    <div class="cs-related">
-        <h3>More in this category</h3>
-        <div class="cs-related-links"><a href="/cheat-sheets/dsa/top-problems">Top Interview Problems</a></div>
+    <div class="cs-paper" id="cs-section-2">
+        <h2 class="cs-section-title">③ Binary search & monotonic space</h2>
+        <div class="cs-note"><strong>Not just sorted arrays:</strong> binary search on <em>answer space</em> — e.g. "minimum capacity to ship in D days" where feasible(cap) is monotonic false→true.</div><ul class="cs-checklist"><li>Identify monotonic predicate can(x) or cannot(x)</li><li>Lo = min possible, Hi = max possible answer</li><li>While lo < hi: mid = lo + (hi-lo)/2; shrink range</li><li>Watch off-by-one: lower vs upper bound variants</li></ul><div class="cs-table-wrap"><table class="cs-table"><tr><th>Classic</th><th>Search space</th></tr><tr><td>Search rotated sorted array</td><td>Index in array</td></tr><tr><td>Koko eating bananas</td><td>Eating speed k</td></tr><tr><td>Median of two sorted arrays</td><td>Partition position</td></tr></table></div>
     </div>
+    <div class="cs-paper" id="cs-section-3">
+        <h2 class="cs-section-title">④ Linked list & interval patterns</h2>
+        <div class="cs-note"><strong>Fast/slow:</strong> cycle detection — if slow meets fast, cycle exists. Find cycle start: reset slow to head, advance both 1 step.<br><br><strong>Merge intervals:</strong> sort by start; if curr.start ≤ prev.end merge else append new.</div><div class="cs-diagram"><div class="cs-diagram-title">In-place list reversal</div><div class="cs-flow"><span class="cs-box gray">prev=null</span><span class="cs-arrow">→</span><span class="cs-box purple">curr=head</span><span class="cs-arrow">→</span><span class="cs-box">next=curr.next</span><span class="cs-arrow">→</span><span class="cs-box green">curr.next=prev</span></div></div>
+    </div>
+    <div class="cs-paper" id="cs-section-4">
+        <h2 class="cs-section-title">⑤ Tree patterns — BFS vs DFS</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Goal</th><th>Pattern</th><th>Structure</th></tr><tr><td>Level order</td><td>BFS queue</td><td>Process size at each level</td></tr><tr><td>Max depth</td><td>DFS</td><td>1 + max(left, right)</td></tr><tr><td>Validate BST</td><td>DFS</td><td>Pass min/max bounds down</td></tr><tr><td>Lowest common ancestor</td><td>DFS</td><td>Return node if match or both subtrees found</td></tr><tr><td>Serialize tree</td><td>BFS or DFS preorder</td><td>Null markers for reconstruction</td></tr></table></div><div class="cs-note">BFS = shortest path in <strong>unweighted</strong> tree/graph. DFS = path enumeration, backtracking on trees.</div>
+    </div>
+    <div class="cs-paper" id="cs-section-5">
+        <h2 class="cs-section-title">⑥ Graph — BFS, topo sort, union-find</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Pattern</th><th>Algorithm</th><th>Problems</th></tr><tr><td>Modified BFS</td><td>Queue + visited</td><td>Rotting oranges, word ladder, grid islands</td></tr><tr><td>Topological sort</td><td>Kahn BFS or DFS post-order</td><td>Course schedule, alien dictionary</td></tr><tr><td>Union-Find</td><td>Parent array + rank</td><td>Number of provinces, redundant connection</td></tr><tr><td>Dijkstra</td><td>Min-heap by distance</td><td>Weighted shortest path (non-negative)</td></tr></table></div><div class="cs-note"><strong>Course schedule:</strong> build adjacency list + indegree; queue nodes with indegree 0; if processed count &lt; n → cycle.</div>
+    </div>
+    <div class="cs-paper" id="cs-section-6">
+        <h2 class="cs-section-title">⑦ Heaps & top-K</h2>
+        <div class="cs-note"><strong>Top K largest:</strong> min-heap of size K — O(n log K). <strong>Top K smallest:</strong> max-heap of size K.<br><br><strong>Two heaps:</strong> max-heap stores lower half, min-heap upper half — median in O(log n) insert.</div><div class="cs-table-wrap"><table class="cs-table"><tr><th>Problem</th><th>Heap type</th><th>Size</th></tr><tr><td>Kth largest element</td><td>Min-heap</td><td>K</td></tr><tr><td>Merge K sorted lists</td><td>Min-heap of heads</td><td>K</td></tr><tr><td>Find median stream</td><td>Two heaps</td><td>Balanced sizes</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-7">
+        <h2 class="cs-section-title">⑧ Backtracking & subsets</h2>
+        <div class="cs-note"><strong>Template:</strong> choose → explore → unchoose. Subsets: at each index include or skip. Permutations: swap or used[] array.</div><ul class="cs-checklist"><li>Define base case — index == n or path.len == k</li><li>Prune early if invalid partial state</li><li>Copy path when adding to result (new ArrayList<>(path))</li><li>Watch duplicate subsets — sort + skip same value at same depth</li></ul>
+    </div>
+    <div class="cs-paper" id="cs-section-8">
+        <h2 class="cs-section-title">⑨ Dynamic programming framework</h2>
+        <div class="cs-layer-diagram"><div class="cs-layer l1">1. Define state dp[i] or dp[i][j] — what subproblem?</div><div class="cs-layer l2">2. Recurrence — how state relates to smaller states</div><div class="cs-layer l3">3. Base cases — dp[0], empty string, etc.</div><div class="cs-layer l4">4. Order of computation — iterate so dependencies ready</div><div class="cs-layer l1">5. Space optimize — rolling array if only dp[i-1] needed</div></div><div class="cs-table-wrap"><table class="cs-table"><tr><th>Type</th><th>Examples</th><th>State</th></tr><tr><td>1D linear</td><td>Climbing stairs, house robber</td><td>dp[i] best at i</td></tr><tr><td>2D grid</td><td>Unique paths, min path sum</td><td>dp[r][c]</td></tr><tr><td>String DP</td><td>LCS, edit distance</td><td>dp[i][j] on prefixes</td></tr><tr><td>Knapsack</td><td>0/1 knapsack, coin change</td><td>dp[i][w] capacity</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-9">
+        <h2 class="cs-section-title">⑩ Pattern selection cheat sheet</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>You see…</th><th>Reach for…</th></tr><tr><td>Sorted + pair/triplet</td><td>Two pointers</td></tr><tr><td>Contiguous + constraint</td><td>Sliding window</td></tr><tr><td>Min/max feasible value</td><td>Binary search on answer</td></tr><tr><td>Linked list cycle/middle</td><td>Fast/slow pointers</td></tr><tr><td>Overlapping intervals</td><td>Merge intervals</td></tr><tr><td>1..n missing dup</td><td>Cyclic sort</td></tr><tr><td>Dependencies</td><td>Topological sort</td></tr><tr><td>Shortest path grid</td><td>BFS</td></tr><tr><td>All combinations</td><td>Backtracking</td></tr><tr><td>Optimize over choices</td><td>DP</td></tr></table></div><div class="cs-tags"><span class="cs-tag">two-pointers</span><span class="cs-tag">sliding-window</span><span class="cs-tag">BFS</span><span class="cs-tag">DFS</span><span class="cs-tag">DP</span><span class="cs-tag">heap</span></div>
+    </div>
+    <div class="cs-related"><h3>More in this category</h3><div class="cs-related-links"><a href="/cheat-sheets/dsa/top-problems">Top Interview Problems</a></div></div>
+
 </div>
 </main>
 <script src="/js/cheat-sheet-videos.js"></script>
+<script src="/js/cheat-sheet-prompts.js"></script>
 <script src="/js/cheat-sheet.js"></script>
 <script src="/js/site-nav.js"></script>
 </body>

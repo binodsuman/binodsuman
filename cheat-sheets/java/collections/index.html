@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Java Collections & Concurrency | Binod Suman Cheat Sheet</title>
-    <meta name="description" content="Java collections framework and concurrency interview guide — List, Map, HashMap internals, threads, and locks.">
+    <meta name="description" content="List, Set, Map implementations, time complexity, ConcurrentHashMap, iterators, and thread-safe patterns.">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Kalam:wght@400;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/css/site-nav.css">
@@ -13,47 +13,64 @@
 <body class="cheat-sheet-page">
 <main class="cheat-sheet-page">
 <div class="cs-container">
-    <nav class="cs-breadcrumb"><a href="/">Home</a> · <a href="/cheat-sheets/">Cheat Sheets</a> · Java · Collections</nav>
+    <nav class="cs-breadcrumb"><a href="/">Home</a> · <a href="/cheat-sheets/">Cheat Sheets</a> · <a href="/cheat-sheets/java/">Java</a> · Collections</nav>
     <header class="cs-hero">
         <span class="cs-category-badge java">Java</span>
-        <h1 class="cs-title">Collections & Concurrency</h1>
-        <p class="cs-subtitle">HashMap internals, concurrent collections, and thread safety — must-know for backend Java roles.</p>
+        <h1 class="cs-title">Java Collections & Concurrency</h1>
+        <p class="cs-subtitle">List, Set, Map implementations, time complexity, ConcurrentHashMap, iterators, and thread-safe patterns.</p>
     </header>
+    <div class="cs-interview-tip"><strong>Interview tip</strong> Say complexity aloud: "HashMap get/put O(1) average; ArrayList get O(1), insert middle O(n)."</div>
+    <nav class="cs-toc" aria-label="On this page">
+    <div class="cs-toc-title">On this page</div>
+    <ol><li><a href="#cs-section-0">① Collection hierarchy overview</a></li><li><a href="#cs-section-1">② List implementations</a></li><li><a href="#cs-section-2">③ Set implementations</a></li><li><a href="#cs-section-3">④ Map implementations</a></li><li><a href="#cs-section-4">⑤ ConcurrentHashMap deep dive</a></li><li><a href="#cs-section-5">⑥ Iterators — fail-fast vs weakly consistent</a></li><li><a href="#cs-section-6">⑦ Concurrency essentials</a></li><li><a href="#cs-section-7">⑧ BlockingQueue types</a></li><li><a href="#cs-section-8">⑨ Interview Q&A</a></li><li><a href="#cs-section-9">⑩ Revision checklist</a></li></ol>
+  </nav>
     
-    <div class="cs-interview-tip"><strong>Interview tip</strong> HashMap: "Array of buckets → hash → index → linked list or tree if collision > 8 (Java 8+)."</div>
-    <div class="cs-paper">
-        <h2 class="cs-section-title">Collections map</h2>
-        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Interface</th><th>Impl</th><th>Notes</th></tr>
-        <tr><td>List</td><td>ArrayList, LinkedList</td><td>ArrayList O(1) get, LinkedList O(1) insert at head</td></tr>
-        <tr><td>Set</td><td>HashSet, TreeSet</td><td>TreeSet sorted, O(log n)</td></tr>
-        <tr><td>Map</td><td>HashMap, TreeMap</td><td>HashMap O(1) avg; null key once</td></tr>
-        <tr><td>Queue</td><td>LinkedList, PriorityQueue</td><td>Deque for stack/queue</td></tr></table></div>
+    <div class="cs-paper" id="cs-section-0">
+        <h2 class="cs-section-title">① Collection hierarchy overview</h2>
+        <div class="cs-layer-diagram"><div class="cs-layer l1">Iterable → Collection → List, Set, Queue</div><div class="cs-layer l2">List — ordered, allows duplicates (ArrayList, LinkedList)</div><div class="cs-layer l3">Set — no duplicates (HashSet, LinkedHashSet, TreeSet)</div><div class="cs-layer l4">Queue / Deque — FIFO, LIFO (ArrayDeque, PriorityQueue, BlockingQueue)</div><div class="cs-layer l1">Map — key-value (separate hierarchy): HashMap, TreeMap, LinkedHashMap, ConcurrentHashMap</div></div><div class="cs-note">Prefer interfaces in API signatures: <code>List&lt;T&gt;</code>, <code>Map&lt;K,V&gt;</code> — swap implementations without breaking callers.</div>
     </div>
-    <div class="cs-paper">
-        <h2 class="cs-section-title">Concurrency essentials</h2>
-        <div class="cs-note"><ul>
-            <li><strong>Thread vs Runnable:</strong> prefer Runnable/Callable + ExecutorService</li>
-            <li><strong>synchronized:</strong> monitor lock — can deadlock</li>
-            <li><strong>volatile:</strong> visibility only, not atomicity</li>
-            <li><strong>ConcurrentHashMap:</strong> segmented locks / CAS — no full map lock</li>
-            <li><strong>Atomic classes:</strong> AtomicInteger for counters</li>
-        </ul></div>
-        <div class="cs-diagram">
-            <div class="cs-diagram-title">Executor framework</div>
-            <div class="cs-flow">
-                <span class="cs-box">Task submit</span><span class="cs-arrow">→</span>
-                <span class="cs-box purple">Thread pool</span><span class="cs-arrow">→</span>
-                <span class="cs-box green">Worker threads</span>
-            </div>
-        </div>
+    <div class="cs-paper" id="cs-section-1">
+        <h2 class="cs-section-title">② List implementations</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Implementation</th><th>Backing</th><th>get</th><th>add/end</th><th>add/middle</th><th>Use when</th></tr><tr><td>ArrayList</td><td>Dynamic array</td><td>O(1)</td><td>O(1)* amortized</td><td>O(n)</td><td>Default list — random access</td></tr><tr><td>LinkedList</td><td>Doubly linked nodes</td><td>O(n)</td><td>O(1)</td><td>O(1)* with iterator</td><td>Deque ops, rare — ArrayDeque often better</td></tr><tr><td>CopyOnWriteArrayList</td><td>Copy on write</td><td>O(1)</td><td>O(n) copy</td><td>O(n)</td><td>Read-heavy, rare writes (listeners)</td></tr></table></div><div class="cs-note">*LinkedList rarely wins — cache-unfriendly; ArrayDeque for queue/stack.</div>
     </div>
-    <div class="cs-related">
-        <h3>More in this category</h3>
-        <div class="cs-related-links"><a href="/cheat-sheets/java/core">Java Core</a></div>
+    <div class="cs-paper" id="cs-section-2">
+        <h2 class="cs-section-title">③ Set implementations</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Implementation</th><th>Order</th><th>Complexity</th><th>Notes</th></tr><tr><td>HashSet</td><td>None</td><td>O(1) avg add/contains</td><td>Backed by HashMap</td></tr><tr><td>LinkedHashSet</td><td>Insertion order</td><td>O(1) avg</td><td>Predictable iteration</td></tr><tr><td>TreeSet</td><td>Sorted (natural/Comparator)</td><td>O(log n)</td><td>Red-black tree; no null</td></tr><tr><td>EnumSet</td><td>Enum declaration order</td><td>O(1)</td><td>Bit vector — very compact</td></tr></table></div>
     </div>
+    <div class="cs-paper" id="cs-section-3">
+        <h2 class="cs-section-title">④ Map implementations</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Implementation</th><th>Order</th><th>Null key/value</th><th>Thread-safe</th><th>Use</th></tr><tr><td>HashMap</td><td>None</td><td>1 null key, null values OK</td><td>No</td><td>Default map</td></tr><tr><td>LinkedHashMap</td><td>Insertion or access order</td><td>Same as HashMap</td><td>No</td><td>LRU cache with removeEldestEntry</td></tr><tr><td>TreeMap</td><td>Sorted keys</td><td>No null key</td><td>No</td><td>Range queries, navigableMap</td></tr><tr><td>ConcurrentHashMap</td><td>None</td><td>No nulls</td><td>Yes</td><td>Concurrent reads/writes</td></tr><tr><td>Hashtable</td><td>None</td><td>No nulls</td><td>Yes (legacy)</td><td>Avoid — use ConcurrentHashMap</td></tr></table></div><div class="cs-note"><strong>HashMap internals (Java 8+):</strong> array of buckets → linked list or tree (if bucket &gt; 8 nodes). Load factor 0.75; resize 2× when threshold exceeded.</div>
+    </div>
+    <div class="cs-paper" id="cs-section-4">
+        <h2 class="cs-section-title">⑤ ConcurrentHashMap deep dive</h2>
+        <div class="cs-note"><strong>Java 8+ ConcurrentHashMap:</strong> bucket-level locking (synchronized first node) or CAS for empty buckets — finer granularity than pre-8 segment locks. Reads generally lock-free.<br><br><strong>No null keys/values</strong> — ambiguity in concurrent context.<br><br><strong>Atomic operations:</strong> <code>putIfAbsent</code>, <code>compute</code>, <code>merge</code> — atomic read-modify-write.</div><div class="cs-table-wrap"><table class="cs-table"><tr><th> vs </th><th>Collections.synchronizedMap</th><th>ConcurrentHashMap</th></tr><tr><td>Lock scope</td><td>Entire map</td><td>Per-bucket / CAS</td></tr><tr><td>Read concurrency</td><td>One at a time</td><td>Multiple concurrent reads</td></tr><tr><td>Iteration</td><td>Must external sync</td><td>Weakly consistent iterator</td></tr><tr><td>Nulls</td><td>Allowed (HashMap)</td><td>Not allowed</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-5">
+        <h2 class="cs-section-title">⑥ Iterators — fail-fast vs weakly consistent</h2>
+        <div class="cs-note"><strong>Fail-fast:</strong> ArrayList, HashMap iterators throw <code>ConcurrentModificationException</code> if collection structurally modified during iteration (except iterator's own remove). Detected via modCount.<br><br><strong>Fix:</strong> use iterator.remove(), copy collection, or concurrent collection.</div><div class="cs-note"><strong>Weakly consistent:</strong> ConcurrentHashMap, CopyOnWriteArrayList — iterator reflects state at creation time; may or may not see concurrent updates; never throws CME.</div>
+    </div>
+    <div class="cs-paper" id="cs-section-6">
+        <h2 class="cs-section-title">⑦ Concurrency essentials</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Mechanism</th><th>Purpose</th><th>Pitfall</th></tr><tr><td>synchronized</td><td>Mutual exclusion on object monitor</td><td>Deadlock if lock order inconsistent</td></tr><tr><td>ReentrantLock</td><td>Explicit lock, tryLock, fairness</td><td>Must unlock in finally</td></tr><tr><td>volatile</td><td>Visibility across threads</td><td>Not atomic for i++ — use AtomicInteger</td></tr><tr><td>Atomic* classes</td><td>Lock-free CAS operations</td><td>ABA problem rare in Java util</td></tr><tr><td>ExecutorService</td><td>Thread pool abstraction</td><td>Unbounded queue → OOM under load</td></tr></table></div><div class="cs-diagram"><div class="cs-diagram-title">Thread pool pattern</div><div class="cs-arch-grid"><div class="cs-arch-row"><div class="cs-arch-cell gray">Producer threads</div></div><div class="cs-arch-row"><div class="cs-arch-cell purple">BlockingQueue</div></div><div class="cs-arch-row"><div class="cs-arch-cell green">ThreadPoolExecutor</div></div><div class="cs-arch-row"><div class="cs-arch-cell ">Worker tasks</div></div></div></div>
+    </div>
+    <div class="cs-paper" id="cs-section-7">
+        <h2 class="cs-section-title">⑧ BlockingQueue types</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Queue</th><th>Behavior</th><th>Use</th></tr><tr><td>ArrayBlockingQueue</td><td>Bounded array, one lock</td><td>Fixed capacity backpressure</td></tr><tr><td>LinkedBlockingQueue</td><td>Optional bounded linked nodes</td><td>Common in Executors — watch unbounded</td></tr><tr><td>SynchronousQueue</td><td>Zero capacity — handoff</td><td>CachedThreadPool direct transfer</td></tr><tr><td>PriorityBlockingQueue</td><td>Unbounded priority heap</td><td>Scheduled tasks by priority</td></tr><tr><td>DelayQueue</td><td>Elements available after delay</td><td>Scheduled execution</td></tr></table></div><div class="cs-note"><strong>Design pattern:</strong> producers <code>put()</code>, worker pool <code>take()</code> — decouples rate; bounded queue prevents memory blowup.</div>
+    </div>
+    <div class="cs-paper" id="cs-section-8">
+        <h2 class="cs-section-title">⑨ Interview Q&A</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Question</th><th>Answer sketch</th></tr><tr><td>HashMap vs Hashtable?</td><td>HashMap not sync, allows null key; Hashtable legacy synchronized — use ConcurrentHashMap</td></tr><tr><td>Comparable vs Comparator?</td><td>Comparable natural order in class; Comparator external, multiple sort orders</td></tr><tr><td>How HashSet stores elements?</td><td>HashMap with dummy PRESENT value — uniqueness via keys</td></tr><tr><td>LRU cache in Java?</td><td>LinkedHashMap(accessOrder=true) + removeEldestEntry override</td></tr><tr><td>CopyOnWriteArrayList when?</td><td>Many readers, few writers — snapshot iteration, expensive writes</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-9">
+        <h2 class="cs-section-title">⑩ Revision checklist</h2>
+        <ul class="cs-checklist"><li>Picked List/Set/Map impl with complexity justification</li><li>Explained HashMap bucket → list/tree structure</li><li>Contrasted ConcurrentHashMap vs synchronizedMap</li><li>Described fail-fast CME cause and fixes</li><li>Designed worker pool with BlockingQueue type choice</li><li>Named atomic classes vs volatile for counters</li></ul><div class="cs-tags"><span class="cs-tag">ArrayList</span><span class="cs-tag">HashMap</span><span class="cs-tag">ConcurrentHashMap</span><span class="cs-tag">BlockingQueue</span><span class="cs-tag">concurrency</span></div>
+    </div>
+    <div class="cs-related"><h3>More in this category</h3><div class="cs-related-links"><a href="/cheat-sheets/java/core">Java Core</a></div></div>
+
 </div>
 </main>
 <script src="/js/cheat-sheet-videos.js"></script>
+<script src="/js/cheat-sheet-prompts.js"></script>
 <script src="/js/cheat-sheet.js"></script>
 <script src="/js/site-nav.js"></script>
 </body>

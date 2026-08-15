@@ -20,34 +20,56 @@
         <p class="cs-subtitle">Low-code automation: connect APIs, LLMs, Slack, and databases without writing a full app.</p>
     </header>
     <div class="cs-interview-tip"><strong>Interview tip</strong> Great for ops automations: "new email → summarize with LLM → post to Slack." Not for core product logic at scale.</div>
+    <nav class="cs-toc" aria-label="On this page">
+    <div class="cs-toc-title">On this page</div>
+    <ol><li><a href="#cs-section-0">① What you must know (30 sec)</a></li><li><a href="#cs-section-1">② How it works</a></li><li><a href="#cs-section-2">③ Step-by-step (hands-on)</a></li><li><a href="#cs-section-3">④ Code / config patterns</a></li><li><a href="#cs-section-4">⑤ Production & pitfalls</a></li><li><a href="#cs-section-5">⑥ Interview / on-the-job Q&A</a></li><li><a href="#cs-section-6">⑦ Tools & ecosystem</a></li><li><a href="#cs-section-7">⑧ Revision checklist</a></li></ol>
+  </nav>
     
-    <div class="cs-paper">
-        <h2 class="cs-section-title">What n8n does</h2>
-        <div class="cs-note">Visual workflow builder. Nodes = triggers (webhook, schedule) + actions (HTTP, OpenAI, Google Sheets). Data passes as JSON between nodes.</div>
-        <div class="cs-flow"><span class="cs-box gray">Trigger</span><span class="cs-arrow">→</span>
-        <span class="cs-box">Transform</span><span class="cs-arrow">→</span>
-        <span class="cs-box purple">LLM node</span><span class="cs-arrow">→</span>
-        <span class="cs-box green">Slack / DB</span></div>
+    <div class="cs-paper" id="cs-section-0">
+        <h2 class="cs-section-title">① What you must know (30 sec)</h2>
+        <div class="cs-note"><strong>n8n</strong> is a visual workflow automation tool where <strong>nodes</strong> are triggers (webhook, schedule, email) and actions (HTTP, OpenAI, Google Sheets, Slack). Data flows as JSON between nodes — ideal for <strong>ops automations</strong>, internal tools, and AI-assisted glue code without deploying a full backend.</div><div class="cs-note"><strong>Analogy:</strong> n8n is Zapier with a wiring diagram and self-host option — connect boxes instead of writing integration boilerplate.</div>
     </div>
-    <div class="cs-paper">
-        <h2 class="cs-section-title">AI use cases</h2>
-        <div class="cs-note"><ul>
-        <li>RAG-lite: fetch URL → LLM summarize → store</li>
-        <li>Support ticket classification</li>
-        <li>Scheduled report generation</li>
-        <li>Human approval step before send</li>
-        </ul></div>
+    <div class="cs-paper" id="cs-section-1">
+        <h2 class="cs-section-title">② How it works</h2>
+        <div class="cs-diagram"><div class="cs-diagram-title">Typical AI workflow</div><div class="cs-flow"><span class="cs-box gray">Trigger</span><span class="cs-arrow">→</span><span class="cs-box">Fetch data</span><span class="cs-arrow">→</span><span class="cs-box purple">Transform JSON</span><span class="cs-arrow">→</span><span class="cs-box green">LLM node</span><span class="cs-arrow">→</span><span class="cs-box orange">Slack / DB / Email</span></div></div><div class="cs-note">Each node receives items from the previous node. Use <strong>Set</strong> and <strong>Code</strong> nodes to shape fields before the LLM prompt.</div><div class="cs-note">Self-host n8n for data privacy; n8n Cloud for fastest start. Credentials are encrypted per workflow.</div>
     </div>
-    <div class="cs-paper">
-        <h2 class="cs-section-title">Limits</h2>
-        <div class="cs-note"><strong>Pros:</strong> fast POC, non-dev friendly<br>
-        <strong>Cons:</strong> versioning, testing, high-volume cost — migrate critical paths to code later.</div>
+    <div class="cs-paper" id="cs-section-2">
+        <h2 class="cs-section-title">③ Step-by-step (hands-on)</h2>
+        <div class="cs-roadmap"><div class="cs-roadmap-step"><div><h4>Step 1 — Install or sign up</h4><p>n8n Cloud for POC; Docker self-host for internal data: docker run n8nio/n8n. Create admin account.</p></div></div><div class="cs-roadmap-step"><div><h4>Step 2 — Add credentials</h4><p>Store OpenAI, Slack, and Gmail credentials in n8n Credentials — never paste keys in node fields.</p></div></div><div class="cs-roadmap-step"><div><h4>Step 3 — Build trigger → action</h4><p>Start with Schedule Trigger (daily 9am) or Webhook. Add one action node; execute to verify data shape.</p></div></div><div class="cs-roadmap-step"><div><h4>Step 4 — Insert LLM node</h4><p>OpenAI node: map {{ $json.body }} into prompt template. Set model, max tokens, and system message.</p></div></div><div class="cs-roadmap-step"><div><h4>Step 5 — Branch and error handling</h4><p>Use IF node for conditions; Error Trigger workflow for failures; Send alert to Slack on error.</p></div></div><div class="cs-roadmap-step"><div><h4>Step 6 — Add human approval</h4><p>Slack node with "wait for approval" or manual trigger before send — critical for customer-facing messages.</p></div></div></div>
+    </div>
+    <div class="cs-paper" id="cs-section-3">
+        <h2 class="cs-section-title">④ Code / config patterns</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Pattern</th><th>Nodes</th><th>Use case</th></tr><tr><td>Scheduled digest</td><td>Cron → HTTP → LLM → Slack</td><td>Daily reports</td></tr><tr><td>Event-driven</td><td>Webhook → LLM classify → DB</td><td>Ticket triage</td></tr><tr><td>RAG-lite</td><td>Google Drive → extract text → LLM → Notion</td><td>Doc summarization</td></tr><tr><td>Human gate</td><td>LLM draft → Wait → Send email</td><td>Outbound comms</td></tr></table></div><div class="cs-code-block"><pre>// Code node (JavaScript) — shape data before LLM
+const items = $input.all();
+return items.map(item => ({
+  json: {
+    prompt: `Summarize in 3 bullets:\n${item.json.text}`,
+    source_id: item.json.id
+  }
+}));</pre></div>
+    </div>
+    <div class="cs-paper" id="cs-section-4">
+        <h2 class="cs-section-title">⑤ Production & pitfalls</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Pitfall</th><th>Why it hurts</th><th>Fix</th></tr><tr><td>Core product on n8n</td><td>Hard to test, version, scale</td><td>Migrate critical paths to code; keep ops on n8n</td></tr><tr><td>No error workflow</td><td>Silent failures overnight</td><td>Error Trigger + Slack alert on every workflow</td></tr><tr><td>Huge payloads to LLM</td><td>Cost spikes, context overflow</td><td>Truncate/summarize in Code node first</td></tr><tr><td>Credentials in exported JSON</td><td>Leaked keys in git</td><td>Use credential refs; scrub exports</td></tr><tr><td>No idempotency</td><td>Duplicate Slack posts on retry</td><td>Track processed IDs in DB node</td></tr><tr><td>Unreviewed LLM output sent</td><td>Embarrassing or wrong messages</td><td>Human approval node before send</td></tr></table></div><div class="cs-note"><strong>Production tips:</strong><ul><li>Export workflows to git for version control</li><li>Separate dev and prod n8n instances</li><li>Rate limit webhook triggers at reverse proxy</li><li>Monitor execution history and failure rate weekly</li></ul></div>
+    </div>
+    <div class="cs-paper" id="cs-section-5">
+        <h2 class="cs-section-title">⑥ Interview / on-the-job Q&A</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Question</th><th>Answer</th></tr><tr><td>What is n8n?</td><td>Open-source workflow automation with visual node editor and 400+ integrations.</td></tr><tr><td>How does data flow?</td><td>JSON items pass node to node; access fields with {{ $json.field }} expressions.</td></tr><tr><td>n8n vs Zapier?</td><td>n8n is self-hostable, more flexible Code nodes, better for technical teams.</td></tr><tr><td>When use LLM node?</td><td>Classification, summarization, extraction — not real-time chat at scale.</td></tr><tr><td>Self-host vs cloud?</td><td>Self-host for PII/compliance; cloud for speed and zero ops.</td></tr><tr><td>When migrate to code?</td><td>Need unit tests, CI/CD, high QPS, or complex business logic.</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-6">
+        <h2 class="cs-section-title">⑦ Tools & ecosystem</h2>
+        <div class="cs-note"><ul><li><strong>LLM nodes:</strong> OpenAI, Anthropic (HTTP), Ollama (local)</li><li><strong>Triggers:</strong> Webhook, Schedule, Gmail, GitHub</li><li><strong>Actions:</strong> Slack, Notion, Airtable, Postgres</li><li><strong>Hosting:</strong> n8n Cloud, Docker, Kubernetes</li></ul></div><div class="cs-tags"><span class="cs-tag">n8n</span><span class="cs-tag">automation</span><span class="cs-tag">low-code</span><span class="cs-tag">slack</span><span class="cs-tag">workflows</span></div>
+    </div>
+    <div class="cs-paper" id="cs-section-7">
+        <h2 class="cs-section-title">⑧ Revision checklist</h2>
+        <ul class="cs-checklist"><li>Credentials stored in n8n vault, not inline</li><li>Workflow exported to git</li><li>Error Trigger workflow sends alerts</li><li>LLM prompts tested with 5 sample inputs</li><li>Human approval before external sends</li><li>Payload size limited before LLM node</li><li>Schedule timezone documented</li><li>Dev/prod instances separated</li><li>Execution failure rate monitored</li></ul>
     </div>
     <div class="cs-related"><h3>More in this category</h3><div class="cs-related-links"><a href="/cheat-sheets/ai/">All AI cheat sheets</a><a href="/cheat-sheets/ai/rag">RAG</a><a href="/cheat-sheets/ai/agents-intro">What is an Agent?</a></div></div>
 
 </div>
 </main>
 <script src="/js/cheat-sheet-videos.js"></script>
+<script src="/js/cheat-sheet-prompts.js"></script>
 <script src="/js/cheat-sheet.js"></script>
 <script src="/js/site-nav.js"></script>
 </body>
