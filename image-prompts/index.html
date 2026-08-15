@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Prompts for ChatGPT | Binod Suman</title>
+    <meta name="description" content="Browse AI image prompt styles — anime, painting, nature, cinematography, 3D render, and more. Search, filter, and open in ChatGPT in one tap.">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/site-nav.css">
+    <link rel="stylesheet" href="/css/prompt-pages.css">
+</head>
+<body class="prompt-page">
+    <div class="prompt-controls">
+        <div class="prompt-search-row">
+            <div class="prompt-search-wrap">
+                <i class="fas fa-search"></i>
+                <input type="text" id="searchInput" placeholder="Search styles... (press /)" autocomplete="off">
+            </div>
+            <div class="prompt-count-badge"><span id="visibleCount">0</span> styles</div>
+        </div>
+        <div class="prompt-filter-tabs" id="filterTabs"></div>
+    </div>
+
+    <div class="prompt-grid" id="promptGrid"></div>
+    <div class="prompt-toast" id="toast"><i class="fas fa-check-circle"></i> Prompt copied!</div>
+
+    <script src="/js/site-nav.js"></script>
+    <script src="image-prompts-data.js"></script>
+    <script>
+        const FAV_KEY = 'binodsuman_image_favorites';
+        let favorites = new Set(JSON.parse(localStorage.getItem(FAV_KEY) || '[]'));
+        let activeFilter = 'all';
+        let searchQuery = '';
+
+        function getCategoryName(id) {
+            const cat = IMAGE_PROMPT_CATEGORIES.find(c => c.id === id);
+            return cat ? cat.name : '';
+        }
+
+        function buildPrompt(p) {
+            return `Create an image in this style: ${p.desc}. (Style command: /${p.cmd})`;
+        }
+
+        function buildChatGptUrl(p) {
+            return `https://chatgpt.com/?q=${encodeURIComponent(buildPrompt(p))}`;
+        }
+
+        function showToast() {
+            const toast = document.getElementById('toast');
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        }
+
+        function getFiltered() {
+            return IMAGE_PROMPTS.filter(p => {
+                if (activeFilter === 'favorites' && !favorites.has(p.id)) return false;
+                if (activeFilter !== 'all' && activeFilter !== 'favorites' && p.category !== activeFilter) return false;
+                if (searchQuery) {
+                    const q = searchQuery.toLowerCase();
+                    return p.cmd.includes(q) || p.desc.toLowerCase().includes(q);
+                }
+                return true;
+            });
+        }
+
+        function render() {
+            const grid = document.getElementById('promptGrid');
+            const filtered = getFiltered();
+            document.getElementById('visibleCount').textContent = filtered.length;
+
+            if (!filtered.length) {
+                grid.innerHTML = '<div class="prompt-empty"><i class="fas fa-search"></i><p>No styles match your search.</p></div>';
+                return;
+            }
+
+            grid.innerHTML = filtered.map(p => {
+                const isFav = favorites.has(p.id);
+                const catName = getCategoryName(p.category);
+                return `
+                    <article class="prompt-card" data-id="${p.id}">
+                        <div class="prompt-card-top">
+                            <span class="prompt-cmd">/${p.cmd}</span>
+                            <button class="prompt-star ${isFav ? 'active' : ''}" aria-label="Favorite">${isFav ? '★' : '☆'}</button>
+                        </div>
+                        <p class="prompt-desc">${p.desc}</p>
+                        <div class="prompt-card-footer">
+                            <a href="${buildChatGptUrl(p)}" target="_blank" rel="noopener" class="gpt-link">Open in ChatGPT ↗</a>
+                            <span class="prompt-cat-label">${catName}</span>
+                        </div>
+                    </article>`;
+            }).join('');
+
+            grid.querySelectorAll('.prompt-card').forEach(card => {
+                const id = parseInt(card.dataset.id);
+                const p = IMAGE_PROMPTS.find(x => x.id === id);
+
+                card.addEventListener('click', (e) => {
+                    if (e.target.closest('.prompt-star') || e.target.closest('.gpt-link')) return;
+                    navigator.clipboard.writeText(buildPrompt(p)).then(() => {
+                        showToast();
+                        card.classList.add('copied');
+                        setTimeout(() => card.classList.remove('copied'), 1500);
+                    });
+                });
+
+                card.querySelector('.prompt-star').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const btn = e.target;
+                    if (favorites.has(id)) {
+                        favorites.delete(id);
+                        btn.classList.remove('active');
+                        btn.textContent = '☆';
+                    } else {
+                        favorites.add(id);
+                        btn.classList.add('active');
+                        btn.textContent = '★';
+                    }
+                    localStorage.setItem(FAV_KEY, JSON.stringify([...favorites]));
+                    if (activeFilter === 'favorites') render();
+                    updateFilterCounts();
+                });
+
+                card.querySelector('.gpt-link').addEventListener('click', e => e.stopPropagation());
+            });
+        }
+
+        function updateFilterCounts() {
+            document.querySelectorAll('.prompt-filter-btn').forEach(btn => {
+                const f = btn.dataset.filter;
+                let count;
+                if (f === 'all') count = IMAGE_PROMPTS.length;
+                else if (f === 'favorites') count = favorites.size;
+                else count = IMAGE_PROMPTS.filter(p => p.category === f).length;
+                const el = btn.querySelector('.tab-count');
+                if (el) el.textContent = count;
+            });
+        }
+
+        function initFilters() {
+            const tabs = document.getElementById('filterTabs');
+            const filters = [
+                { id: 'all', label: 'All' },
+                { id: 'favorites', label: '★ Favorites' },
+                ...IMAGE_PROMPT_CATEGORIES.map(c => ({ id: c.id, label: c.name }))
+            ];
+
+            tabs.innerHTML = filters.map(f => {
+                let count;
+                if (f.id === 'all') count = IMAGE_PROMPTS.length;
+                else if (f.id === 'favorites') count = favorites.size;
+                else count = IMAGE_PROMPTS.filter(p => p.category === f.id).length;
+                return `<button class="prompt-filter-btn ${f.id === 'all' ? 'active' : ''}" data-filter="${f.id}">${f.label}<span class="tab-count">${count}</span></button>`;
+            }).join('');
+
+            tabs.querySelectorAll('.prompt-filter-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    tabs.querySelectorAll('.prompt-filter-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    activeFilter = btn.dataset.filter;
+                    render();
+                });
+            });
+        }
+
+        document.getElementById('searchInput').addEventListener('input', e => {
+            searchQuery = e.target.value.trim();
+            render();
+        });
+
+        document.addEventListener('keydown', e => {
+            if (e.key === '/' && document.activeElement !== document.getElementById('searchInput')) {
+                e.preventDefault();
+                document.getElementById('searchInput').focus();
+            }
+        });
+
+        initFilters();
+        render();
+    </script>
+</body>
+</html>

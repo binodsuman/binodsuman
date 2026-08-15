@@ -1,0 +1,271 @@
+/* Shared site navigation — matches home page title bar */
+:root {
+    --primary: #2563eb;
+    --primary-dark: #1d4ed8;
+    --secondary: #7c3aed;
+    --accent: #f59e0b;
+    --dark: #1e293b;
+    --light: #f8fafc;
+    --gray: #64748b;
+    --gray-light: #e2e8f0;
+    --transition: all 0.3s ease;
+    --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    --radius: 12px;
+}
+
+.site-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    transition: var(--transition);
+}
+
+.site-header .nav-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 70px;
+}
+
+.site-header .logo {
+    font-family: 'Inter', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--primary);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+}
+
+.site-header .logo span {
+    color: var(--accent);
+}
+
+.site-header .nav-menu {
+    display: flex;
+    list-style: none;
+    gap: 1.5rem;
+    align-items: center;
+}
+
+.site-header .nav-link {
+    text-decoration: none;
+    color: var(--dark);
+    font-family: 'Inter', sans-serif;
+    font-weight: 500;
+    font-size: 0.95rem;
+    transition: var(--transition);
+    position: relative;
+}
+
+.site-header .nav-link:hover {
+    color: var(--primary);
+}
+
+.site-header .nav-link::after {
+    content: '';
+    position: absolute;
+    bottom: -5px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: var(--primary);
+    transition: var(--transition);
+}
+
+.site-header .nav-link:hover::after {
+    width: 100%;
+}
+
+.site-header .tutorials-link {
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    color: white !important;
+    padding: 0.5rem 1rem !important;
+    border-radius: 50px;
+    transition: var(--transition);
+}
+
+.site-header .tutorials-link:hover {
+    background: linear-gradient(135deg, var(--primary-dark), var(--secondary));
+    transform: translateY(-2px);
+    box-shadow: var(--shadow);
+}
+
+.site-header .tutorials-link::after {
+    display: none;
+}
+
+.site-header .mobile-menu-btn {
+    display: none;
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: var(--dark);
+    cursor: pointer;
+}
+
+/* Dropdown menus */
+.site-header .nav-dropdown {
+    position: relative;
+}
+
+.site-header .nav-dropdown-toggle {
+    background: none;
+    border: none;
+    font-family: 'Inter', sans-serif;
+    font-weight: 500;
+    font-size: 0.95rem;
+    color: var(--dark);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0;
+    transition: var(--transition);
+}
+
+.site-header .nav-dropdown-toggle:hover {
+    color: var(--primary);
+}
+
+.site-header .nav-dropdown-toggle i {
+    font-size: 0.65rem;
+    transition: transform 0.2s ease;
+}
+
+.site-header .nav-dropdown.open .nav-dropdown-toggle i,
+.site-header .nav-dropdown:hover .nav-dropdown-toggle i {
+    transform: rotate(180deg);
+}
+
+.site-header .nav-dropdown-menu {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    min-width: 200px;
+    background: white;
+    border: 1px solid var(--gray-light);
+    border-radius: 10px;
+    box-shadow: var(--shadow);
+    list-style: none;
+    padding: 0.5rem 0;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(6px);
+    transition: all 0.2s ease;
+    z-index: 1001;
+}
+
+.site-header .nav-dropdown:hover .nav-dropdown-menu,
+.site-header .nav-dropdown.open .nav-dropdown-menu {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.site-header .nav-dropdown-menu .nav-link {
+    display: block;
+    padding: 0.55rem 1rem;
+}
+
+.site-header .nav-dropdown-menu .nav-link::after {
+    display: none;
+}
+
+.site-header .nav-dropdown-menu .nav-link.active-child {
+    color: var(--primary);
+    background: rgba(37, 99, 235, 0.06);
+}
+
+.site-header .nav-dropdown-toggle.active-parent {
+    color: var(--primary);
+}
+
+/* Page offset for fixed header */
+body.has-site-nav {
+    padding-top: 70px;
+}
+
+@media (max-width: 768px) {
+    .site-header .mobile-menu-btn {
+        display: block;
+    }
+
+    .site-header .nav-menu {
+        position: fixed;
+        top: 70px;
+        left: 0;
+        width: 100%;
+        background: white;
+        flex-direction: column;
+        align-items: stretch;
+        padding: 1rem 0;
+        box-shadow: var(--shadow);
+        transform: translateY(-100%);
+        opacity: 0;
+        visibility: hidden;
+        transition: var(--transition);
+        gap: 0;
+    }
+
+    .site-header .nav-menu.active {
+        transform: translateY(0);
+        opacity: 1;
+        visibility: visible;
+    }
+
+    .site-header .nav-menu > li {
+        width: 100%;
+    }
+
+    .site-header .nav-link,
+    .site-header .nav-dropdown-toggle {
+        display: block;
+        padding: 0.85rem 2rem;
+        width: 100%;
+        text-align: left;
+    }
+
+    .site-header .tutorials-link {
+        margin: 0.5rem 2rem;
+        text-align: center;
+        display: block;
+    }
+
+    .site-header .nav-dropdown-menu {
+        position: static;
+        opacity: 1;
+        visibility: visible;
+        transform: none;
+        box-shadow: none;
+        border: none;
+        background: var(--light);
+        border-radius: 0;
+        max-height: 0;
+        overflow: hidden;
+        padding: 0;
+        transition: max-height 0.3s ease;
+    }
+
+    .site-header .nav-dropdown.open .nav-dropdown-menu {
+        max-height: 200px;
+        padding: 0.25rem 0;
+    }
+
+    .site-header .nav-dropdown:hover .nav-dropdown-menu {
+        transform: none;
+    }
+
+    .site-header .nav-dropdown-menu .nav-link {
+        padding: 0.65rem 2.5rem;
+        font-size: 0.9rem;
+    }
+}

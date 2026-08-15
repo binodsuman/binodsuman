@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Slash Prompt Commands | Binod Suman</title>
+    <meta name="description" content="500 slash prompt commands for ChatGPT and Claude — search, filter, and copy ready-to-paste commands in one tap.">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/site-nav.css">
+    <link rel="stylesheet" href="/css/prompt-pages.css">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --secondary: #7c3aed;
+            --accent: #f59e0b;
+            --dark: #1e293b;
+            --light: #f8fafc;
+            --gray: #64748b;
+            --gray-light: #e2e8f0;
+            --border: #e2e8f0;
+            --card-bg: #ffffff;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.08);
+            --radius: 12px;
+            --transition: all 0.2s ease;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #fafbfc;
+            background-image: radial-gradient(circle, #d1d5db 1px, transparent 1px);
+            background-size: 20px 20px;
+            color: var(--dark);
+            line-height: 1.5;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        .logo span { color: var(--accent); }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--gray);
+            font-weight: 500;
+            font-size: 0.95rem;
+            transition: var(--transition);
+        }
+
+        .nav-links a:hover { color: var(--primary); }
+
+        .nav-home {
+            background: var(--primary);
+            color: white !important;
+            padding: 0.45rem 1rem;
+            border-radius: 50px;
+            font-size: 0.9rem !important;
+        }
+
+        .nav-home:hover { background: var(--primary-dark) !important; }
+
+        /* Hero */
+        .hero {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2.5rem 1.5rem 1.5rem;
+            text-align: center;
+        }
+
+        .hero-badge {
+            display: inline-block;
+            background: rgba(37, 99, 235, 0.1);
+            color: var(--primary);
+            font-size: 0.8rem;
+            font-weight: 600;
+            padding: 0.35rem 0.85rem;
+            border-radius: 50px;
+            margin-bottom: 1rem;
+            letter-spacing: 0.02em;
+        }
+
+        .hero h1 {
+            font-size: clamp(1.75rem, 4vw, 2.75rem);
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero p {
+            color: var(--gray);
+            max-width: 640px;
+            margin: 0 auto 1.5rem;
+            font-size: 1.05rem;
+        }
+
+        .how-to {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1rem 1.25rem;
+            max-width: 720px;
+            margin: 0 auto 1.5rem;
+            font-size: 0.9rem;
+            color: var(--gray);
+            text-align: left;
+        }
+
+        .how-to strong { color: var(--dark); }
+
+        .how-to code {
+            background: var(--light);
+            padding: 0.15rem 0.4rem;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            color: var(--primary);
+        }
+
+        /* Topic input */
+        .topic-box {
+            max-width: 720px;
+            margin: 0 auto 2rem;
+            text-align: left;
+        }
+
+        .topic-box label {
+            display: block;
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 0.4rem;
+        }
+
+        .topic-box .hint {
+            font-size: 0.8rem;
+            color: var(--gray);
+            margin-bottom: 0.5rem;
+        }
+
+        .topic-box input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            font-family: inherit;
+            font-size: 0.95rem;
+            transition: var(--transition);
+        }
+
+        .topic-box input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+        }
+
+        /* Controls */
+        .controls {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1.5rem 1.5rem;
+        }
+
+        .search-row {
+            display: flex;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .search-wrap {
+            flex: 1;
+            min-width: 220px;
+            position: relative;
+        }
+
+        .search-wrap i {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--gray);
+        }
+
+        .search-wrap input {
+            width: 100%;
+            padding: 0.7rem 1rem 0.7rem 2.5rem;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            font-family: inherit;
+            font-size: 0.95rem;
+        }
+
+        .search-wrap input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .count-badge {
+            display: flex;
+            align-items: center;
+            padding: 0 1rem;
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--primary);
+            white-space: nowrap;
+        }
+
+        .filter-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .filter-btn {
+            padding: 0.45rem 0.9rem;
+            border: 1px solid var(--border);
+            border-radius: 50px;
+            background: white;
+            color: var(--gray);
+            font-family: inherit;
+            font-size: 0.82rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .filter-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .filter-btn.active {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+        }
+
+        .filter-btn .tab-count {
+            opacity: 0.75;
+            margin-left: 0.2rem;
+        }
+
+        /* Grid */
+        .commands-grid {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1.5rem 3rem;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+        }
+
+        .cmd-card {
+            background: var(--card-bg);
+            border: 1px solid #d1d5db;
+            border-radius: 10px;
+            padding: 1rem 1.1rem;
+            min-height: 148px;
+            display: flex;
+            flex-direction: column;
+            transition: var(--transition);
+            cursor: pointer;
+            position: relative;
+            text-align: left;
+        }
+
+        .cmd-card:hover {
+            border-color: #93c5fd;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.08);
+        }
+
+        .cmd-card.copied {
+            border-color: #22c55e;
+            background: #f0fdf4;
+        }
+
+        .cmd-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.65rem;
+        }
+
+        .cmd-name {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--primary);
+            font-family: ui-monospace, 'Cascadia Code', 'Segoe UI Mono', monospace;
+            letter-spacing: -0.01em;
+        }
+
+        .cmd-star {
+            background: none;
+            border: none;
+            font-size: 1rem;
+            cursor: pointer;
+            color: #cbd5e1;
+            padding: 0;
+            line-height: 1;
+            transition: var(--transition);
+            flex-shrink: 0;
+        }
+
+        .cmd-star:hover,
+        .cmd-star.active {
+            color: var(--accent);
+        }
+
+        .cmd-body {
+            flex: 1;
+            border: none;
+            background: none;
+            padding: 0;
+            cursor: pointer;
+            text-align: left;
+            font-family: inherit;
+        }
+
+        .cmd-desc {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--dark);
+            line-height: 1.35;
+            display: block;
+            margin-bottom: 0.35rem;
+        }
+
+        .cmd-copy-hint {
+            font-size: 0.72rem;
+            color: var(--gray);
+            opacity: 0;
+            transition: opacity 0.15s ease;
+        }
+
+        .cmd-card:hover .cmd-copy-hint {
+            opacity: 1;
+        }
+
+        .cmd-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: auto;
+            padding-top: 0.75rem;
+        }
+
+        .cmd-links {
+            display: flex;
+            gap: 0.85rem;
+        }
+
+        .cmd-links a {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--primary);
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .cmd-links a:hover { color: var(--primary-dark); text-decoration: underline; }
+
+        .cmd-num {
+            font-size: 0.72rem;
+            color: #94a3b8;
+            font-weight: 500;
+        }
+
+        .empty-state {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 3rem;
+            color: var(--gray);
+        }
+
+        .empty-state i {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            opacity: 0.4;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: var(--dark);
+            color: white;
+            padding: 0.75rem 1.25rem;
+            border-radius: 50px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            z-index: 200;
+            opacity: 0;
+            transition: all 0.3s ease;
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+
+        footer {
+            background: var(--dark);
+            color: white;
+            text-align: center;
+            padding: 2rem 1.5rem;
+            font-size: 0.9rem;
+        }
+
+        footer a {
+            color: var(--gray-light);
+            text-decoration: none;
+        }
+
+        footer a:hover { color: white; }
+
+        @media (max-width: 1024px) {
+            .commands-grid { grid-template-columns: repeat(3, 1fr); }
+        }
+
+        @media (max-width: 768px) {
+            .commands-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        @media (max-width: 640px) {
+            .nav-links a:not(.nav-home) { display: none; }
+            .commands-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body class="prompt-page">
+    <section class="hero" style="max-width:1200px;margin:0 auto;padding:1.5rem 1.5rem 0;text-align:center;">
+        <span class="hero-badge" style="display:inline-block;background:rgba(37,99,235,0.1);color:#2563eb;font-size:0.8rem;font-weight:600;padding:0.35rem 0.85rem;border-radius:50px;margin-bottom:0.75rem;">500 SLASH PROMPTS</span>
+        <h1 style="font-size:clamp(1.5rem,3vw,2.25rem);font-weight:700;margin-bottom:0.5rem;background:linear-gradient(135deg,#2563eb,#7c3aed);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">A slash command for every task</h1>
+        <p style="color:#64748b;max-width:640px;margin:0 auto 1rem;font-size:0.95rem;">Search a task, filter by category, and copy a ready-to-paste command — or open directly in ChatGPT or Claude.</p>
+
+        <div class="how-to" style="background:white;border:1px solid #e2e8f0;border-radius:12px;padding:1rem 1.25rem;max-width:720px;margin:0 auto 1rem;font-size:0.9rem;color:#64748b;text-align:left;">
+            <strong style="color:#1e293b;">How to use:</strong> type what you're working on below, then hit
+            <code style="background:#f8fafc;padding:0.15rem 0.4rem;border-radius:4px;color:#2563eb;">ChatGPT</code> or
+            <code style="background:#f8fafc;padding:0.15rem 0.4rem;border-radius:4px;color:#2563eb;">Claude</code> on any command — or tap a card to copy.
+        </div>
+
+        <div class="topic-box" style="max-width:720px;margin:0 auto 1rem;text-align:left;">
+            <label for="topicInput" style="display:block;font-weight:600;font-size:0.9rem;margin-bottom:0.4rem;">What are you working on? (optional)</label>
+            <p style="font-size:0.8rem;color:#64748b;margin-bottom:0.5rem;">Add a topic and it drops into every command automatically.</p>
+            <input type="text" id="topicInput" placeholder="e.g. Kubernetes, neural networks, Instagram reels..." style="width:100%;padding:0.75rem 1rem;border:1px solid #e2e8f0;border-radius:12px;font-family:inherit;font-size:0.95rem;">
+        </div>
+    </section>
+
+    <div class="prompt-controls">
+        <div class="prompt-search-row">
+            <div class="prompt-search-wrap">
+                <i class="fas fa-search"></i>
+                <input type="text" id="searchInput" placeholder="Search commands...">
+            </div>
+            <div class="prompt-count-badge"><span id="visibleCount">500</span> commands</div>
+        </div>
+        <div class="prompt-filter-tabs" id="filterTabs"></div>
+    </div>
+
+    <div class="prompt-grid" id="commandsGrid"></div>
+
+    <div class="prompt-toast" id="toast"><i class="fas fa-check-circle"></i> Command copied!</div>
+
+    <script src="/js/site-nav.js"></script>
+
+    <script src="commands-data.js"></script>
+    <script>
+        const FAV_KEY = 'binodsuman_cmd_favorites';
+        let favorites = new Set(JSON.parse(localStorage.getItem(FAV_KEY) || '[]'));
+        let activeFilter = 'all';
+        let searchQuery = '';
+
+        function getTopic() {
+            return document.getElementById('topicInput').value.trim();
+        }
+
+        function buildPrompt(cmd) {
+            const topic = getTopic();
+            let text = `${cmd.desc}. (Command: /${cmd.cmd})`;
+            if (topic) {
+                text = `${cmd.desc} about "${topic}". (Command: /${cmd.cmd})`;
+            }
+            return text;
+        }
+
+        function buildUrl(base, cmd) {
+            return `${base}${encodeURIComponent(buildPrompt(cmd))}`;
+        }
+
+        function toggleFavorite(id, btn) {
+            if (favorites.has(id)) {
+                favorites.delete(id);
+                btn.classList.remove('active');
+                btn.textContent = '☆';
+            } else {
+                favorites.add(id);
+                btn.classList.add('active');
+                btn.textContent = '★';
+            }
+            localStorage.setItem(FAV_KEY, JSON.stringify([...favorites]));
+            if (activeFilter === 'favorites') renderCommands();
+            updateFilterCounts();
+        }
+
+        function copyCommand(cmd, card) {
+            navigator.clipboard.writeText(buildPrompt(cmd)).then(() => {
+                showToast();
+                card.classList.add('copied');
+                setTimeout(() => card.classList.remove('copied'), 1500);
+            });
+        }
+
+        function showToast() {
+            const toast = document.getElementById('toast');
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        }
+
+        function getFilteredCommands() {
+            return COMMANDS.filter(cmd => {
+                if (activeFilter === 'favorites' && !favorites.has(cmd.id)) return false;
+                if (activeFilter !== 'all' && activeFilter !== 'favorites' && cmd.category !== activeFilter) return false;
+                if (searchQuery) {
+                    const q = searchQuery.toLowerCase();
+                    return cmd.cmd.toLowerCase().includes(q) ||
+                           cmd.desc.toLowerCase().includes(q) ||
+                           `/${cmd.cmd}`.includes(q);
+                }
+                return true;
+            });
+        }
+
+        function renderCommands() {
+            const grid = document.getElementById('commandsGrid');
+            const filtered = getFilteredCommands();
+            document.getElementById('visibleCount').textContent = filtered.length;
+
+            if (filtered.length === 0) {
+                grid.innerHTML = `
+                    <div class="prompt-empty">
+                        <i class="fas fa-search"></i>
+                        <p>No commands match your search. Try a different keyword.</p>
+                    </div>`;
+                return;
+            }
+
+            grid.innerHTML = filtered.map(cmd => {
+                const isFav = favorites.has(cmd.id);
+                return `
+                    <article class="prompt-card" data-id="${cmd.id}">
+                        <div class="prompt-card-top">
+                            <span class="prompt-cmd">/${cmd.cmd}</span>
+                            <button class="prompt-star ${isFav ? 'active' : ''}" aria-label="Favorite" title="Add to favorites">${isFav ? '★' : '☆'}</button>
+                        </div>
+                        <p class="prompt-desc">${cmd.desc}</p>
+                        <div class="prompt-card-footer">
+                            <div style="display:flex;gap:0.75rem;">
+                                <a href="${buildUrl('https://chatgpt.com/?q=', cmd)}" target="_blank" rel="noopener" class="gpt-link">ChatGPT ↗</a>
+                                <a href="${buildUrl('https://claude.ai/new?q=', cmd)}" target="_blank" rel="noopener" class="claude-link">Claude ↗</a>
+                            </div>
+                            <span class="prompt-cat-label">#${cmd.id}</span>
+                        </div>
+                    </article>`;
+            }).join('');
+
+            grid.querySelectorAll('.prompt-card').forEach(card => {
+                const id = parseInt(card.dataset.id);
+                const cmd = COMMANDS.find(c => c.id === id);
+
+                card.addEventListener('click', (e) => {
+                    if (e.target.closest('.prompt-star') || e.target.closest('a')) return;
+                    copyCommand(cmd, card);
+                });
+
+                card.querySelector('.prompt-star').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    toggleFavorite(id, e.target);
+                });
+
+                card.querySelectorAll('a').forEach(link => {
+                    link.addEventListener('click', (e) => e.stopPropagation());
+                });
+            });
+        }
+
+        function updateFilterCounts() {
+            document.querySelectorAll('.prompt-filter-btn').forEach(btn => {
+                const filter = btn.dataset.filter;
+                let count;
+                if (filter === 'all') count = COMMANDS.length;
+                else if (filter === 'favorites') count = favorites.size;
+                else count = COMMANDS.filter(c => c.category === filter).length;
+                const countEl = btn.querySelector('.tab-count');
+                if (countEl) countEl.textContent = count;
+            });
+        }
+
+        function initFilters() {
+            const tabs = document.getElementById('filterTabs');
+            const filters = [
+                { id: 'all', label: 'All' },
+                { id: 'favorites', label: '★ Favorites' },
+                ...COMMAND_CATEGORIES.map(c => ({ id: c.id, label: c.short }))
+            ];
+
+            tabs.innerHTML = filters.map(f => {
+                let count;
+                if (f.id === 'all') count = COMMANDS.length;
+                else if (f.id === 'favorites') count = favorites.size;
+                else count = COMMANDS.filter(c => c.category === f.id).length;
+                return `<button class="prompt-filter-btn ${f.id === 'all' ? 'active' : ''}" data-filter="${f.id}">${f.label}<span class="tab-count">${count}</span></button>`;
+            }).join('');
+
+            tabs.querySelectorAll('.prompt-filter-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    tabs.querySelectorAll('.prompt-filter-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    activeFilter = btn.dataset.filter;
+                    renderCommands();
+                });
+            });
+        }
+
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            searchQuery = e.target.value.trim();
+            renderCommands();
+        });
+
+        document.getElementById('topicInput').addEventListener('input', () => {
+            renderCommands();
+        });
+
+        initFilters();
+        renderCommands();
+    </script>
+</body>
+</html>
