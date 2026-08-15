@@ -1,0 +1,672 @@
+/* Cheat sheet pages — handwritten notes + interview focus */
+.cheat-sheet-page {
+    font-family: 'Inter', sans-serif;
+    background: #f4f1ea;
+    color: #1e293b;
+    min-height: 100vh;
+    padding-bottom: 3rem;
+}
+
+.cs-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 1.5rem;
+}
+
+.cs-breadcrumb {
+    font-size: 0.85rem;
+    color: #64748b;
+    margin-bottom: 1rem;
+}
+
+.cs-breadcrumb a {
+    color: #2563eb;
+    text-decoration: none;
+}
+
+.cs-breadcrumb a:hover { text-decoration: underline; }
+
+.cs-hero {
+    margin-bottom: 1.5rem;
+}
+
+.cs-category-badge {
+    display: inline-block;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 0.3rem 0.75rem;
+    border-radius: 50px;
+    margin-bottom: 0.5rem;
+}
+
+.cs-category-badge.ai { background: #ede9fe; color: #6d28d9; }
+.cs-category-badge.system-design { background: #dbeafe; color: #1d4ed8; }
+.cs-category-badge.java { background: #ffedd5; color: #c2410c; }
+.cs-category-badge.dsa { background: #dcfce7; color: #15803d; }
+.cs-category-badge.behaviour { background: #fce7f3; color: #be185d; }
+
+.cs-title {
+    font-size: clamp(1.75rem, 4vw, 2.35rem);
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 0.5rem;
+}
+
+.cs-subtitle {
+    color: #64748b;
+    font-size: 1.05rem;
+    max-width: 640px;
+}
+
+.cs-interview-tip {
+    background: linear-gradient(135deg, #fef3c7, #fde68a);
+    border: 2px dashed #f59e0b;
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+    margin: 1.25rem 0;
+    font-family: 'Kalam', cursive;
+    font-size: 1.05rem;
+    line-height: 1.5;
+}
+
+.cs-interview-tip strong {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #b45309;
+    display: block;
+    margin-bottom: 0.35rem;
+}
+
+/* Paper note blocks */
+.cs-paper {
+    background: #fffef8;
+    border: 1px solid #e7e0d0;
+    border-radius: 4px;
+    box-shadow: 2px 3px 12px rgba(0, 0, 0, 0.06), 0 0 0 1px rgba(0, 0, 0, 0.02);
+    padding: 1.75rem 1.5rem;
+    margin-bottom: 1.5rem;
+    position: relative;
+    background-image:
+        repeating-linear-gradient(
+            transparent,
+            transparent 27px,
+            #e8e4dc 28px
+        );
+    background-position: 0 12px;
+}
+
+.cs-paper::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: linear-gradient(#f87171, #fb923c, #fbbf24);
+    border-radius: 4px 0 0 4px;
+}
+
+.cs-section-title {
+    font-family: 'Caveat', cursive;
+    font-size: 1.65rem;
+    font-weight: 700;
+    color: #1e40af;
+    margin: 1.25rem 0 0.75rem;
+    padding-top: 0.5rem;
+}
+
+.cs-section-title:first-child { margin-top: 0; }
+
+.cs-note {
+    font-family: 'Kalam', cursive;
+    font-size: 1.08rem;
+    line-height: 1.65;
+    color: #334155;
+    margin-bottom: 0.75rem;
+}
+
+.cs-note ul, .cs-note ol {
+    margin: 0.5rem 0 0.75rem 1.25rem;
+}
+
+.cs-note li { margin-bottom: 0.35rem; }
+
+.cs-note strong {
+    color: #0f172a;
+    font-weight: 700;
+}
+
+/* Tables */
+.cs-table-wrap {
+    overflow-x: auto;
+    margin: 1rem 0;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    background: white;
+}
+
+.cs-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+}
+
+.cs-table th {
+    background: #f1f5f9;
+    font-weight: 600;
+    text-align: left;
+    padding: 0.65rem 0.85rem;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+.cs-table td {
+    padding: 0.6rem 0.85rem;
+    border-bottom: 1px solid #f1f5f9;
+    vertical-align: top;
+}
+
+.cs-table tr:last-child td { border-bottom: none; }
+
+/* Diagrams */
+.cs-diagram {
+    background: white;
+    border: 2px solid #cbd5e1;
+    border-radius: 12px;
+    padding: 1.25rem;
+    margin: 1.25rem 0;
+    font-family: 'Inter', sans-serif;
+}
+
+.cs-diagram-title {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #64748b;
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
+.cs-flow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.cs-box {
+    background: #eff6ff;
+    border: 2px solid #3b82f6;
+    border-radius: 8px;
+    padding: 0.6rem 1rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-align: center;
+    min-width: 90px;
+}
+
+.cs-box.green { background: #ecfdf5; border-color: #10b981; }
+.cs-box.purple { background: #f5f3ff; border-color: #8b5cf6; }
+.cs-box.orange { background: #fff7ed; border-color: #f97316; }
+.cs-box.gray { background: #f8fafc; border-color: #94a3b8; }
+
+.cs-arrow {
+    color: #94a3b8;
+    font-weight: 700;
+    font-size: 1.1rem;
+}
+
+.cs-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    align-items: center;
+}
+
+.cs-layer-diagram {
+    display: grid;
+    gap: 0.5rem;
+    max-width: 480px;
+    margin: 0 auto;
+}
+
+.cs-layer {
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.88rem;
+    text-align: center;
+    border: 2px solid;
+}
+
+.cs-layer.l1 { background: #dbeafe; border-color: #2563eb; }
+.cs-layer.l2 { background: #e0e7ff; border-color: #4f46e5; }
+.cs-layer.l3 { background: #ede9fe; border-color: #7c3aed; }
+.cs-layer.l4 { background: #f3e8ff; border-color: #9333ea; }
+
+.cs-roadmap {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin: 1rem 0;
+}
+
+.cs-roadmap-step {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+    padding: 0.75rem 0;
+    border-left: 3px solid #cbd5e1;
+    margin-left: 1rem;
+    padding-left: 1.25rem;
+    position: relative;
+}
+
+.cs-roadmap-step::before {
+    content: '';
+    position: absolute;
+    left: -8px;
+    top: 1rem;
+    width: 14px;
+    height: 14px;
+    background: #2563eb;
+    border-radius: 50%;
+    border: 3px solid white;
+    box-shadow: 0 0 0 2px #2563eb;
+}
+
+.cs-roadmap-step h4 {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.95rem;
+    margin-bottom: 0.25rem;
+}
+
+.cs-roadmap-step p {
+    font-family: 'Kalam', cursive;
+    font-size: 0.95rem;
+    color: #475569;
+    margin: 0;
+}
+
+.cs-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin: 0.75rem 0;
+}
+
+.cs-tag {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.25rem 0.6rem;
+    background: #f1f5f9;
+    border-radius: 50px;
+    color: #475569;
+}
+
+.cs-related {
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 2px dashed #e2e8f0;
+}
+
+.cs-related h3 {
+    font-size: 1rem;
+    margin-bottom: 0.75rem;
+}
+
+.cs-related-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.cs-related-links a {
+    font-size: 0.85rem;
+    color: #2563eb;
+    text-decoration: none;
+    padding: 0.4rem 0.85rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 50px;
+    background: white;
+}
+
+.cs-related-links a:hover {
+    border-color: #2563eb;
+    background: #eff6ff;
+}
+
+.cs-category-badge.data-engineering { background: #cffafe; color: #0e7490; }
+
+/* Print / PDF actions */
+.cs-actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+}
+
+.cs-print-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.55rem 1.1rem;
+    background: #2563eb;
+    color: white;
+    border: none;
+    border-radius: 50px;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25);
+}
+
+.cs-print-btn:hover {
+    background: #1d4ed8;
+    transform: translateY(-1px);
+}
+
+.cs-print-hint {
+    font-size: 0.8rem;
+    color: #64748b;
+}
+
+/* YouTube thumbnail cards */
+.cs-youtube {
+    margin-top: 2rem;
+    padding: 1.5rem;
+    background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    box-shadow: 0 4px 24px rgba(15, 23, 42, 0.06);
+}
+
+.cs-youtube-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+}
+
+.cs-youtube-header h3 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #0f172a;
+}
+
+.cs-youtube-header h3 .fab {
+    color: #ef4444;
+    font-size: 1.25rem;
+}
+
+.cs-youtube-channel-link {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #2563eb;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.cs-youtube-channel-link:hover {
+    color: #1d4ed8;
+    text-decoration: underline;
+}
+
+.cs-youtube-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 1.25rem;
+}
+
+.cs-video-card {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid #e2e8f0;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.cs-video-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 28px rgba(37, 99, 235, 0.12);
+    border-color: #93c5fd;
+}
+
+.cs-video-thumb {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    background: #1e293b;
+    overflow: hidden;
+}
+
+.cs-video-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.35s ease;
+}
+
+.cs-video-card:hover .cs-video-thumb img {
+    transform: scale(1.05);
+}
+
+.cs-video-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.55) 0%, transparent 50%);
+    opacity: 0.85;
+    transition: opacity 0.2s ease;
+}
+
+.cs-video-card:hover .cs-video-overlay {
+    opacity: 1;
+}
+
+.cs-video-play {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 48px;
+    height: 48px;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ef4444;
+    font-size: 1rem;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+    transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.cs-video-card:hover .cs-video-play {
+    transform: translate(-50%, -50%) scale(1.1);
+    background: #fff;
+}
+
+.cs-video-badge {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: rgba(15, 23, 42, 0.88);
+    color: white;
+    font-size: 0.68rem;
+    font-weight: 700;
+    padding: 0.25rem 0.55rem;
+    border-radius: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    backdrop-filter: blur(4px);
+}
+
+.cs-video-meta {
+    padding: 0.85rem 1rem 1rem;
+}
+
+.cs-video-title {
+    display: block;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #0f172a;
+    line-height: 1.35;
+    margin-bottom: 0.35rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.cs-video-channel {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.78rem;
+    color: #64748b;
+    font-weight: 500;
+}
+
+.cs-video-channel .fab {
+    color: #ef4444;
+    font-size: 0.85rem;
+}
+
+@media (max-width: 640px) {
+    .cs-youtube-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Print styles */
+@media print {
+    .site-header,
+    .cs-actions,
+    .cs-breadcrumb,
+    .cs-related,
+    .cs-print-hint {
+        display: none !important;
+    }
+
+    body.has-site-nav {
+        padding-top: 0 !important;
+    }
+
+    .cheat-sheet-page {
+        background: white !important;
+    }
+
+    .cs-paper {
+        box-shadow: none;
+        break-inside: avoid;
+        page-break-inside: avoid;
+        border: 1px solid #ccc;
+        margin-bottom: 1rem;
+    }
+
+    .cs-container {
+        max-width: 100%;
+        padding: 0;
+    }
+
+    .cs-diagram,
+    .cs-table-wrap {
+        break-inside: avoid;
+    }
+
+    a[href]::after {
+        content: none;
+    }
+
+    .cs-youtube {
+        break-inside: avoid;
+    }
+
+    .cs-youtube-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .cs-video-card {
+        break-inside: avoid;
+        box-shadow: none;
+    }
+
+    .cs-video-card:hover {
+        transform: none;
+    }
+
+    .cs-video-play {
+        display: none;
+    }
+}
+
+/* Hub page */
+.cs-hub-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.25rem;
+    margin-top: 1.5rem;
+}
+
+.cs-hub-card {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 1.25rem;
+    transition: all 0.2s ease;
+}
+
+.cs-hub-card:hover {
+    border-color: #2563eb;
+    box-shadow: 0 8px 20px rgba(37, 99, 235, 0.1);
+}
+
+.cs-hub-card h2 {
+    font-size: 1.1rem;
+    margin-bottom: 0.75rem;
+}
+
+.cs-hub-card ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.cs-hub-card li {
+    margin-bottom: 0.5rem;
+}
+
+.cs-hub-card a {
+    color: #2563eb;
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.cs-hub-card a:hover { text-decoration: underline; }
+
+@media (max-width: 640px) {
+    .cs-paper { padding: 1.25rem 1rem; }
+    .cs-flow { flex-direction: column; }
+    .cs-arrow { transform: rotate(90deg); }
+}
