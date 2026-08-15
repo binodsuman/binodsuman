@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DSA Patterns Cheat Sheet | Binod Suman Cheat Sheet</title>
+    <meta name="description" content="14 essential DSA patterns for coding interviews — two pointers, sliding window, DP, graphs, and more.">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Kalam:wght@400;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/site-nav.css">
+    <link rel="stylesheet" href="/css/cheat-sheet.css">
+</head>
+<body class="cheat-sheet-page">
+<main class="cheat-sheet-page">
+<div class="cs-container">
+    <nav class="cs-breadcrumb"><a href="/">Home</a> · <a href="/cheat-sheets/">Cheat Sheets</a> · DSA · Patterns</nav>
+    <header class="cs-hero">
+        <span class="cs-category-badge dsa">DSA</span>
+        <h1 class="cs-title">DSA Patterns — Interview Cheat Sheet</h1>
+        <p class="cs-subtitle">Recognize the pattern → pick the template → solve in 20 minutes. The framework top candidates use.</p>
+    </header>
+    
+    <div class="cs-interview-tip"><strong>Interview tip</strong> Say the pattern aloud: "Sorted array + pair sum → two pointers from both ends."</div>
+    <div class="cs-paper">
+        <h2 class="cs-section-title">14 patterns</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Pattern</th><th>Signal</th><th>Template idea</th></tr>
+        <tr><td>Two pointers</td><td>Sorted array, pairs</td><td>Left/right move based on sum</td></tr>
+        <tr><td>Sliding window</td><td>Subarray/substring constraint</td><td>Expand right, shrink left</td></tr>
+        <tr><td>Binary search</td><td>Monotonic space</td><td>Mid, discard half</td></tr>
+        <tr><td>Fast/slow pointers</td><td>Linked list cycle</td><td>Two speeds meet</td></tr>
+        <tr><td>Merge intervals</td><td>Overlapping ranges</td><td>Sort by start, merge</td></tr>
+        <tr><td>Cyclic sort</td><td>1..n in array</td><td>Place num at index num-1</td></tr>
+        <tr><td>In-place reversal</td><td>Reverse linked list</td><td>Prev/curr/next pointers</td></tr>
+        <tr><td>Tree BFS/DFS</td><td>Level order / paths</td><td>Queue or stack/recursion</td></tr>
+        <tr><td>Two heaps</td><td>Running median</td><td>Max-heap + min-heap</td></tr>
+        <tr><td>Subsets</td><td>Combinations</td><td>Backtrack include/exclude</td></tr>
+        <tr><td>Modified BFS</td><td>Shortest path grid</td><td>Queue + visited matrix</td></tr>
+        <tr><td>Topological sort</td><td>Dependencies</td><td>Kahn or DFS post-order</td></tr>
+        <tr><td>Top K</td><td>K largest/smallest</td><td>Heap size K</td></tr>
+        <tr><td>DP</td><td>Optimal substructure</td><td>Define state, recurrence, base</td></tr></table></div>
+    </div>
+    <div class="cs-paper">
+        <h2 class="cs-section-title">Sliding window sketch</h2>
+        <div class="cs-diagram">
+            <div class="cs-diagram-title">Window [L ... R]</div>
+            <div class="cs-flow">
+                <span class="cs-box gray">L</span><span class="cs-box purple">window</span><span class="cs-box gray">R</span>
+            </div>
+        </div>
+        <div class="cs-note">Expand R until invalid → shrink L until valid → track best answer at each step.</div>
+    </div>
+    <div class="cs-related">
+        <h3>More in this category</h3>
+        <div class="cs-related-links"><a href="/cheat-sheets/dsa/top-problems">Top Interview Problems</a></div>
+    </div>
+</div>
+</main>
+<script src="/js/cheat-sheet-videos.js"></script>
+<script src="/js/cheat-sheet.js"></script>
+<script src="/js/site-nav.js"></script>
+</body>
+</html>

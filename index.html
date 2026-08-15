@@ -14,8 +14,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Binod Suman | YouTuber | Architect | Tech Educator</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/css/site-nav.css">
+    <link rel="stylesheet" href="/css/home.css">
     <style>
         :root {
             --primary: #2563eb;
@@ -1050,33 +1051,78 @@
         }
     </style>
 </head>
-<body>
-    <!-- Hero Section -->
-    <section class="hero">
-        <div class="hero-content">
-            <h1 class="hero-title">Simplifying Complex Tech Concepts</h1>
-            <div class="hero-subtitle">
-                <span class="typewriter" id="typewriter"></span>
+<body class="home-page">
+    <!-- Hero -->
+    <section class="hero-arch" id="top">
+        <div class="hero-arch-bg" aria-hidden="true"></div>
+        <div class="hero-arch-glow" aria-hidden="true"></div>
+        <div class="hero-arch-inner">
+            <div class="hero-arch-content">
+                <span class="hero-eyebrow">Architect · Tech Educator · Creator</span>
+                <h1 class="hero-arch-title">Designing clarity for <span>complex tech</span></h1>
+                <p class="hero-role"><span class="typewriter" id="typewriter"></span></p>
+                <p class="hero-arch-desc">
+                    I break down system design, AI, data engineering, and DSA into clear structures — on
+                    <a href="http://youtube.com/@binodsuman" target="_blank" rel="noopener">YouTube</a>
+                    and free cheat sheets built for interview prep.
+                </p>
+                <div class="hero-cta-row">
+                    <a href="#latest-videos" class="btn-arch-primary">Explore content <i class="fas fa-arrow-right"></i></a>
+                    <a href="/cheat-sheets/" class="btn-arch-ghost"><i class="fas fa-book"></i> Cheat sheets</a>
+                    <a href="https://youtube.com/@binodsuman" target="_blank" rel="noopener" class="btn-arch-ghost"><i class="fab fa-youtube"></i> YouTube</a>
+                </div>
+                <div class="hero-stats">
+                    <div class="hero-stat"><strong>258+</strong><span>Videos</span></div>
+                    <div class="hero-stat"><strong>32K+</strong><span>Subscribers</span></div>
+                    <div class="hero-stat"><strong>3.8M+</strong><span>Views</span></div>
+                    <div class="hero-stat"><strong>50+</strong><span>Countries</span></div>
+                </div>
             </div>
-            <p class="hero-description">
-                Passionate about exploring new technologies, I disseminate knowledge and empower eager learners by simplifying complex subjects through my <a href="http://youtube.com/@binodsuman" target="_blank" style="color: var(--primary); font-weight: 600;">YouTube channel</a>.
-            </p>
-            <a href="#latest-videos" class="cta-button">
-                Explore Content <i class="fas fa-arrow-right"></i>
-            </a>
+            <div class="hero-arch-visual">
+                <div class="hero-frame">
+                    <span class="bp-corner bp-tl" aria-hidden="true"></span>
+                    <span class="bp-corner bp-br" aria-hidden="true"></span>
+                    <img src="image/binod_suman.png" alt="Binod Suman — Tech Educator">
+                    <span class="hero-frame-label">Binod Suman</span>
+                </div>
+            </div>
         </div>
-        <div class="hero-image">
-            <img src="image/binod_suman.png" alt="Binod Suman">
-        </div>
-        <div class="scroll-indicator">
-            <span>Scroll to explore</span>
+        <div class="scroll-indicator-arch">
+            <span>Scroll</span>
             <i class="fas fa-chevron-down"></i>
         </div>
     </section>
 
+    <!-- Quick access -->
+    <section class="quick-access" aria-label="Quick links">
+        <div class="quick-access-grid">
+            <a href="/cheat-sheets/" class="quick-card">
+                <i class="fas fa-layer-group"></i>
+                <h3>Cheat Sheets</h3>
+                <p>System Design, AI, Java, DSA &amp; more</p>
+            </a>
+            <a href="/commands/" class="quick-card">
+                <i class="fas fa-terminal"></i>
+                <h3>Slash Prompts</h3>
+                <p>500 LLM commands for ChatGPT &amp; Claude</p>
+            </a>
+            <a href="/image-prompts" class="quick-card">
+                <i class="fas fa-image"></i>
+                <h3>Image Prompts</h3>
+                <p>AI image styles — copy &amp; open in ChatGPT</p>
+            </a>
+            <a href="/cheat-sheets/ai/" class="quick-card">
+                <i class="fas fa-robot"></i>
+                <h3>AI Cheat Sheets</h3>
+                <p>RAG, agents, LangChain, Cursor &amp; more</p>
+            </a>
+        </div>
+    </section>
+
     <!-- Latest Videos Section -->
-    <section id="latest-videos">
+    <section id="latest-videos" class="reveal-section">
         <div class="section-header">
+            <span class="section-num">01</span>
             <h2 class="section-title">Latest Videos</h2>
             <p class="section-subtitle">Stay updated with my newest content on cutting-edge technologies</p>
         </div>
@@ -1188,8 +1234,9 @@
     </section>
 
     <!-- Popular Videos Section -->
-    <section id="popular-videos" style="background-color: #f8fafc;">
+    <section id="popular-videos" class="reveal-section">
         <div class="section-header">
+            <span class="section-num">02</span>
             <h2 class="section-title">Popular Videos</h2>
             <p class="section-subtitle">Most watched content from my channel</p>
         </div>
@@ -1301,8 +1348,9 @@
     </section>
 
     <!-- Playlists Section -->
-    <section id="playlists">
+    <section id="playlists" class="reveal-section">
         <div class="section-header">
+            <span class="section-num">03</span>
             <h2 class="section-title">Learning Playlists</h2>
             <p class="section-subtitle">Structured learning paths for various technologies</p>
         </div>
@@ -1354,8 +1402,9 @@
     </section>
 
     <!-- DSA Section -->
-    <section id="dsa" style="background-color: #f8fafc;">
+    <section id="dsa" class="reveal-section">
         <div class="section-header">
+            <span class="section-num">04</span>
             <h2 class="section-title">Data Structures & Algorithms</h2>
             <p class="section-subtitle">Master DSA with detailed explanations and implementations</p>
         </div>
@@ -1467,8 +1516,9 @@
     </section>
 
     <!-- About Section -->
-    <section id="about">
+    <section id="about" class="reveal-section">
         <div class="section-header">
+            <span class="section-num">05</span>
             <h2 class="section-title">Connect With Me</h2>
             <p class="section-subtitle">Find me across different platforms</p>
         </div>
@@ -1525,8 +1575,9 @@
     </section>
 
     <!-- Testimonials Section -->
-<section id="testimonials">
+<section id="testimonials" class="reveal-section">
     <div class="section-header">
+        <span class="section-num">06</span>
         <h2 class="section-title">What Viewers Say</h2>
         <p class="section-subtitle">Heartfelt feedback from our amazing community of learners</p>
     </div>
@@ -1602,6 +1653,7 @@
                 <a href="#dsa" class="footer-link">DSA</a>
                 <a href="/image-prompts" class="footer-link">Image Prompt</a>
                 <a href="/commands" class="footer-link">Slash Prompt</a>
+                <a href="/cheat-sheets/" class="footer-link">Cheat Sheets</a>
             </div>
             <div class="social-links">
                 <a href="https://github.com/binodsuman" target="_blank" class="social-link-footer">
@@ -1893,6 +1945,19 @@
         });
 
         observer.observe(document.getElementById('testimonials'));
+
+        // Scroll reveal for content sections
+        const revealSections = document.querySelectorAll('.reveal-section');
+        const revealObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('is-visible');
+                    revealObserver.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
+
+        revealSections.forEach(section => revealObserver.observe(section));
 
         // Start typewriter effect
         typeWriter();

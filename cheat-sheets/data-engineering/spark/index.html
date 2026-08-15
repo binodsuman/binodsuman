@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apache Spark Cheat Sheet | Binod Suman Cheat Sheet</title>
+    <meta name="description" content="Apache Spark interview cheat sheet — RDD, DataFrame, Spark SQL, tuning, and architecture.">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Kalam:wght@400;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/site-nav.css">
+    <link rel="stylesheet" href="/css/cheat-sheet.css">
+</head>
+<body class="cheat-sheet-page">
+<main class="cheat-sheet-page">
+<div class="cs-container">
+    <nav class="cs-breadcrumb"><a href="/">Home</a> · <a href="/cheat-sheets/">Cheat Sheets</a> · Data Engineering · Spark</nav>
+    <header class="cs-hero">
+        <span class="cs-category-badge data-engineering">Data Engineering</span>
+        <h1 class="cs-title">Apache Spark — Interview Cheat Sheet</h1>
+        <p class="cs-subtitle">Batch and streaming processing essentials for data engineering interviews.</p>
+    </header>
+    
+    <div class="cs-interview-tip"><strong>Interview tip</strong> Explain lazy evaluation: transformations build DAG → action triggers execution. Mention driver, executors, and shuffle as bottleneck.</div>
+    <div class="cs-paper">
+        <h2 class="cs-section-title">Spark building blocks</h2>
+        <div class="cs-layer-diagram">
+            <div class="cs-layer l1">Driver — SparkContext, DAG scheduler</div>
+            <div class="cs-layer l2">Executors — run tasks, store cache</div>
+            <div class="cs-layer l3">Cluster Manager — YARN, K8s, standalone</div>
+        </div>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>API</th><th>Use</th></tr>
+        <tr><td>RDD</td><td>Low-level, distributed collections</td></tr>
+        <tr><td>DataFrame/Dataset</td><td>Structured — Catalyst optimizer</td></tr>
+        <tr><td>Spark SQL</td><td>SQL on DataFrames + Hive support</td></tr></table></div>
+    </div>
+    <div class="cs-paper">
+        <h2 class="cs-section-title">Transformations vs actions</h2>
+        <div class="cs-note"><strong>Transformations (lazy):</strong> map, filter, join, groupBy — build lineage.<br>
+        <strong>Actions:</strong> count, collect, save — trigger job.<br>
+        <strong>Wide deps:</strong> shuffle (groupBy, join) — expensive — minimize!</div>
+        <div class="cs-diagram">
+            <div class="cs-diagram-title">Shuffle</div>
+            <div class="cs-flow">
+                <span class="cs-box">Map tasks</span><span class="cs-arrow">→</span>
+                <span class="cs-box orange">Shuffle / Sort</span><span class="cs-arrow">→</span>
+                <span class="cs-box green">Reduce tasks</span>
+            </div>
+        </div>
+    </div>
+    <div class="cs-paper">
+        <h2 class="cs-section-title">Tuning checklist</h2>
+        <div class="cs-note"><ul>
+            <li><strong>Partitions:</strong> default 200 — increase for large data, avoid tiny files</li>
+            <li><strong>Memory:</strong> executor memory + overhead, spill to disk if OOM</li>
+            <li><strong>Broadcast join:</strong> small table broadcast to avoid shuffle</li>
+            <li><strong>Cache:</strong> persist() for reused DataFrames — MEMORY_AND_DISK</li>
+            <li><strong>Structured Streaming:</strong> micro-batch or continuous processing</li>
+        </ul></div>
+    </div>
+    <div class="cs-paper">
+        <h2 class="cs-section-title">Spark vs MapReduce</h2>
+        <div class="cs-note">In-memory lineage, 10–100× faster for iterative jobs. Fault tolerance via RDD lineage recomputation (not HDFS replication per step).</div>
+    </div>
+    <div class="cs-related">
+        <h3>More in this category</h3>
+        <div class="cs-related-links"><a href="/cheat-sheets/data-engineering/kafka">Apache Kafka</a></div>
+    </div>
+</div>
+</main>
+<script src="/js/cheat-sheet-videos.js"></script>
+<script src="/js/cheat-sheet.js"></script>
+<script src="/js/site-nav.js"></script>
+</body>
+</html>

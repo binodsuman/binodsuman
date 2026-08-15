@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Master Roadmap | Binod Suman Cheat Sheet</title>
+    <meta name="description" content="Step-by-step roadmap to master AI and ML for interviews — foundations, deep learning, LLMs, and projects.">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Kalam:wght@400;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/site-nav.css">
+    <link rel="stylesheet" href="/css/cheat-sheet.css">
+</head>
+<body class="cheat-sheet-page">
+<main class="cheat-sheet-page">
+<div class="cs-container">
+    <nav class="cs-breadcrumb"><a href="/">Home</a> · <a href="/cheat-sheets/">Cheat Sheets</a> · AI · Master Roadmap</nav>
+    <header class="cs-hero">
+        <span class="cs-category-badge ai">AI</span>
+        <h1 class="cs-title">Roadmap to Become an AI Master</h1>
+        <p class="cs-subtitle">A practical learning path from math basics to production LLMs — designed for engineers targeting AI/ML interviews.</p>
+    </header>
+    
+    <div class="cs-interview-tip"><strong>Interview tip</strong> Employers want depth in one area + breadth across the stack. Say: "I strong on ML fundamentals + one domain (NLP or CV) + I can ship with Python & cloud."</div>
+    <div class="cs-paper">
+        <h2 class="cs-section-title">Phase 1 — Foundations (4–8 weeks)</h2>
+        <div class="cs-note"><strong>Math:</strong> linear algebra (vectors, matrices, eigen), calculus (gradients), probability (Bayes, distributions).<br>
+        <strong>Python:</strong> NumPy, pandas, matplotlib, basic OOP.<br>
+        <strong>Stats:</strong> mean/variance, hypothesis testing, overfitting vs underfitting.</div>
+        <div class="cs-roadmap">
+            <div class="cs-roadmap-step"><div><h4>Week 1–2: Math refresh</h4><p>3Blue1Brown linear algebra + Khan probability. Practice matrix multiplication by hand once.</p></div></div>
+            <div class="cs-roadmap-step"><div><h4>Week 3–4: Python for data</h4><p>NumPy broadcasting, pandas groupby, train/test split manually.</p></div></div>
+            <div class="cs-roadmap-step"><div><h4>Week 5–8: Classical ML</h4><p>Linear/logistic regression, decision trees, random forest, SVM intuition, k-means.</p></div></div>
+        </div>
+    </div>
+    <div class="cs-paper">
+        <h2 class="cs-section-title">Phase 2 — Deep Learning (8–12 weeks)</h2>
+        <div class="cs-diagram">
+            <div class="cs-diagram-title">Neural network flow</div>
+            <div class="cs-flow">
+                <span class="cs-box">Input</span><span class="cs-arrow">→</span>
+                <span class="cs-box purple">Hidden + ReLU</span><span class="cs-arrow">→</span>
+                <span class="cs-box green">Output + Loss</span><span class="cs-arrow">→</span>
+                <span class="cs-box orange">Backprop</span>
+            </div>
+        </div>
+        <div class="cs-note"><ul>
+            <li><strong>CNN:</strong> conv, pooling, ResNet — images & spatial data</li>
+            <li><strong>RNN/LSTM:</strong> sequences, time series, early NLP</li>
+            <li><strong>Transformers:</strong> attention, BERT, GPT — modern NLP default</li>
+            <li><strong>Frameworks:</strong> PyTorch (preferred for research/interviews)</li>
+        </ul></div>
+        <div class="cs-tags"><span class="cs-tag">CNN</span><span class="cs-tag">RNN</span><span class="cs-tag">Transformers</span><span class="cs-tag">PyTorch</span></div>
+    </div>
+    <div class="cs-paper">
+        <h2 class="cs-section-title">Phase 3 — Modern AI & LLMs (6–10 weeks)</h2>
+        <div class="cs-layer-diagram">
+            <div class="cs-layer l1">Embeddings & Vector DBs (RAG)</div>
+            <div class="cs-layer l2">Fine-tuning & LoRA</div>
+            <div class="cs-layer l3">Agents & Tool use</div>
+            <div class="cs-layer l4">MLOps: deploy, monitor, drift</div>
+        </div>
+        <div class="cs-note">Build 2–3 portfolio projects: sentiment classifier, RAG chatbot on your notes, fine-tuned small model. Document on GitHub + 1-page architecture diagram each.</div>
+    </div>
+    <div class="cs-paper">
+        <h2 class="cs-section-title">Interview checklist</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Topic</th><th>Must explain</th></tr>
+        <tr><td>Bias-variance</td><td>Trade-off + regularization fix</td></tr>
+        <tr><td>Gradient descent</td><td>SGD, learning rate, vanishing gradients</td></tr>
+        <tr><td>Attention</td><td>Q, K, V in one sentence + why parallelizable</td></tr>
+        <tr><td>RAG</td><td>Retrieve → augment → generate pipeline</td></tr>
+        <tr><td>Evaluation</td><td>Precision/recall/F1, BLEU, human eval for LLMs</td></tr></table></div>
+    </div>
+    <div class="cs-related">
+        <h3>More in this category</h3>
+        <div class="cs-related-links">
+            <a href="/cheat-sheets/ai/">All AI cheat sheets</a>
+            <a href="/cheat-sheets/ai/rag">RAG</a>
+            <a href="/cheat-sheets/ai/agents-intro">What is an Agent?</a>
+            <a href="/cheat-sheets/ai/ml-interview">ML/DL Interview Guide</a>
+        </div>
+    </div>
+</div>
+</main>
+<script src="/js/cheat-sheet-videos.js"></script>
+<script src="/js/cheat-sheet.js"></script>
+<script src="/js/site-nav.js"></script>
+</body>
+</html>

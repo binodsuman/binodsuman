@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Java Collections & Concurrency | Binod Suman Cheat Sheet</title>
+    <meta name="description" content="Java collections framework and concurrency interview guide — List, Map, HashMap internals, threads, and locks.">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Kalam:wght@400;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/site-nav.css">
+    <link rel="stylesheet" href="/css/cheat-sheet.css">
+</head>
+<body class="cheat-sheet-page">
+<main class="cheat-sheet-page">
+<div class="cs-container">
+    <nav class="cs-breadcrumb"><a href="/">Home</a> · <a href="/cheat-sheets/">Cheat Sheets</a> · Java · Collections</nav>
+    <header class="cs-hero">
+        <span class="cs-category-badge java">Java</span>
+        <h1 class="cs-title">Collections & Concurrency</h1>
+        <p class="cs-subtitle">HashMap internals, concurrent collections, and thread safety — must-know for backend Java roles.</p>
+    </header>
+    
+    <div class="cs-interview-tip"><strong>Interview tip</strong> HashMap: "Array of buckets → hash → index → linked list or tree if collision > 8 (Java 8+)."</div>
+    <div class="cs-paper">
+        <h2 class="cs-section-title">Collections map</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Interface</th><th>Impl</th><th>Notes</th></tr>
+        <tr><td>List</td><td>ArrayList, LinkedList</td><td>ArrayList O(1) get, LinkedList O(1) insert at head</td></tr>
+        <tr><td>Set</td><td>HashSet, TreeSet</td><td>TreeSet sorted, O(log n)</td></tr>
+        <tr><td>Map</td><td>HashMap, TreeMap</td><td>HashMap O(1) avg; null key once</td></tr>
+        <tr><td>Queue</td><td>LinkedList, PriorityQueue</td><td>Deque for stack/queue</td></tr></table></div>
+    </div>
+    <div class="cs-paper">
+        <h2 class="cs-section-title">Concurrency essentials</h2>
+        <div class="cs-note"><ul>
+            <li><strong>Thread vs Runnable:</strong> prefer Runnable/Callable + ExecutorService</li>
+            <li><strong>synchronized:</strong> monitor lock — can deadlock</li>
+            <li><strong>volatile:</strong> visibility only, not atomicity</li>
+            <li><strong>ConcurrentHashMap:</strong> segmented locks / CAS — no full map lock</li>
+            <li><strong>Atomic classes:</strong> AtomicInteger for counters</li>
+        </ul></div>
+        <div class="cs-diagram">
+            <div class="cs-diagram-title">Executor framework</div>
+            <div class="cs-flow">
+                <span class="cs-box">Task submit</span><span class="cs-arrow">→</span>
+                <span class="cs-box purple">Thread pool</span><span class="cs-arrow">→</span>
+                <span class="cs-box green">Worker threads</span>
+            </div>
+        </div>
+    </div>
+    <div class="cs-related">
+        <h3>More in this category</h3>
+        <div class="cs-related-links"><a href="/cheat-sheets/java/core">Java Core</a></div>
+    </div>
+</div>
+</main>
+<script src="/js/cheat-sheet-videos.js"></script>
+<script src="/js/cheat-sheet.js"></script>
+<script src="/js/site-nav.js"></script>
+</body>
+</html>

@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Design Interview Patterns | Binod Suman Cheat Sheet</title>
+    <meta name="description" content="Top system design interview patterns — URL shortener, chat, rate limiter, feed, and payment flows.">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Kalam:wght@400;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/site-nav.css">
+    <link rel="stylesheet" href="/css/cheat-sheet.css">
+</head>
+<body class="cheat-sheet-page">
+<main class="cheat-sheet-page">
+<div class="cs-container">
+    <nav class="cs-breadcrumb"><a href="/">Home</a> · <a href="/cheat-sheets/">Cheat Sheets</a> · System Design · Patterns</nav>
+    <header class="cs-hero">
+        <span class="cs-category-badge system-design">System Design</span>
+        <h1 class="cs-title">System Design Interview Patterns</h1>
+        <p class="cs-subtitle">The 6 designs that cover 80% of interview questions — with architecture sketches.</p>
+    </header>
+    
+    <div class="cs-interview-tip"><strong>Interview tip</strong> Name the pattern: "This is read-heavy → CDN + cache. Writes are bursty → queue + async workers."</div>
+    <div class="cs-paper">
+        <h2 class="cs-section-title">1. URL Shortener</h2>
+        <div class="cs-flow">
+            <span class="cs-box">POST /shorten</span><span class="cs-arrow">→</span>
+            <span class="cs-box purple">Hash / counter ID</span><span class="cs-arrow">→</span>
+            <span class="cs-box green">DB mapping</span>
+        </div>
+        <div class="cs-note">Key: base62 encoding, collision handling, redirect GET is cacheable, analytics optional via async queue.</div>
+    </div>
+    <div class="cs-paper">
+        <h2 class="cs-section-title">2. Chat / messaging</h2>
+        <div class="cs-diagram">
+            <div class="cs-diagram-title">Real-time chat</div>
+            <div class="cs-flow">
+                <span class="cs-box">WebSocket</span><span class="cs-arrow">→</span>
+                <span class="cs-box purple">Chat service</span><span class="cs-arrow">→</span>
+                <span class="cs-box">Message queue</span><span class="cs-arrow">→</span>
+                <span class="cs-box green">DB + push</span>
+            </div>
+        </div>
+        <div class="cs-note">Mention: presence (online), delivery guarantees (at-least-once), fan-out for groups, partition by conversation ID.</div>
+    </div>
+    <div class="cs-paper">
+        <h2 class="cs-section-title">3. Rate limiter</h2>
+        <div class="cs-note"><strong>Token bucket:</strong> tokens refill at rate R, burst allowed.<br>
+        <strong>Sliding window:</strong> more accurate, use Redis + sorted sets.<br>
+        <strong>Where:</strong> API gateway or sidecar — return 429 + Retry-After header.</div>
+    </div>
+    <div class="cs-paper">
+        <h2 class="cs-section-title">4–6 quick hits</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>System</th><th>Core idea</th></tr>
+        <tr><td>News feed</td><td>Fan-out on write vs read — hybrid for celebrities</td></tr>
+        <tr><td>Video streaming</td><td>CDN, chunked upload, transcoding pipeline</td></tr>
+        <tr><td>Payment</td><td>Idempotency keys, saga pattern, exactly-once illusion</td></tr></table></div>
+    </div>
+    <div class="cs-related">
+        <h3>More in this category</h3>
+        <div class="cs-related-links"><a href="/cheat-sheets/system-design/fundamentals">SD Fundamentals</a></div>
+    </div>
+</div>
+</main>
+<script src="/js/cheat-sheet-videos.js"></script>
+<script src="/js/cheat-sheet.js"></script>
+<script src="/js/site-nav.js"></script>
+</body>
+</html>

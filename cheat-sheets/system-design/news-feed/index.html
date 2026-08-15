@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Design News Feed | Binod Suman Cheat Sheet</title>
+    <meta name="description" content="Facebook/Instagram feed — fan-out on write vs read, ranking, and pagination.">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Kalam:wght@400;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/site-nav.css">
+    <link rel="stylesheet" href="/css/cheat-sheet.css">
+</head>
+<body class="cheat-sheet-page">
+<main class="cheat-sheet-page">
+<div class="cs-container">
+    <nav class="cs-breadcrumb"><a href="/">Home</a> · <a href="/cheat-sheets/">Cheat Sheets</a> · <a href="/cheat-sheets/system-design/">System Design</a> · Design News Feed</nav>
+    <header class="cs-hero">
+        <span class="cs-category-badge system-design">System Design</span>
+        <h1 class="cs-title">Design News Feed</h1>
+        <p class="cs-subtitle">Facebook/Instagram feed — fan-out on write vs read, ranking, and pagination.</p>
+    </header>
+    <div class="cs-interview-tip"><strong>Interview tip</strong> Classic trade-off: push model for normal users, pull for celebrities with millions of followers.</div>
+    
+    <div class="cs-paper">
+        <h2 class="cs-section-title">Requirements</h2>
+        <div class="cs-note">Users post; followers see ranked feed; infinite scroll; real-time-ish updates.</div>
+    </div>
+    <div class="cs-paper">
+        <h2 class="cs-section-title">Fan-out strategies</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Fan-out on write</th><th>Fan-out on read</th></tr>
+        <tr><td>Precompute feed at post time</td><td>Merge timelines at read time</td></tr>
+        <tr><td>Fast reads</td><td>Slow for hot users</td></tr>
+        <tr><td>Heavy writes for celebs</td><td>Hybrid: push normal, pull celeb</td></tr></table></div>
+    </div>
+    <div class="cs-paper">
+        <h2 class="cs-section-title">Ranking</h2>
+        <div class="cs-note">Score = f(recency, engagement, affinity). Precompute features; ML ranker offline; cache ranked slices per user.</div>
+    </div>
+    <div class="cs-related"><h3>More in this category</h3><div class="cs-related-links"><a href="/cheat-sheets/system-design/">All SD cheat sheets</a><a href="/cheat-sheets/system-design/fundamentals">SD Fundamentals</a><a href="/cheat-sheets/system-design/url-shortener">URL Shortener</a></div></div>
+
+</div>
+</main>
+<script src="/js/cheat-sheet-videos.js"></script>
+<script src="/js/cheat-sheet.js"></script>
+<script src="/js/site-nav.js"></script>
+</body>
+</html>

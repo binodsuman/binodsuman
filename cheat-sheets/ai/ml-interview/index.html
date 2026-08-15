@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ML/DL Interview Guide | Binod Suman Cheat Sheet</title>
+    <meta name="description" content="Machine learning and deep learning interview cheat sheet — algorithms, metrics, and must-know concepts.">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Kalam:wght@400;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/site-nav.css">
+    <link rel="stylesheet" href="/css/cheat-sheet.css">
+</head>
+<body class="cheat-sheet-page">
+<main class="cheat-sheet-page">
+<div class="cs-container">
+    <nav class="cs-breadcrumb"><a href="/">Home</a> · <a href="/cheat-sheets/">Cheat Sheets</a> · AI · ML/DL Interview</nav>
+    <header class="cs-hero">
+        <span class="cs-category-badge ai">AI</span>
+        <h1 class="cs-title">ML & Deep Learning Interview Guide</h1>
+        <p class="cs-subtitle">Core concepts recruiters ask — with handwritten-style notes for quick revision before interviews.</p>
+    </header>
+    
+    <div class="cs-interview-tip"><strong>Interview tip</strong> Always connect algorithm → use case → limitation. Example: "Random forest — tabular data, handles non-linearity, but slower inference than linear models."</div>
+    <div class="cs-paper">
+        <h2 class="cs-section-title">Supervised learning essentials</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Algorithm</th><th>When to use</th><th>Watch out</th></tr>
+        <tr><td>Linear/Logistic</td><td>Baseline, interpretable</td><td>Linear boundaries only</td></tr>
+        <tr><td>Random Forest</td><td>Tabular, mixed features</td><td>Large models, latency</td></tr>
+        <tr><td>Gradient Boosting (XGB)</td><td>Kaggle tabular winners</td><td>Tuning sensitive</td></tr>
+        <tr><td>SVM</td><td>Small data, kernels</td><td>Bad on huge data</td></tr>
+        <tr><td>k-NN</td><td>Simple, no training</td><td>Slow at scale</td></tr></table></div>
+    </div>
+    <div class="cs-paper">
+        <h2 class="cs-section-title">Deep learning must-knows</h2>
+        <div class="cs-note"><ul>
+            <li><strong>Activation:</strong> ReLU fixes vanishing gradient; sigmoid for binary output</li>
+            <li><strong>Batch norm:</strong> stabilizes training; different train vs inference behavior</li>
+            <li><strong>Dropout:</strong> regularization — randomly zero neurons during training</li>
+            <li><strong>CNN:</strong> parameter sharing + translation equivariance</li>
+            <li><strong>Transfer learning:</strong> pretrained backbone + new head — always mention for limited data</li>
+        </ul></div>
+        <div class="cs-diagram">
+            <div class="cs-diagram-title">Transformer attention (simplified)</div>
+            <div class="cs-flow">
+                <span class="cs-box">Query (Q)</span><span class="cs-arrow">×</span>
+                <span class="cs-box purple">Key (K)</span><span class="cs-arrow">→</span>
+                <span class="cs-box">Softmax</span><span class="cs-arrow">×</span>
+                <span class="cs-box green">Value (V)</span>
+            </div>
+        </div>
+    </div>
+    <div class="cs-paper">
+        <h2 class="cs-section-title">Metrics cheat sheet</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Metric</th><th>Formula idea</th><th>Use when</th></tr>
+        <tr><td>Accuracy</td><td>Correct / total</td><td>Balanced classes only</td></tr>
+        <tr><td>Precision</td><td>TP / (TP+FP)</td><td>False positives costly</td></tr>
+        <tr><td>Recall</td><td>TP / (TP+FN)</td><td>False negatives costly</td></tr>
+        <tr><td>F1</td><td>Harmonic mean P & R</td><td>Imbalanced classification</td></tr>
+        <tr><td>ROC-AUC</td><td>Ranking quality</td><td>Threshold-independent</td></tr></table></div>
+    </div>
+    <div class="cs-related">
+        <h3>More in this category</h3>
+        <div class="cs-related-links"><a href="/cheat-sheets/ai/roadmap">AI Master Roadmap</a></div>
+    </div>
+</div>
+</main>
+<script src="/js/cheat-sheet-videos.js"></script>
+<script src="/js/cheat-sheet.js"></script>
+<script src="/js/site-nav.js"></script>
+</body>
+</html>

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>What is an AI Agent? | Binod Suman Cheat Sheet</title>
+    <meta name="description" content="LLM + tools + loop: the model plans, acts, observes, and repeats until the task is done.">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Kalam:wght@400;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/site-nav.css">
+    <link rel="stylesheet" href="/css/cheat-sheet.css">
+</head>
+<body class="cheat-sheet-page">
+<main class="cheat-sheet-page">
+<div class="cs-container">
+    <nav class="cs-breadcrumb"><a href="/">Home</a> · <a href="/cheat-sheets/">Cheat Sheets</a> · <a href="/cheat-sheets/ai/">AI</a> · What is an AI Agent?</nav>
+    <header class="cs-hero">
+        <span class="cs-category-badge ai">AI</span>
+        <h1 class="cs-title">What is an AI Agent?</h1>
+        <p class="cs-subtitle">LLM + tools + loop: the model plans, acts, observes, and repeats until the task is done.</p>
+    </header>
+    <div class="cs-interview-tip"><strong>Interview tip</strong> Contrast: chatbot = one-shot. Agent = multi-step with tools (search, code run, API calls). Mention human-in-the-loop for risky actions.</div>
+    
+    <div class="cs-paper">
+        <h2 class="cs-section-title">Agent vs chatbot</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Chatbot</th><th>Agent</th></tr>
+        <tr><td>Single LLM call</td><td>Loop: think → act → observe</td></tr>
+        <tr><td>No side effects</td><td>Calls tools / APIs</td></tr>
+        <tr><td>Predictable cost</td><td>Variable steps — cap max iterations</td></tr></table></div>
+    </div>
+    <div class="cs-paper">
+        <h2 class="cs-section-title">Core loop</h2>
+        <div class="cs-layer-diagram">
+        <div class="cs-layer l1">1. User goal</div>
+        <div class="cs-layer l2">2. LLM plans next action</div>
+        <div class="cs-layer l3">3. Tool executes (search, SQL, shell)</div>
+        <div class="cs-layer l4">4. Result back to LLM → repeat or finish</div></div>
+    </div>
+    <div class="cs-paper">
+        <h2 class="cs-section-title">When to use agents</h2>
+        <div class="cs-note"><ul>
+        <li>Multi-step research, ticket triage, data analysis</li>
+        <li>NOT for simple FAQ — use RAG + one call</li>
+        <li>Always set <strong>max_steps</strong> and approval for writes/deletes</li>
+        </ul></div>
+    </div>
+    <div class="cs-related"><h3>More in this category</h3><div class="cs-related-links"><a href="/cheat-sheets/ai/">All AI cheat sheets</a><a href="/cheat-sheets/ai/rag">RAG</a><a href="/cheat-sheets/ai/agents-intro">What is an Agent?</a></div></div>
+
+</div>
+</main>
+<script src="/js/cheat-sheet-videos.js"></script>
+<script src="/js/cheat-sheet.js"></script>
+<script src="/js/site-nav.js"></script>
+</body>
+</html>

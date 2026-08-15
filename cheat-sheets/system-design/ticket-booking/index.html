@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Design Ticket Booking (Ticketmaster) | Binod Suman Cheat Sheet</title>
+    <meta name="description" content="Seat inventory, concurrency, holds, and preventing double booking.">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Kalam:wght@400;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/site-nav.css">
+    <link rel="stylesheet" href="/css/cheat-sheet.css">
+</head>
+<body class="cheat-sheet-page">
+<main class="cheat-sheet-page">
+<div class="cs-container">
+    <nav class="cs-breadcrumb"><a href="/">Home</a> · <a href="/cheat-sheets/">Cheat Sheets</a> · <a href="/cheat-sheets/system-design/">System Design</a> · Design Ticket Booking (Ticketmaster)</nav>
+    <header class="cs-hero">
+        <span class="cs-category-badge system-design">System Design</span>
+        <h1 class="cs-title">Design Ticket Booking (Ticketmaster)</h1>
+        <p class="cs-subtitle">Seat inventory, concurrency, holds, and preventing double booking.</p>
+    </header>
+    <div class="cs-interview-tip"><strong>Interview tip</strong> Core problem: atomic seat reservation. Redis lock or DB row lock + transactional booking flow.</div>
+    
+    <div class="cs-paper">
+        <h2 class="cs-section-title">Requirements</h2>
+        <div class="cs-note">Browse events, view seat map, temporary hold (5 min), payment, no double book, high spike on sale start.</div>
+    </div>
+    <div class="cs-paper">
+        <h2 class="cs-section-title">Booking flow</h2>
+        <div class="cs-flow"><span class="cs-box">Select seats</span><span class="cs-arrow">→</span>
+        <span class="cs-box purple">Hold (locked)</span><span class="cs-arrow">→</span>
+        <span class="cs-box green">Payment</span><span class="cs-arrow">→</span>
+        <span class="cs-box orange">Confirm / release hold</span></div>
+    </div>
+    <div class="cs-paper">
+        <h2 class="cs-section-title">Concurrency</h2>
+        <div class="cs-note"><strong>Optimistic locking</strong> on seat row version<br>
+        <strong>Or</strong> distributed lock per seat in Redis<br>
+        Queue users at sale open — virtual waiting room</div>
+    </div>
+    <div class="cs-related"><h3>More in this category</h3><div class="cs-related-links"><a href="/cheat-sheets/system-design/">All SD cheat sheets</a><a href="/cheat-sheets/system-design/fundamentals">SD Fundamentals</a><a href="/cheat-sheets/system-design/url-shortener">URL Shortener</a></div></div>
+
+</div>
+</main>
+<script src="/js/cheat-sheet-videos.js"></script>
+<script src="/js/cheat-sheet.js"></script>
+<script src="/js/site-nav.js"></script>
+</body>
+</html>

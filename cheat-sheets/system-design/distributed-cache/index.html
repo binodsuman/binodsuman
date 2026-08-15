@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Design Distributed Cache | Binod Suman Cheat Sheet</title>
+    <meta name="description" content="Redis cluster, consistent hashing, replication, and cache invalidation strategies.">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Kalam:wght@400;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/site-nav.css">
+    <link rel="stylesheet" href="/css/cheat-sheet.css">
+</head>
+<body class="cheat-sheet-page">
+<main class="cheat-sheet-page">
+<div class="cs-container">
+    <nav class="cs-breadcrumb"><a href="/">Home</a> · <a href="/cheat-sheets/">Cheat Sheets</a> · <a href="/cheat-sheets/system-design/">System Design</a> · Design Distributed Cache</nav>
+    <header class="cs-hero">
+        <span class="cs-category-badge system-design">System Design</span>
+        <h1 class="cs-title">Design Distributed Cache</h1>
+        <p class="cs-subtitle">Redis cluster, consistent hashing, replication, and cache invalidation strategies.</p>
+    </header>
+    <div class="cs-interview-tip"><strong>Interview tip</strong> Explain sharding, replication for HA, cache-aside vs read-through, and thundering herd mitigation.</div>
+    
+    <div class="cs-paper">
+        <h2 class="cs-section-title">Why distributed</h2>
+        <div class="cs-note">Single Redis hits memory limit. Shard by key hash across nodes. Each shard primary + replica.</div>
+    </div>
+    <div class="cs-paper">
+        <h2 class="cs-section-title">Consistent hashing</h2>
+        <div class="cs-note">Keys → hash ring → node. Add node = minimal key movement. Virtual nodes for balance.</div>
+    </div>
+    <div class="cs-paper">
+        <h2 class="cs-section-title">Invalidation</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Strategy</th><th>When</th></tr>
+        <tr><td>TTL</td><td>Stale OK briefly</td></tr>
+        <tr><td>Delete on write</td><td>Strong consistency need</td></tr>
+        <tr><td>Pub/sub invalidate</td><td>Multi-region caches</td></tr></table></div>
+    </div>
+    <div class="cs-related"><h3>More in this category</h3><div class="cs-related-links"><a href="/cheat-sheets/system-design/">All SD cheat sheets</a><a href="/cheat-sheets/system-design/fundamentals">SD Fundamentals</a><a href="/cheat-sheets/system-design/url-shortener">URL Shortener</a></div></div>
+
+</div>
+</main>
+<script src="/js/cheat-sheet-videos.js"></script>
+<script src="/js/cheat-sheet.js"></script>
+<script src="/js/site-nav.js"></script>
+</body>
+</html>

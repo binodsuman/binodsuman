@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fine-Tuning Basics | Binod Suman Cheat Sheet</title>
+    <meta name="description" content="When to train vs prompt — customize behavior, tone, or format on your examples.">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Kalam:wght@400;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/site-nav.css">
+    <link rel="stylesheet" href="/css/cheat-sheet.css">
+</head>
+<body class="cheat-sheet-page">
+<main class="cheat-sheet-page">
+<div class="cs-container">
+    <nav class="cs-breadcrumb"><a href="/">Home</a> · <a href="/cheat-sheets/">Cheat Sheets</a> · <a href="/cheat-sheets/ai/">AI</a> · Fine-Tuning Basics</nav>
+    <header class="cs-hero">
+        <span class="cs-category-badge ai">AI</span>
+        <h1 class="cs-title">Fine-Tuning Basics</h1>
+        <p class="cs-subtitle">When to train vs prompt — customize behavior, tone, or format on your examples.</p>
+    </header>
+    <div class="cs-interview-tip"><strong>Interview tip</strong> Default order: prompt engineering → RAG → fine-tune. Fine-tune for style/format or niche domain with lots of examples.</div>
+    
+    <div class="cs-paper">
+        <h2 class="cs-section-title">When to fine-tune</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Fine-tune</th><th>Don't fine-tune yet</th></tr>
+        <tr><td>Consistent output format</td><td>Need fresh facts → RAG</td></tr>
+        <tr><td>Brand tone at scale</td><td>&lt; 100 good examples</td></tr>
+        <tr><td>Specialized classification</td><td>Can solve with prompt</td></tr></table></div>
+    </div>
+    <div class="cs-paper">
+        <h2 class="cs-section-title">Process sketch</h2>
+        <div class="cs-roadmap">
+        <div class="cs-roadmap-step"><div><h4>Curate JSONL examples</h4><p>input → ideal output, diverse edge cases.</p></div></div>
+        <div class="cs-roadmap-step"><div><h4>Train + validate holdout</h4><p>Compare vs base model on same prompts.</p></div></div>
+        <div class="cs-roadmap-step"><div><h4>Deploy + monitor drift</h4><p>Re-train when product changes.</p></div></div></div>
+    </div>
+    <div class="cs-related"><h3>More in this category</h3><div class="cs-related-links"><a href="/cheat-sheets/ai/">All AI cheat sheets</a><a href="/cheat-sheets/ai/rag">RAG</a><a href="/cheat-sheets/ai/agents-intro">What is an Agent?</a></div></div>
+
+</div>
+</main>
+<script src="/js/cheat-sheet-videos.js"></script>
+<script src="/js/cheat-sheet.js"></script>
+<script src="/js/site-nav.js"></script>
+</body>
+</html>

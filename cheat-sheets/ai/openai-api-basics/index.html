@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenAI API Basics | Binod Suman Cheat Sheet</title>
+    <meta name="description" content="Chat Completions, responses API, tools, embeddings, and billing gotchas.">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Kalam:wght@400;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/site-nav.css">
+    <link rel="stylesheet" href="/css/cheat-sheet.css">
+</head>
+<body class="cheat-sheet-page">
+<main class="cheat-sheet-page">
+<div class="cs-container">
+    <nav class="cs-breadcrumb"><a href="/">Home</a> · <a href="/cheat-sheets/">Cheat Sheets</a> · <a href="/cheat-sheets/ai/">AI</a> · OpenAI API Basics</nav>
+    <header class="cs-hero">
+        <span class="cs-category-badge ai">AI</span>
+        <h1 class="cs-title">OpenAI API Basics</h1>
+        <p class="cs-subtitle">Chat Completions, responses API, tools, embeddings, and billing gotchas.</p>
+    </header>
+    <div class="cs-interview-tip"><strong>Interview tip</strong> Know message roles (system/user/assistant), token limits, structured outputs, and function calling flow.</div>
+    
+    <div class="cs-paper">
+        <h2 class="cs-section-title">API surfaces</h2>
+        <div class="cs-note"><ul>
+        <li><strong>Chat / Responses</strong> — conversational apps</li>
+        <li><strong>Embeddings</strong> — text-embedding-3-small/large</li>
+        <li><strong>Images / Audio</strong> — separate endpoints</li>
+        <li><strong>Batch API</strong> — 50% cost, 24h window</li>
+        </ul></div>
+    </div>
+    <div class="cs-paper">
+        <h2 class="cs-section-title">Function calling</h2>
+        <div class="cs-flow"><span class="cs-box">User</span><span class="cs-arrow">→</span>
+        <span class="cs-box purple">Model</span><span class="cs-arrow">→</span>
+        <span class="cs-box green">tool_call JSON</span><span class="cs-arrow">→</span>
+        <span class="cs-box orange">Your function</span><span class="cs-arrow">→</span>
+        <span class="cs-box">Final reply</span></div>
+    </div>
+    <div class="cs-related"><h3>More in this category</h3><div class="cs-related-links"><a href="/cheat-sheets/ai/">All AI cheat sheets</a><a href="/cheat-sheets/ai/rag">RAG</a><a href="/cheat-sheets/ai/agents-intro">What is an Agent?</a></div></div>
+
+</div>
+</main>
+<script src="/js/cheat-sheet-videos.js"></script>
+<script src="/js/cheat-sheet.js"></script>
+<script src="/js/site-nav.js"></script>
+</body>
+</html>

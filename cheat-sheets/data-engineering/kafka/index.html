@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apache Kafka Cheat Sheet | Binod Suman Cheat Sheet</title>
+    <meta name="description" content="Apache Kafka interview cheat sheet — topics, partitions, consumer groups, offsets, and architecture.">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Kalam:wght@400;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/site-nav.css">
+    <link rel="stylesheet" href="/css/cheat-sheet.css">
+</head>
+<body class="cheat-sheet-page">
+<main class="cheat-sheet-page">
+<div class="cs-container">
+    <nav class="cs-breadcrumb"><a href="/">Home</a> · <a href="/cheat-sheets/">Cheat Sheets</a> · Data Engineering · Kafka</nav>
+    <header class="cs-hero">
+        <span class="cs-category-badge data-engineering">Data Engineering</span>
+        <h1 class="cs-title">Apache Kafka — Interview Cheat Sheet</h1>
+        <p class="cs-subtitle">Core concepts for streaming interviews — from producers to exactly-once semantics.</p>
+    </header>
+    
+    <div class="cs-interview-tip"><strong>Interview tip</strong> Draw: Producer → Topic (partitions) → Consumer Group. Mention offset, replication factor, and why partitions enable parallelism.</div>
+    <div class="cs-paper">
+        <h2 class="cs-section-title">Core concepts</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Term</th><th>One-liner</th></tr>
+        <tr><td>Topic</td><td>Logical stream of records, split into partitions</td></tr>
+        <tr><td>Partition</td><td>Ordered, immutable log — parallelism unit</td></tr>
+        <tr><td>Offset</td><td>Position in partition log — consumer tracks this</td></tr>
+        <tr><td>Consumer group</td><td>One consumer per partition max — scale reads</td></tr>
+        <tr><td>Replication</td><td>Leader + followers (ISR) — fault tolerance</td></tr>
+        <tr><td>Broker</td><td>Kafka server storing partitions</td></tr></table></div>
+    </div>
+    <div class="cs-paper">
+        <h2 class="cs-section-title">Architecture diagram</h2>
+        <div class="cs-diagram">
+            <div class="cs-diagram-title">Kafka cluster (simplified)</div>
+            <div class="cs-flow">
+                <span class="cs-box green">Producers</span><span class="cs-arrow">→</span>
+                <span class="cs-box purple">Brokers / Topics</span><span class="cs-arrow">→</span>
+                <span class="cs-box">Consumer Group</span>
+            </div>
+        </div>
+        <div class="cs-note"><ul>
+            <li><strong>Key-based routing:</strong> same key → same partition (ordering per key)</li>
+            <li><strong>Zookeeper/KRaft:</strong> cluster metadata & controller election</li>
+            <li><strong>Retention:</strong> time or size based — not a traditional queue</li>
+        </ul></div>
+    </div>
+    <div class="cs-paper">
+        <h2 class="cs-section-title">Delivery semantics</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Semantic</th><th>How</th><th>Trade-off</th></tr>
+        <tr><td>At-most-once</td><td>Commit offset before process</td><td>May lose messages</td></tr>
+        <tr><td>At-least-once</td><td>Process then commit offset</td><td>Duplicates possible</td></tr>
+        <tr><td>Exactly-once</td><td>Idempotent producer + transactions</td><td>More overhead</td></tr></table></div>
+    </div>
+    <div class="cs-paper">
+        <h2 class="cs-section-title">Common interview questions</h2>
+        <div class="cs-note"><ul>
+            <li>How do you handle consumer lag? (scale consumers ≤ partitions, optimize processing, monitor)</li>
+            <li>Partition count — how to choose? (throughput vs ordering vs rebalancing cost)</li>
+            <li>Kafka vs traditional MQ? (log-based, replay, high throughput)</li>
+        </ul></div>
+    </div>
+    <div class="cs-related">
+        <h3>More in this category</h3>
+        <div class="cs-related-links"><a href="/cheat-sheets/data-engineering/spark">Apache Spark</a></div>
+    </div>
+</div>
+</main>
+<script src="/js/cheat-sheet-videos.js"></script>
+<script src="/js/cheat-sheet.js"></script>
+<script src="/js/site-nav.js"></script>
+</body>
+</html>

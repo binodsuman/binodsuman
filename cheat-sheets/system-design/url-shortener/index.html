@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Design URL Shortener | Binod Suman Cheat Sheet</title>
+    <meta name="description" content="bit.ly / TinyURL — hash or counter IDs, redirects, analytics, and collision handling.">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Kalam:wght@400;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/site-nav.css">
+    <link rel="stylesheet" href="/css/cheat-sheet.css">
+</head>
+<body class="cheat-sheet-page">
+<main class="cheat-sheet-page">
+<div class="cs-container">
+    <nav class="cs-breadcrumb"><a href="/">Home</a> · <a href="/cheat-sheets/">Cheat Sheets</a> · <a href="/cheat-sheets/system-design/">System Design</a> · Design URL Shortener</nav>
+    <header class="cs-hero">
+        <span class="cs-category-badge system-design">System Design</span>
+        <h1 class="cs-title">Design URL Shortener</h1>
+        <p class="cs-subtitle">bit.ly / TinyURL — hash or counter IDs, redirects, analytics, and collision handling.</p>
+    </header>
+    <div class="cs-interview-tip"><strong>Interview tip</strong> Clarify: custom aliases? expiration? 100M URLs/month? Read path is 100× write — cache hot redirects.</div>
+    
+    <div class="cs-paper">
+        <h2 class="cs-section-title">Requirements</h2>
+        <div class="cs-note"><strong>Functional:</strong> shorten long URL → short code; redirect; optional custom slug; analytics clicks<br>
+        <strong>Non-functional:</strong> low latency redirect (&lt;100ms); high availability; unique codes</div>
+    </div>
+    <div class="cs-paper">
+        <h2 class="cs-section-title">High-level design</h2>
+        <div class="cs-flow"><span class="cs-box gray">Client</span><span class="cs-arrow">→</span>
+        <span class="cs-box">API</span><span class="cs-arrow">→</span>
+        <span class="cs-box purple">ID service</span><span class="cs-arrow">→</span>
+        <span class="cs-box green">DB (long↔short)</span><br><br>
+        <span class="cs-box gray">Redirect</span><span class="cs-arrow">→</span>
+        <span class="cs-box">CDN/Cache</span><span class="cs-arrow">→</span>
+        <span class="cs-box orange">302 to long URL</span></div>
+    </div>
+    <div class="cs-paper">
+        <h2 class="cs-section-title">Key decisions</h2>
+        <div class="cs-note"><ul>
+        <li><strong>ID:</strong> base62 counter (Snowflake) or hash (collision check)</li>
+        <li><strong>Cache:</strong> Redis for top 20% URLs = 80% traffic</li>
+        <li><strong>DB:</strong> SQL for strong uniqueness or NoSQL at scale</li>
+        <li><strong>Analytics:</strong> async queue → click stream store</li>
+        </ul></div>
+    </div>
+    <div class="cs-related"><h3>More in this category</h3><div class="cs-related-links"><a href="/cheat-sheets/system-design/">All SD cheat sheets</a><a href="/cheat-sheets/system-design/fundamentals">SD Fundamentals</a><a href="/cheat-sheets/system-design/url-shortener">URL Shortener</a></div></div>
+
+</div>
+</main>
+<script src="/js/cheat-sheet-videos.js"></script>
+<script src="/js/cheat-sheet.js"></script>
+<script src="/js/site-nav.js"></script>
+</body>
+</html>

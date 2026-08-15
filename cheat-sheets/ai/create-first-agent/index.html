@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Your First Agent | Binod Suman Cheat Sheet</title>
+    <meta name="description" content="Hands-on path: one tool, one loop, one success criteria — then add complexity.">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Kalam:wght@400;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/site-nav.css">
+    <link rel="stylesheet" href="/css/cheat-sheet.css">
+</head>
+<body class="cheat-sheet-page">
+<main class="cheat-sheet-page">
+<div class="cs-container">
+    <nav class="cs-breadcrumb"><a href="/">Home</a> · <a href="/cheat-sheets/">Cheat Sheets</a> · <a href="/cheat-sheets/ai/">AI</a> · Create Your First Agent</nav>
+    <header class="cs-hero">
+        <span class="cs-category-badge ai">AI</span>
+        <h1 class="cs-title">Create Your First Agent</h1>
+        <p class="cs-subtitle">Hands-on path: one tool, one loop, one success criteria — then add complexity.</p>
+    </header>
+    <div class="cs-interview-tip"><strong>Interview tip</strong> Demo: agent that answers "What's the weather in X?" using a weather API tool. Shows plan + tool + parse.</div>
+    
+    <div class="cs-paper">
+        <h2 class="cs-section-title">Step-by-step build</h2>
+        <div class="cs-roadmap">
+        <div class="cs-roadmap-step"><div><h4>Step 1 — Define tools</h4><p>JSON schema: name, description, parameters. One tool only first.</p></div></div>
+        <div class="cs-roadmap-step"><div><h4>Step 2 — Prompt the planner</h4><p>"You have tools: … Return JSON action or final answer."</p></div></div>
+        <div class="cs-roadmap-step"><div><h4>Step 3 — Run loop</h4><p>Parse action → invoke tool → append observation to context.</p></div></div>
+        <div class="cs-roadmap-step"><div><h4>Step 4 — Stop conditions</h4><p>Final answer OR max 5 steps OR timeout.</p></div></div></div>
+    </div>
+    <div class="cs-paper">
+        <h2 class="cs-section-title">Pseudo-code sketch</h2>
+        <div class="cs-note cs-handwritten">while not done and steps &lt; 5:<br>
+        &nbsp;&nbsp;response = llm(messages + tool_defs)<br>
+        &nbsp;&nbsp;if response.is_final: return response.text<br>
+        &nbsp;&nbsp;result = run_tool(response.tool, response.args)<br>
+        &nbsp;&nbsp;messages.append(observation=result)</div>
+    </div>
+    <div class="cs-paper">
+        <h2 class="cs-section-title">Safety checklist</h2>
+        <div class="cs-note"><ul>
+        <li>Allowlist tools — no arbitrary shell</li>
+        <li>Validate tool args (types, ranges)</li>
+        <li>Audit log every tool call</li>
+        <li>Sandbox code execution</li>
+        </ul></div>
+    </div>
+    <div class="cs-related"><h3>More in this category</h3><div class="cs-related-links"><a href="/cheat-sheets/ai/">All AI cheat sheets</a><a href="/cheat-sheets/ai/rag">RAG</a><a href="/cheat-sheets/ai/agents-intro">What is an Agent?</a></div></div>
+
+</div>
+</main>
+<script src="/js/cheat-sheet-videos.js"></script>
+<script src="/js/cheat-sheet.js"></script>
+<script src="/js/site-nav.js"></script>
+</body>
+</html>
