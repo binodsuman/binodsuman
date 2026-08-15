@@ -508,66 +508,171 @@ body.home-page .video-info {
     border-top: 1px solid var(--arch-border);
 }
 
-/* Playlist cards */
+/* Playlist cards — horizontal layout */
+body.home-page .playlist-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1rem;
+}
+
 body.home-page .playlist-card {
-    background: var(--arch-surface-2);
-    border: 1px solid var(--arch-border);
-    border-radius: 2px;
-    box-shadow: none;
-}
-
-body.home-page .playlist-card:hover {
-    border-color: rgba(245, 158, 11, 0.4);
-    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3);
-}
-
-body.home-page .playlist-title {
-    color: var(--arch-text);
-}
-
-body.home-page .playlist-count {
-    color: var(--arch-muted);
-}
-
-/* Social cards */
-body.home-page .social-card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.85rem 1rem;
     background: var(--arch-surface);
     border: 1px solid var(--arch-border);
     border-radius: 2px;
-    box-shadow: none;
-}
-
-body.home-page .social-card:hover {
-    border-color: rgba(56, 189, 248, 0.35);
-}
-
-body.home-page .social-title {
+    text-decoration: none;
     color: var(--arch-text);
+    transition: all 0.25s ease;
+    text-align: left;
 }
 
-body.home-page .social-handle {
-    color: var(--arch-muted);
+body.home-page .playlist-card:hover {
+    border-color: rgba(56, 189, 248, 0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
 }
 
-body.home-page .social-icon {
-    color: var(--arch-accent-2);
-}
-
-body.home-page .social-link {
-    background: transparent;
-    border: 1px solid rgba(56, 189, 248, 0.45);
-    color: var(--arch-accent-2);
+body.home-page .playlist-thumb {
+    flex-shrink: 0;
+    width: 52px;
+    height: 52px;
     border-radius: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.25rem;
+}
+
+body.home-page .playlist-body {
+    flex: 1;
+    min-width: 0;
+}
+
+body.home-page .playlist-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.95rem;
     font-weight: 600;
+    color: var(--arch-text);
+    margin-bottom: 0.25rem;
+    line-height: 1.3;
+}
+
+body.home-page .playlist-cta {
+    font-size: 0.78rem;
+    color: var(--arch-accent-2);
     letter-spacing: 0.02em;
 }
 
-body.home-page .social-link:hover {
-    background: var(--arch-gradient);
-    border-color: transparent;
+body.home-page .playlist-cta i {
+    font-size: 0.7rem;
+    margin-left: 0.2rem;
+}
+
+/* Connect section — 3×2 professional cards */
+body.home-page .connect-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+}
+
+body.home-page .connect-card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.15rem 1.25rem;
+    background: var(--arch-surface);
+    border: 1px solid var(--arch-border);
+    border-radius: 2px;
+    text-decoration: none;
+    color: var(--arch-text);
+    transition: all 0.25s ease;
+    position: relative;
+}
+
+body.home-page .connect-card:hover {
+    border-color: rgba(56, 189, 248, 0.45);
+    background: var(--arch-surface-2);
+    transform: translateY(-3px);
+    box-shadow: 0 14px 40px rgba(0, 0, 0, 0.35);
+}
+
+body.home-page .connect-avatar {
+    flex-shrink: 0;
+    width: 56px;
+    height: 56px;
+    border-radius: 2px;
+    overflow: hidden;
+    border: 1px solid var(--arch-border);
+}
+
+body.home-page .connect-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+body.home-page .connect-avatar-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
     color: white;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.35);
+    font-size: 1.5rem;
+    border: none;
+}
+
+body.home-page .connect-info {
+    flex: 1;
+    min-width: 0;
+}
+
+body.home-page .connect-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.15rem;
+    color: var(--arch-text);
+}
+
+body.home-page .connect-handle {
+    font-size: 0.88rem;
+    color: var(--arch-accent-2);
+    margin-bottom: 0.2rem;
+}
+
+body.home-page .connect-label {
+    font-size: 0.75rem;
+    color: var(--arch-muted);
+    display: block;
+    line-height: 1.35;
+}
+
+body.home-page .connect-arrow {
+    flex-shrink: 0;
+    color: var(--arch-muted);
+    font-size: 0.85rem;
+    transition: transform 0.2s ease, color 0.2s ease;
+}
+
+body.home-page .connect-card:hover .connect-arrow {
+    color: var(--arch-accent-2);
+    transform: translateX(4px);
+}
+
+@media (max-width: 992px) {
+    body.home-page .connect-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 576px) {
+    body.home-page .connect-grid {
+        grid-template-columns: 1fr;
+    }
 }
 
 /* Testimonials on dark */

@@ -21,6 +21,7 @@
                 </li>
                 <li><a href="/#playlists" class="nav-link" data-nav="playlists">Playlists</a></li>
                 <li><a href="/#dsa" class="nav-link" data-nav="dsa">DSA</a></li>
+                <li><a href="/#about" class="nav-link" data-nav="about">Connect</a></li>
                 <li class="nav-dropdown" data-dropdown="cheat-sheets">
                     <button type="button" class="nav-dropdown-toggle" aria-expanded="false">
                         Cheat Sheet <i class="fas fa-chevron-down"></i>
@@ -150,6 +151,8 @@
                 document.querySelector('[data-nav="playlists"]')?.classList.add('active-child');
             } else if (hash === 'dsa') {
                 document.querySelector('[data-nav="dsa"]')?.classList.add('active-child');
+            } else if (hash === 'about') {
+                document.querySelector('[data-nav="about"]')?.classList.add('active-child');
             }
         }
 
