@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <title>Design Proximity Service | Binod Suman Study Material</title>
+    <meta name="description" content="Nearby restaurants/places — geohash indexing, radius search, and ranking by distance + quality.">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Kalam:wght@400;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/site-nav.css">
+    <link rel="stylesheet" href="/css/cheat-sheet.css">
+</head>
+<body class="cheat-sheet-page">
+<main class="cheat-sheet-page">
+<div class="cs-container">
+    <nav class="cs-breadcrumb"><a href="/">Home</a> · <a href="/cheat-sheets/">Study Material</a> · <a href="/cheat-sheets/system-design/">System Design</a> · Design Proximity Service</nav>
+    <header class="cs-hero">
+        <span class="cs-category-badge system-design">System Design</span>
+        <h1 class="cs-title">Design Proximity Service</h1>
+        <p class="cs-subtitle">Nearby restaurants/places — geohash indexing, radius search, and ranking by distance + quality.</p>
+    </header>
+    <div class="cs-interview-tip"><strong>Interview tip</strong> Like Yelp nearby: GEORADIUS on Redis Geo or S2 cells. Clarify update frequency of business hours and duplicate listing merge.</div>
+    <nav class="cs-toc" aria-label="On this page">
+    <div class="cs-toc-title">On this page</div>
+    <ol><li><a href="#cs-section-0">① Functional requirements</a></li><li><a href="#cs-section-1">② Non-functional requirements</a></li><li><a href="#cs-section-2">③ Back-of-the-envelope scale</a></li><li><a href="#cs-section-3">④ High-level architecture</a></li><li><a href="#cs-section-4">⑤ Data flow & execution path</a></li><li><a href="#cs-section-5">⑥ API & interfaces</a></li><li><a href="#cs-section-6">⑦ Data model & storage</a></li><li><a href="#cs-section-7">⑧ Deep dive — core components</a></li><li><a href="#cs-section-8">⑨ Trade-offs & alternatives</a></li><li><a href="#cs-section-9">⑩ 45-minute interview script</a></li><li><a href="#cs-section-10">⑪ Likely follow-up questions</a></li><li><a href="#cs-section-11">⑫ Revision checklist</a></li></ol>
+  </nav>
+    
+    <div class="cs-paper" id="cs-section-0">
+        <h2 class="cs-section-title">① Functional requirements</h2>
+        <div class="cs-note"><ul><li>Search POIs within radius of point</li><li>Filter by category, price, open_now</li><li>Sort by distance, rating, or blended score</li><li>Get POI details (hours, photos, reviews link)</li><li>Business owner update listing</li><li>Report closed or incorrect listing</li></ul></div>
+    </div>
+    <div class="cs-paper" id="cs-section-1">
+        <h2 class="cs-section-title">② Non-functional requirements</h2>
+        <div class="cs-note"><ul><li>Search p99 &lt; 100ms</li><li>50M POIs indexed</li><li>20K nearby QPS</li><li>Index updates within 5 minutes</li><li>99.9% availability</li></ul></div>
+    </div>
+    <div class="cs-paper" id="cs-section-2">
+        <h2 class="cs-section-title">③ Back-of-the-envelope scale</h2>
+        <div class="cs-note"><strong>Assumptions</strong><ul><li>50M POIs × 200 bytes geo index ≈ 10GB geo index</li><li>20K QPS → Redis cluster or partitioned cell index</li><li>Top 20 results per query — early terminate radius expansion</li><li>Updates 1K/sec peak (hours changes)</li></ul></div>
+    </div>
+    <div class="cs-paper" id="cs-section-3">
+        <h2 class="cs-section-title">④ High-level architecture</h2>
+        <div class="cs-diagram"><div class="cs-diagram-title">Proximity Service</div><div class="cs-arch-grid"><div class="cs-arch-row"><div class="cs-arch-cell gray">Client apps</div></div><div class="cs-arch-row"><div class="cs-arch-cell purple">Nearby API</div></div><div class="cs-arch-row"><div class="cs-arch-cell green">Geo index (Redis Geo / S2)</div></div><div class="cs-arch-row"><div class="cs-arch-cell gray">POI metadata DB</div></div><div class="cs-arch-row"><div class="cs-arch-cell orange">Ranking service</div></div></div></div><div class="cs-note">Geo index returns candidate IDs in radius. Fetch metadata batch from DB/cache. Ranker applies distance + rating + open_now boost.</div>
+    </div>
+    <div class="cs-paper" id="cs-section-4">
+        <h2 class="cs-section-title">⑤ Data flow & execution path</h2>
+        <div class="cs-diagram"><div class="cs-diagram-title">Nearby search</div><div class="cs-flow"><span class="cs-box gray">① lat,lng,radius</span><span class="cs-arrow">→</span><span class="cs-box green">② Geo index query</span><span class="cs-arrow">→</span><span class="cs-box purple">③ Fetch POI batch</span><span class="cs-arrow">→</span><span class="cs-box orange">④ Rank + filter</span><span class="cs-arrow">→</span><span class="cs-box">⑤ Return top 20</span></div></div><div class="cs-layer-diagram"><div class="cs-layer l1">Geohash cell covers query circle</div><div class="cs-layer l2">Expand cells if &lt;20 results</div><div class="cs-layer l3">open_now from precomputed bitmap per cell</div><div class="cs-layer l4">Cache popular downtown queries</div></div><div class="cs-note">Contrast with Uber live driver positions — POIs are mostly static; index rebuild batch vs streaming updates.</div>
+    </div>
+    <div class="cs-paper" id="cs-section-5">
+        <h2 class="cs-section-title">⑥ API & interfaces</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Endpoint / flow</th><th>Purpose</th><th>Notes</th></tr><tr><td>GET /nearby</td><td>Radius search</td><td>lat,lng,radius,category</td></tr><tr><td>GET /poi/{id}</td><td>POI details</td><td>cacheable</td></tr><tr><td>PUT /poi/{id}</td><td>Owner update</td><td>auth required</td></tr><tr><td>POST /poi</td><td>Add listing</td><td>moderation queue</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-6">
+        <h2 class="cs-section-title">⑦ Data model & storage</h2>
+        <div class="cs-note">POI: id, lat, lng, categories[], rating, hours_bitmap, geohash. Geo index: geohash → poi_ids[] or Redis GEOADD.</div><div class="cs-table-wrap"><table class="cs-table"><tr><th>Store</th><th>What</th><th>Why</th></tr><tr><td>Redis Geo</td><td>Live geo index</td><td>GEORADIUS</td></tr><tr><td>PostgreSQL</td><td>POI metadata</td><td>ACID updates</td></tr><tr><td>CDN</td><td>Photos</td><td>Static assets</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-7">
+        <h2 class="cs-section-title">⑧ Deep dive — core components</h2>
+        <h3 class="cs-subheading">Geohash cell expansion</h3><div class="cs-note">Start with cell containing point. If results &lt;20, query neighbor cells ring until radius covered or cap cells. Avoid full table scan.</div><h3 class="cs-subheading">open_now filter</h3><div class="cs-note">Precompute open bitmap per POI for next 7 days in local TZ. At query, bitwise check — filter before rank to shrink candidate set.</div>
+    </div>
+    <div class="cs-paper" id="cs-section-8">
+        <h2 class="cs-section-title">⑨ Trade-offs & alternatives</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Decision</th><th>Option A</th><th>Option B</th><th>Pick when</th></tr><tr><td>Index</td><td>Redis Geo</td><td>S2 cells</td><td>Redis ops-simple; S2 better at poles/spans</td></tr><tr><td>Rank</td><td>Distance only</td><td>ML ranker</td><td>Distance cheap; ML for engagement</td></tr><tr><td>Updates</td><td>Realtime index</td><td>Batch nightly</td><td>Batch OK for static POIs</td></tr><tr><td>Cache</td><td>Query cache</td><td>No cache</td><td>Cache downtown lat/lng grids</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-9">
+        <h2 class="cs-section-title">⑩ 45-minute interview script</h2>
+        <div class="cs-note"><ol><li>0–5 min: Nearby + filters</li><li>5–10 min: POI scale</li><li>10–20 min: Geo index query</li><li>20–30 min: Ranking + open_now</li><li>30–38 min: Updates + moderation</li></ol></div>
+    </div>
+    <div class="cs-paper" id="cs-section-10">
+        <h2 class="cs-section-title">⑪ Likely follow-up questions</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Question</th><th>Short answer</th></tr><tr><td>Multi-radius pagination?</td><td>Cursor with last distance + id; expand radius if page empty</td></tr><tr><td>Chain duplicate merge?</td><td>Canonical chain_id groups franchises; dedupe in ranker</td></tr><tr><td>Ads in results?</td><td>Reserve slots 3,7; blend sponsored score with relevance cap</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-11">
+        <h2 class="cs-section-title">⑫ Revision checklist</h2>
+        <ul class="cs-checklist"><li>GEORADIUS / S2</li><li>Cell expansion algorithm</li><li>Batch metadata fetch</li><li>Distance + rating rank</li><li>open_now precompute</li><li>Query result cache</li><li>Owner update path</li><li>Moderation for new POI</li></ul><div class="cs-tags"><span class="cs-tag">proximity</span><span class="cs-tag">geospatial</span><span class="cs-tag">yelp</span><span class="cs-tag">geohash</span><span class="cs-tag">nearby</span></div>
+    </div>
+    <div class="cs-related"><h3>More in this category</h3><div class="cs-related-links"><a href="/cheat-sheets/system-design/">All SD cheat sheets</a><a href="/cheat-sheets/system-design/fundamentals">SD Fundamentals</a><a href="/cheat-sheets/system-design/url-shortener">URL Shortener</a></div></div>
+
+</div>
+</main>
+<script src="/js/cheat-sheet-videos.js"></script>
+<script src="/js/cheat-sheet-prompts.js"></script>
+<script src="/js/cheat-sheet.js"></script>
+<script src="/js/site-nav.js"></script>
+</body>
+</html>

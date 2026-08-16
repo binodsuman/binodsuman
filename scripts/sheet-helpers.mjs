@@ -57,8 +57,22 @@ export function scaleBlock(lines) {
   );
 }
 
+export function enrichSdConfig(c) {
+  const functional = [...(c.functional || [])];
+  const nonFunctional = [...(c.nonFunctional || [])];
+  while (functional.length < 3) {
+    functional.push('Clarify additional functional edge cases with the interviewer before deep diving.');
+  }
+  while (nonFunctional.length < 3) {
+    nonFunctional.push('Discuss observability, failure recovery, and security expectations explicitly.');
+  }
+  return { ...c, functional, nonFunctional };
+}
+
 export function buildSDPages(configs) {
-  return configs.map((c) => ({
+  return configs.map((raw) => {
+    const c = enrichSdConfig(raw);
+    return {
     slug: c.slug,
     title: c.title,
     subtitle: c.subtitle,
@@ -66,54 +80,60 @@ export function buildSDPages(configs) {
     prompt: c.prompt,
     papers: [
       {
-        title: '① Clarify requirements',
+        title: '① Functional requirements',
         body:
-          note(
-            `<strong>Functional</strong><ul>${c.functional.map((f) => `<li>${f}</li>`).join('')}</ul>` +
-              `<strong>Non-functional</strong><ul>${c.nonFunctional.map((f) => `<li>${f}</li>`).join('')}</ul>`
-          ) +
+          note(`<ul>${c.functional.map((f) => `<li>${f}</li>`).join('')}</ul>`) +
           (c.outOfScope
-            ? note(`<strong>Out of scope (say in interview)</strong><ul>${c.outOfScope.map((f) => `<li>${f}</li>`).join('')}</ul>`)
+            ? note(`<strong>Out of scope (state in interview)</strong><ul>${c.outOfScope.map((f) => `<li>${f}</li>`).join('')}</ul>`)
             : ''),
       },
       {
-        title: '② Back-of-the-envelope scale',
+        title: '② Non-functional requirements',
+        body: note(`<ul>${c.nonFunctional.map((f) => `<li>${f}</li>`).join('')}</ul>`),
+      },
+      {
+        title: '③ Back-of-the-envelope scale',
         body: scaleBlock(c.scale) + (c.scaleNote ? note(c.scaleNote) : ''),
       },
       {
-        title: '③ High-level architecture',
+        title: '④ High-level architecture',
         body: c.architecture + (c.archNotes ? note(c.archNotes) : ''),
       },
       {
-        title: '④ API & interfaces',
+        title: '⑤ Data flow & execution path',
+        body: c.dataFlow + (c.dataFlowNotes ? note(c.dataFlowNotes) : ''),
+      },
+      {
+        title: '⑥ API & interfaces',
         body: table(['Endpoint / flow', 'Purpose', 'Notes'], c.apis),
       },
       {
-        title: '⑤ Data model & storage',
+        title: '⑦ Data model & storage',
         body: c.dataModel + (c.storage ? table(['Store', 'What', 'Why'], c.storage) : ''),
       },
       {
-        title: '⑥ Deep dive — core components',
+        title: '⑧ Deep dive — core components',
         body: c.deepDives.map((d) => `<h3 class="cs-subheading">${d.title}</h3>${d.body}`).join(''),
       },
       {
-        title: '⑦ Trade-offs & alternatives',
+        title: '⑨ Trade-offs & alternatives',
         body: table(['Decision', 'Option A', 'Option B', 'Pick when'], c.tradeoffs),
       },
       {
-        title: '⑧ 45-minute interview script',
+        title: '⑩ 45-minute interview script',
         body: note(`<ol>${c.script.map((s) => `<li>${s}</li>`).join('')}</ol>`),
       },
       {
-        title: '⑨ Likely follow-up questions',
+        title: '⑪ Likely follow-up questions',
         body: table(['Question', 'Short answer'], c.followUps),
       },
       {
-        title: '⑩ Revision checklist',
+        title: '⑫ Revision checklist',
         body: checklist(c.checklist) + tags(c.tags || []),
       },
     ],
-  }));
+  };
+  });
 }
 
 export function buildAIPages(configs) {

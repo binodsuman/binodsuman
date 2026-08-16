@@ -194,25 +194,45 @@
     background: rgba(37, 99, 235, 0.06);
 }
 
-.site-header .nav-dropdown-menu--cheats {
-    min-width: 260px;
+.site-header .nav-dropdown-menu--study {
+    min-width: 300px;
     max-height: 70vh;
     overflow-y: auto;
 }
 
 .site-header .nav-dropdown-label {
-    font-size: 0.7rem;
+    font-size: 0.75rem;
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: var(--gray);
-    padding: 0.5rem 1rem 0.25rem;
+    letter-spacing: 0.08em;
+    color: #fff;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    padding: 0.55rem 1rem;
+    margin: 0.35rem 0.5rem 0.15rem;
+    border-radius: 6px;
     list-style: none;
 }
 
-.site-header .nav-dropdown-menu--cheats .nav-link {
+.site-header .nav-dropdown-menu--study .nav-link {
     font-size: 0.88rem;
     padding: 0.45rem 1rem;
+}
+
+.site-header .nav-dropdown-child .nav-link {
+    padding-left: 2rem;
+    font-size: 0.86rem;
+    color: var(--dark);
+}
+
+.site-header .nav-dropdown-child .nav-link:hover {
+    color: var(--primary);
+    background: rgba(37, 99, 235, 0.05);
+}
+
+.site-header .nav-dropdown-menu--cheats {
+    min-width: 260px;
+    max-height: 70vh;
+    overflow-y: auto;
 }
 
 .site-header .nav-dropdown-toggle.active-parent {

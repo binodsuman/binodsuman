@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <title>Design ChatGPT System | Binod Suman Study Material</title>
+    <meta name="description" content="LLM inference serving, conversation state, streaming tokens, GPU pool, and safety filters.">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Kalam:wght@400;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/site-nav.css">
+    <link rel="stylesheet" href="/css/cheat-sheet.css">
+</head>
+<body class="cheat-sheet-page">
+<main class="cheat-sheet-page">
+<div class="cs-container">
+    <nav class="cs-breadcrumb"><a href="/">Home</a> · <a href="/cheat-sheets/">Study Material</a> · <a href="/cheat-sheets/system-design/">System Design</a> · Design ChatGPT System</nav>
+    <header class="cs-hero">
+        <span class="cs-category-badge system-design">System Design</span>
+        <h1 class="cs-title">Design ChatGPT System</h1>
+        <p class="cs-subtitle">LLM inference serving, conversation state, streaming tokens, GPU pool, and safety filters.</p>
+    </header>
+    <div class="cs-interview-tip"><strong>Interview tip</strong> Separate control plane (API, auth, billing) from data plane (GPU inference). Mention KV-cache, batching, streaming SSE, and rate limits per user.</div>
+    <nav class="cs-toc" aria-label="On this page">
+    <div class="cs-toc-title">On this page</div>
+    <ol><li><a href="#cs-section-0">① Functional requirements</a></li><li><a href="#cs-section-1">② Non-functional requirements</a></li><li><a href="#cs-section-2">③ Back-of-the-envelope scale</a></li><li><a href="#cs-section-3">④ High-level architecture</a></li><li><a href="#cs-section-4">⑤ Data flow & execution path</a></li><li><a href="#cs-section-5">⑥ API & interfaces</a></li><li><a href="#cs-section-6">⑦ Data model & storage</a></li><li><a href="#cs-section-7">⑧ Deep dive — core components</a></li><li><a href="#cs-section-8">⑨ Trade-offs & alternatives</a></li><li><a href="#cs-section-9">⑩ 45-minute interview script</a></li><li><a href="#cs-section-10">⑪ Likely follow-up questions</a></li><li><a href="#cs-section-11">⑫ Revision checklist</a></li></ol>
+  </nav>
+    
+    <div class="cs-paper" id="cs-section-0">
+        <h2 class="cs-section-title">① Functional requirements</h2>
+        <div class="cs-note"><ul><li>Multi-turn conversation with history</li><li>Stream tokens to client (SSE)</li><li>Model selection (fast/cheap vs capable)</li><li>Stop/cancel generation</li><li>Moderation on input and output</li><li>Usage metering per user/org</li></ul></div>
+    </div>
+    <div class="cs-paper" id="cs-section-1">
+        <h2 class="cs-section-title">② Non-functional requirements</h2>
+        <div class="cs-note"><ul><li>First token latency &lt; 500ms p95</li><li>50K tokens/sec cluster throughput</li><li>99.9% API availability</li><li>Isolate tenants — no cross-leak in KV cache</li><li>Graceful degradation when GPU saturated</li></ul></div>
+    </div>
+    <div class="cs-paper" id="cs-section-2">
+        <h2 class="cs-section-title">③ Back-of-the-envelope scale</h2>
+        <div class="cs-note"><strong>Assumptions</strong><ul><li>1M active sessions — history stored, not all on GPU</li><li>Context 8K–128K tokens — KV cache dominates VRAM</li><li>50K tok/sec ≈ hundreds of A100s with continuous batching</li><li>Prompt cache for system prompts across users</li></ul></div>
+    </div>
+    <div class="cs-paper" id="cs-section-3">
+        <h2 class="cs-section-title">④ High-level architecture</h2>
+        <div class="cs-diagram"><div class="cs-diagram-title">ChatGPT Serving</div><div class="cs-arch-grid"><div class="cs-arch-row"><div class="cs-arch-cell gray">Clients</div></div><div class="cs-arch-row"><div class="cs-arch-cell purple">Chat API + auth</div></div><div class="cs-arch-row"><div class="cs-arch-cell green">Session / history store</div></div><div class="cs-arch-row"><div class="cs-arch-cell orange">Router (model + GPU pool)</div></div><div class="cs-arch-row"><div class="cs-arch-cell purple">GPU inference workers</div></div><div class="cs-arch-row"><div class="cs-arch-cell gray">Moderation + billing</div></div></div></div><div class="cs-note">API loads recent history from DB, builds prompt, routes to inference pod with capacity. Continuous batching merges requests on same model.</div>
+    </div>
+    <div class="cs-paper" id="cs-section-4">
+        <h2 class="cs-section-title">⑤ Data flow & execution path</h2>
+        <div class="cs-diagram"><div class="cs-diagram-title">Chat completion stream</div><div class="cs-flow"><span class="cs-box gray">① Auth + rate limit</span><span class="cs-arrow">→</span><span class="cs-box green">② Load history</span><span class="cs-arrow">→</span><span class="cs-box orange">③ Moderate input</span><span class="cs-arrow">→</span><span class="cs-box purple">④ GPU generate stream</span><span class="cs-arrow">→</span><span class="cs-box">⑤ Persist + bill tokens</span></div></div><div class="cs-layer-diagram"><div class="cs-layer l1">KV cache reused for prefix (system prompt)</div><div class="cs-layer l2">SSE chunk per token group</div><div class="cs-layer l3">Cancel propagates to inference worker</div><div class="cs-layer l4">Queue when GPUs full — return 429 or wait</div></div><div class="cs-note">Explain prefill vs decode phases. Prefill processes prompt in parallel; decode autoregressive — batch decode for efficiency.</div>
+    </div>
+    <div class="cs-paper" id="cs-section-5">
+        <h2 class="cs-section-title">⑥ API & interfaces</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Endpoint / flow</th><th>Purpose</th><th>Notes</th></tr><tr><td>POST /v1/chat/completions</td><td>Chat</td><td>stream=true SSE</td></tr><tr><td>POST /v1/chat/completions/cancel</td><td>Cancel</td><td>generation_id</td></tr><tr><td>GET /v1/models</td><td>List models</td><td>capability metadata</td></tr><tr><td>GET /v1/usage</td><td>Token usage</td><td>billing dashboard</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-6">
+        <h2 class="cs-section-title">⑦ Data model & storage</h2>
+        <div class="cs-note">Conversation: id, user_id, messages[]. Inference job: model, prompt_tokens, max_tokens, status. Usage: user_id, tokens, cost.</div><div class="cs-table-wrap"><table class="cs-table"><tr><th>Store</th><th>What</th><th>Why</th></tr><tr><td>PostgreSQL</td><td>Conversation history</td><td>encrypted at rest</td></tr><tr><td>Redis</td><td>Rate limits + session</td><td>token bucket</td></tr><tr><td>GPU VRAM</td><td>KV cache per request</td><td>ephemeral</td></tr><tr><td>Object store</td><td>Model weights</td><td>loaded per pod</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-7">
+        <h2 class="cs-section-title">⑧ Deep dive — core components</h2>
+        <h3 class="cs-subheading">Continuous batching and KV cache</h3><div class="cs-note">Orca/vLLM style: batch new requests into running decode batch. Prefix KV cache shared when system prompts identical. VRAM limit caps concurrent contexts.</div><h3 class="cs-subheading">Safety and abuse</h3><div class="cs-note">Input classifier before GPU — block jailbreak patterns. Output filter streaming — cut generation on policy hit. Per-user token rate limits.</div>
+    </div>
+    <div class="cs-paper" id="cs-section-8">
+        <h2 class="cs-section-title">⑨ Trade-offs & alternatives</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Decision</th><th>Option A</th><th>Option B</th><th>Pick when</th></tr><tr><td>Serving</td><td>Dedicated GPU</td><td>Serverless burst</td><td>Dedicated for steady chat load</td></tr><tr><td>History</td><td>Full context</td><td>Summarize old turns</td><td>Summarize saves tokens but may lose detail</td></tr><tr><td>Model</td><td>Single big model</td><td>Router small/large</td><td>Router saves cost on simple queries</td></tr><tr><td>Stream</td><td>Token stream</td><td>Full response</td><td>Stream better UX; harder output moderation</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-9">
+        <h2 class="cs-section-title">⑩ 45-minute interview script</h2>
+        <div class="cs-note"><ol><li>0–5 min: Chat + stream requirements</li><li>5–12 min: Token/sec GPU math</li><li>12–22 min: API + session store</li><li>22–32 min: Inference batching</li><li>32–40 min: Moderation + billing</li></ol></div>
+    </div>
+    <div class="cs-paper" id="cs-section-10">
+        <h2 class="cs-section-title">⑪ Likely follow-up questions</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Question</th><th>Short answer</th></tr><tr><td>RAG plugin architecture?</td><td>Tool retrieves docs → inject context chunk → model cites sources in reply</td></tr><tr><td>Fine-tuned per tenant?</td><td>Dedicated adapter weights loaded per request via tenant_id routing</td></tr><tr><td>Multi-region GPU pools?</td><td>Geo route to nearest pool; sticky session for long contexts; failover queue</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-11">
+        <h2 class="cs-section-title">⑫ Revision checklist</h2>
+        <ul class="cs-checklist"><li>SSE streaming</li><li>Conversation persistence</li><li>GPU continuous batching</li><li>KV cache / prefix cache</li><li>Input/output moderation</li><li>Rate limits per tier</li><li>Cancel in-flight generation</li><li>Token usage metering</li></ul><div class="cs-tags"><span class="cs-tag">llm</span><span class="cs-tag">chatgpt</span><span class="cs-tag">inference</span><span class="cs-tag">gpu</span><span class="cs-tag">streaming</span></div>
+    </div>
+    <div class="cs-related"><h3>More in this category</h3><div class="cs-related-links"><a href="/cheat-sheets/system-design/">All SD cheat sheets</a><a href="/cheat-sheets/system-design/fundamentals">SD Fundamentals</a><a href="/cheat-sheets/system-design/url-shortener">URL Shortener</a></div></div>
+
+</div>
+</main>
+<script src="/js/cheat-sheet-videos.js"></script>
+<script src="/js/cheat-sheet-prompts.js"></script>
+<script src="/js/cheat-sheet.js"></script>
+<script src="/js/site-nav.js"></script>
+</body>
+</html>

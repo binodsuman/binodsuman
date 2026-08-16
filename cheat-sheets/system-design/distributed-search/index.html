@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <title>Design Distributed Search | Binod Suman Study Material</title>
+    <meta name="description" content="Inverted index, sharding, replication, ranking, and query fan-out at billions of documents.">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Kalam:wght@400;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/site-nav.css">
+    <link rel="stylesheet" href="/css/cheat-sheet.css">
+</head>
+<body class="cheat-sheet-page">
+<main class="cheat-sheet-page">
+<div class="cs-container">
+    <nav class="cs-breadcrumb"><a href="/">Home</a> · <a href="/cheat-sheets/">Study Material</a> · <a href="/cheat-sheets/system-design/">System Design</a> · Design Distributed Search</nav>
+    <header class="cs-hero">
+        <span class="cs-category-badge system-design">System Design</span>
+        <h1 class="cs-title">Design Distributed Search</h1>
+        <p class="cs-subtitle">Inverted index, sharding, replication, ranking, and query fan-out at billions of documents.</p>
+    </header>
+    <div class="cs-interview-tip"><strong>Interview tip</strong> Separate indexing pipeline (async) from query path (sync). Mention inverted index, BM25 ranking, shard routing, and replica load balancing for hot queries.</div>
+    <nav class="cs-toc" aria-label="On this page">
+    <div class="cs-toc-title">On this page</div>
+    <ol><li><a href="#cs-section-0">① Functional requirements</a></li><li><a href="#cs-section-1">② Non-functional requirements</a></li><li><a href="#cs-section-2">③ Back-of-the-envelope scale</a></li><li><a href="#cs-section-3">④ High-level architecture</a></li><li><a href="#cs-section-4">⑤ Data flow & execution path</a></li><li><a href="#cs-section-5">⑥ API & interfaces</a></li><li><a href="#cs-section-6">⑦ Data model & storage</a></li><li><a href="#cs-section-7">⑧ Deep dive — core components</a></li><li><a href="#cs-section-8">⑨ Trade-offs & alternatives</a></li><li><a href="#cs-section-9">⑩ 45-minute interview script</a></li><li><a href="#cs-section-10">⑪ Likely follow-up questions</a></li><li><a href="#cs-section-11">⑫ Revision checklist</a></li></ol>
+  </nav>
+    
+    <div class="cs-paper" id="cs-section-0">
+        <h2 class="cs-section-title">① Functional requirements</h2>
+        <div class="cs-note"><ul><li>Index documents with JSON fields; support full-text search on title/body</li><li>Filter by metadata (date range, category, geo bounding box)</li><li>Return ranked results with snippets/highlights</li><li>Faceted counts (e.g. brand, price bucket) alongside hits</li><li>Near-real-time indexing — documents searchable within seconds</li><li>Delete/update documents by ID</li></ul></div><div class="cs-note"><strong>Out of scope (state in interview)</strong><ul><li>ML re-ranking models</li><li>Multi-language stemming tuning</li><li>Federated cross-cluster search</li></ul></div>
+    </div>
+    <div class="cs-paper" id="cs-section-1">
+        <h2 class="cs-section-title">② Non-functional requirements</h2>
+        <div class="cs-note"><ul><li>Query p99 &lt; 200ms for 95% of queries</li><li>Horizontally scale to 10B+ documents</li><li>99.9% availability — tolerate shard replica loss</li><li>5K QPS aggregate with burst to 20K</li><li>Index throughput 100K docs/sec sustained</li></ul></div>
+    </div>
+    <div class="cs-paper" id="cs-section-2">
+        <h2 class="cs-section-title">③ Back-of-the-envelope scale</h2>
+        <div class="cs-note"><strong>Assumptions</strong><ul><li>10B docs × 2KB avg inverted index overhead ≈ 20TB index data</li><li>5K QPS × 50ms shard latency → ~250 concurrent shard queries</li><li>100 shards × 100M docs each; 2 replicas → 300 shard copies</li><li>Ingest 100K docs/sec → Kafka buffer + bulk index every 5s</li><li>Hot query fan-out: coordinator hits all shards → merge top-K</li></ul></div><div class="cs-note">Use routing key (user_id or tenant) when queries are scoped — reduces fan-out from 100 shards to 1–3. Cache top queries at coordinator for 30s.</div>
+    </div>
+    <div class="cs-paper" id="cs-section-3">
+        <h2 class="cs-section-title">④ High-level architecture</h2>
+        <div class="cs-diagram"><div class="cs-diagram-title">Distributed Search Cluster</div><div class="cs-arch-grid"><div class="cs-arch-row"><div class="cs-arch-cell gray">Clients / API Gateway</div></div><div class="cs-arch-row"><div class="cs-arch-cell purple">Query Coordinator (scatter-gather)</div></div><div class="cs-arch-row"><div class="cs-arch-cell green">Shard 1 Primary + Replicas</div><div class="cs-arch-cell green">Shard 2 Primary + Replicas</div><div class="cs-arch-cell green">Shard N…</div></div><div class="cs-arch-row"><div class="cs-arch-cell orange">Ingest Pipeline (Kafka → bulk indexer)</div></div><div class="cs-arch-row"><div class="cs-arch-cell gray">Object store / segment files</div></div></div></div><div class="cs-flow"><span class="cs-box gray">Query</span><span class="cs-arrow">→</span><span class="cs-box purple">Coordinator</span><span class="cs-arrow">→</span><span class="cs-box green">Shard fan-out</span><span class="cs-arrow">→</span><span class="cs-box orange">Merge + rank</span></div><div class="cs-note">Each shard holds inverted index segments (postings lists). Coordinator parses query → builds shard requests → gathers top-K per shard → global merge. Writes go to primary; replicas catch up asynchronously.</div>
+    </div>
+    <div class="cs-paper" id="cs-section-4">
+        <h2 class="cs-section-title">⑤ Data flow & execution path</h2>
+        <div class="cs-diagram"><div class="cs-diagram-title">Query execution path</div><div class="cs-flow"><span class="cs-box gray">① Parse query</span><span class="cs-arrow">→</span><span class="cs-box">② Route shards</span><span class="cs-arrow">→</span><span class="cs-box purple">③ Parallel shard search</span><span class="cs-arrow">→</span><span class="cs-box green">④ Merge BM25 scores</span><span class="cs-arrow">→</span><span class="cs-box orange">⑤ Return page</span></div></div><div class="cs-layer-diagram"><div class="cs-layer l1">Index path: Kafka → bulk buffer → segment build → refresh reader</div><div class="cs-layer l2">Query path: scatter to primaries/replicas → top-K heap per shard</div><div class="cs-layer l3">Slow shard: coordinator uses partial results + timeout cutoff</div><div class="cs-layer l4">Rebalance: relocate segments with dual-write window</div></div><div class="cs-note">Walk both write and read paths. Emphasize that indexing is async and search reads immutable segments for predictable latency.</div>
+    </div>
+    <div class="cs-paper" id="cs-section-5">
+        <h2 class="cs-section-title">⑥ API & interfaces</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Endpoint / flow</th><th>Purpose</th><th>Notes</th></tr><tr><td>POST /index/{id}</td><td>Upsert document</td><td>Async ack after Kafka enqueue</td></tr><tr><td>GET /search?q=…</td><td>Full-text search</td><td>Coordinator scatter-gather</td></tr><tr><td>POST /search</td><td>Complex query DSL</td><td>Filters + facets in one request</td></tr><tr><td>DELETE /index/{id}</td><td>Remove document</td><td>Tombstone in segment</td></tr><tr><td>GET /health</td><td>Cluster status</td><td>Shard allocation + lag metrics</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-6">
+        <h2 class="cs-section-title">⑦ Data model & storage</h2>
+        <div class="cs-note">Document: <code>id</code>, <code>fields</code> (text, keyword, numeric, geo). Inverted index: term → postings list (doc_id, positions, norms). Segment: immutable Lucene-style file set per shard.</div><div class="cs-table-wrap"><table class="cs-table"><tr><th>Store</th><th>What</th><th>Why</th></tr><tr><td>Shard local disk</td><td>Inverted index segments</td><td>Fast random access; merge compactions</td></tr><tr><td>Kafka</td><td>Ingest log</td><td>Durability before index</td></tr><tr><td>ZooKeeper / etcd</td><td>Cluster metadata</td><td>Shard map, leader election</td></tr><tr><td>S3 (optional)</td><td>Cold segment snapshots</td><td>Backup and rehydrate</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-7">
+        <h2 class="cs-section-title">⑧ Deep dive — core components</h2>
+        <h3 class="cs-subheading">Inverted index and BM25 ranking</h3><div class="cs-note">Tokenizer → terms → postings. BM25 balances term frequency and document length. Coordinator merges shard-level scores; optional second-stage reranker on top 100.</div><h3 class="cs-subheading">Shard routing and hot keys</h3><div class="cs-note">Default hash(doc_id) for even spread. Scoped queries use routing key to limit fan-out. Hot shard: add replica read preference + query cache; split shard if sustained hot.</div>
+    </div>
+    <div class="cs-paper" id="cs-section-8">
+        <h2 class="cs-section-title">⑨ Trade-offs & alternatives</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Decision</th><th>Option A</th><th>Option B</th><th>Pick when</th></tr><tr><td>Shard count</td><td>More shards</td><td>Fewer shards</td><td>More shards = more fan-out overhead but smaller rebalance blast</td></tr><tr><td>Consistency</td><td>Primary read</td><td>Replica read</td><td>Replica lowers load; primary for freshest writes</td></tr><tr><td>Index refresh</td><td>1s NRT</td><td>30s batch</td><td>Faster refresh = more CPU on segment merges</td></tr><tr><td>Coordinator cache</td><td>Cache query results</td><td>Always fan-out</td><td>Cache helps trending queries; stale risk</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-9">
+        <h2 class="cs-section-title">⑩ 45-minute interview script</h2>
+        <div class="cs-note"><ol><li>0–5 min: Requirements — search, filter, facets, NRT indexing</li><li>5–12 min: Scale math — docs, QPS, index size</li><li>12–20 min: Architecture — coordinator, shards, ingest pipeline</li><li>20–28 min: Query fan-out and merge ranking</li><li>28–35 min: Indexing pipeline and segment merges</li><li>35–42 min: Failure modes — slow shard, node loss, rebalance</li></ol></div>
+    </div>
+    <div class="cs-paper" id="cs-section-10">
+        <h2 class="cs-section-title">⑪ Likely follow-up questions</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Question</th><th>Short answer</th></tr><tr><td>How handle typo tolerance?</td><td>Fuzzy query expansion, phonetic tokens, or dedicated spell-check index on query side</td></tr><tr><td>Reindex mapping change on 10B docs?</td><td>Dual-write to new index version; alias swap when ready; background reindex from source</td></tr><tr><td>Cross-field search vs per-field boosts?</td><td>Multi-match query with per-field weights in DSL; tune boosts via offline eval</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-11">
+        <h2 class="cs-section-title">⑫ Revision checklist</h2>
+        <ul class="cs-checklist"><li>Inverted index + BM25</li><li>Scatter-gather coordinator</li><li>Shard primary + replicas</li><li>Kafka ingest buffer</li><li>Routing key for scoped queries</li><li>Segment merges and refresh</li><li>Query timeout + partial results</li><li>Rebalance without downtime</li></ul><div class="cs-tags"><span class="cs-tag">search</span><span class="cs-tag">inverted-index</span><span class="cs-tag">sharding</span><span class="cs-tag">elasticsearch</span><span class="cs-tag">ranking</span></div>
+    </div>
+    <div class="cs-related"><h3>More in this category</h3><div class="cs-related-links"><a href="/cheat-sheets/system-design/">All SD cheat sheets</a><a href="/cheat-sheets/system-design/fundamentals">SD Fundamentals</a><a href="/cheat-sheets/system-design/url-shortener">URL Shortener</a></div></div>
+
+</div>
+</main>
+<script src="/js/cheat-sheet-videos.js"></script>
+<script src="/js/cheat-sheet-prompts.js"></script>
+<script src="/js/cheat-sheet.js"></script>
+<script src="/js/site-nav.js"></script>
+</body>
+</html>

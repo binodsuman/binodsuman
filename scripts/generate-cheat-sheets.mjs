@@ -11,7 +11,8 @@ const HEAD = (title, desc) => `<!DOCTYPE html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>${title} | Binod Suman Cheat Sheet</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <title>${title} | Binod Suman Study Material</title>
     <meta name="description" content="${desc.replace(/"/g, '&quot;')}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Kalam:wght@400;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
@@ -114,7 +115,7 @@ for (const p of aiPages) {
     badgeClass: 'ai',
     title: p.title,
     subtitle: p.subtitle,
-    breadcrumb: `<a href="/">Home</a> · <a href="/cheat-sheets/">Cheat Sheets</a> · <a href="/cheat-sheets/ai/">AI</a> · ${p.title}`,
+    breadcrumb: `<a href="/">Home</a> · <a href="/cheat-sheets/">Study Material</a> · <a href="/cheat-sheets/ai/">AI</a> · ${p.title}`,
     tip: p.tip,
     papers: p.papers,
     related: [
@@ -134,7 +135,7 @@ for (const p of sdPages) {
     badgeClass: 'system-design',
     title: p.title,
     subtitle: p.subtitle,
-    breadcrumb: `<a href="/">Home</a> · <a href="/cheat-sheets/">Cheat Sheets</a> · <a href="/cheat-sheets/system-design/">System Design</a> · ${p.title}`,
+    breadcrumb: `<a href="/">Home</a> · <a href="/cheat-sheets/">Study Material</a> · <a href="/cheat-sheets/system-design/">System Design</a> · ${p.title}`,
     tip: p.tip,
     papers: p.papers,
     related: [
@@ -161,11 +162,11 @@ const sdHubLinks = [
 writePage(
   path.join(ROOT, 'cheat-sheets/ai/index.html'),
   hubPage({
-    title: 'AI Cheat Sheets',
+    title: 'AI Study Material',
     subtitle: 'Full-page revision notes — RAG, agents, LangChain, Cursor, Claude, MCP, and more.',
     badge: 'AI',
     badgeClass: 'ai',
-    breadcrumb: '<a href="/">Home</a> · <a href="/cheat-sheets/">Cheat Sheets</a> · AI',
+    breadcrumb: '<a href="/">Home</a> · <a href="/cheat-sheets/">Study Material</a> · AI',
     sections: [
       { label: 'Foundations', links: aiHubLinks.filter((l) => /roadmap|ml-interview|prompt-engineering|embeddings|openai/.test(l.href)) },
       { label: 'LLM Apps', links: aiHubLinks.filter((l) => /rag|first-llm|fine-tuning/.test(l.href)) },
@@ -178,14 +179,14 @@ writePage(
 writePage(
   path.join(ROOT, 'cheat-sheets/system-design/index.html'),
   hubPage({
-    title: 'System Design Cheat Sheets',
-    subtitle: 'Top 15 interview questions — full revision sheets with diagrams, scale math, and trade-offs.',
+    title: 'System Design Study Material',
+    subtitle: '24 interview questions — full revision sheets with diagrams, scale math, data flow, and trade-offs.',
     badge: 'System Design',
     badgeClass: 'system-design',
-    breadcrumb: '<a href="/">Home</a> · <a href="/cheat-sheets/">Cheat Sheets</a> · System Design',
+    breadcrumb: '<a href="/">Home</a> · <a href="/cheat-sheets/">Study Material</a> · System Design',
     sections: [
       { label: 'Core', links: sdHubLinks.slice(0, 2) },
-      { label: 'Top 15 Interview Questions', links: sdHubLinks.slice(2) },
+      { label: 'Interview Questions (24)', links: sdHubLinks.slice(2) },
     ],
   })
 );

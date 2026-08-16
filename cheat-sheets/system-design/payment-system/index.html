@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <title>Design Payment System | Binod Suman Study Material</title>
+    <meta name="description" content="Card charges, idempotency, double-entry ledger, PCI boundaries, and reconciliation.">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Kalam:wght@400;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/site-nav.css">
+    <link rel="stylesheet" href="/css/cheat-sheet.css">
+</head>
+<body class="cheat-sheet-page">
+<main class="cheat-sheet-page">
+<div class="cs-container">
+    <nav class="cs-breadcrumb"><a href="/">Home</a> · <a href="/cheat-sheets/">Study Material</a> · <a href="/cheat-sheets/system-design/">System Design</a> · Design Payment System</nav>
+    <header class="cs-hero">
+        <span class="cs-category-badge system-design">System Design</span>
+        <h1 class="cs-title">Design Payment System</h1>
+        <p class="cs-subtitle">Card charges, idempotency, double-entry ledger, PCI boundaries, and reconciliation.</p>
+    </header>
+    <div class="cs-interview-tip"><strong>Interview tip</strong> Never store raw PAN. Use idempotency keys, ledger entries (debit/credit), async capture with PSP, and reconciliation jobs.</div>
+    <nav class="cs-toc" aria-label="On this page">
+    <div class="cs-toc-title">On this page</div>
+    <ol><li><a href="#cs-section-0">① Functional requirements</a></li><li><a href="#cs-section-1">② Non-functional requirements</a></li><li><a href="#cs-section-2">③ Back-of-the-envelope scale</a></li><li><a href="#cs-section-3">④ High-level architecture</a></li><li><a href="#cs-section-4">⑤ Data flow & execution path</a></li><li><a href="#cs-section-5">⑥ API & interfaces</a></li><li><a href="#cs-section-6">⑦ Data model & storage</a></li><li><a href="#cs-section-7">⑧ Deep dive — core components</a></li><li><a href="#cs-section-8">⑨ Trade-offs & alternatives</a></li><li><a href="#cs-section-9">⑩ 45-minute interview script</a></li><li><a href="#cs-section-10">⑪ Likely follow-up questions</a></li><li><a href="#cs-section-11">⑫ Revision checklist</a></li></ol>
+  </nav>
+    
+    <div class="cs-paper" id="cs-section-0">
+        <h2 class="cs-section-title">① Functional requirements</h2>
+        <div class="cs-note"><ul><li>Create payment intent with amount + currency</li><li>Capture charge via card token</li><li>Refund full or partial</li><li>Idempotent API with client key</li><li>Webhook to merchant on status change</li><li>Merchant dashboard transaction history</li></ul></div>
+    </div>
+    <div class="cs-paper" id="cs-section-1">
+        <h2 class="cs-section-title">② Non-functional requirements</h2>
+        <div class="cs-note"><ul><li>10K TPS authorization peak</li><li>Strong consistency for balances — no double charge</li><li>PCI DSS — card data only at PSP/token vault</li><li>Audit log immutable 7+ years</li><li>99.99% availability for authorize API</li></ul></div>
+    </div>
+    <div class="cs-paper" id="cs-section-2">
+        <h2 class="cs-section-title">③ Back-of-the-envelope scale</h2>
+        <div class="cs-note"><strong>Assumptions</strong><ul><li>10K TPS × $50 avg — high correctness not volume challenge</li><li>Ledger append-only 100K entries/sec with sharding by merchant</li><li>Idempotency store TTL 24h per key</li><li>Reconciliation batch nightly with PSP settlement files</li></ul></div>
+    </div>
+    <div class="cs-paper" id="cs-section-3">
+        <h2 class="cs-section-title">④ High-level architecture</h2>
+        <div class="cs-diagram"><div class="cs-diagram-title">Payment Platform</div><div class="cs-arch-grid"><div class="cs-arch-row"><div class="cs-arch-cell gray">Merchant apps</div></div><div class="cs-arch-row"><div class="cs-arch-cell purple">Payment API (idempotent)</div></div><div class="cs-arch-row"><div class="cs-arch-cell green">Ledger service (double-entry)</div></div><div class="cs-arch-row"><div class="cs-arch-cell orange">PSP / card network</div></div><div class="cs-arch-row"><div class="cs-arch-cell purple">Webhook dispatcher</div></div><div class="cs-arch-row"><div class="cs-arch-cell gray">Reconciliation jobs</div></div></div></div><div class="cs-note">API stores idempotency record first. Ledger writes in same DB transaction as payment state transition. PSP call async with timeout + polling.</div>
+    </div>
+    <div class="cs-paper" id="cs-section-4">
+        <h2 class="cs-section-title">⑤ Data flow & execution path</h2>
+        <div class="cs-diagram"><div class="cs-diagram-title">Charge execution</div><div class="cs-flow"><span class="cs-box gray">① Idempotency check</span><span class="cs-arrow">→</span><span class="cs-box green">② Reserve ledger</span><span class="cs-arrow">→</span><span class="cs-box orange">③ PSP authorize</span><span class="cs-arrow">→</span><span class="cs-box purple">④ Capture / void</span><span class="cs-arrow">→</span><span class="cs-box">⑤ Webhook merchant</span></div></div><div class="cs-layer-diagram"><div class="cs-layer l1">States: created → authorized → captured | failed | refunded</div><div class="cs-layer l2">Double-entry: merchant_balance + platform_fees</div><div class="cs-layer l3">Outbox table for reliable webhooks</div><div class="cs-layer l4">Reconcile PSP settlement vs ledger daily</div></div><div class="cs-note">Walk failure at PSP timeout — payment stays authorized until expiry; merchant polls or webhook fires.</div>
+    </div>
+    <div class="cs-paper" id="cs-section-5">
+        <h2 class="cs-section-title">⑥ API & interfaces</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Endpoint / flow</th><th>Purpose</th><th>Notes</th></tr><tr><td>POST /v1/charges</td><td>Create charge</td><td>Idempotency-Key header</td></tr><tr><td>POST /v1/refunds</td><td>Refund</td><td>links charge_id</td></tr><tr><td>GET /v1/charges/{id}</td><td>Status</td><td>merchant scoped</td></tr><tr><td>POST /v1/webhooks/test</td><td>Simulate event</td><td>sandbox only</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-6">
+        <h2 class="cs-section-title">⑦ Data model & storage</h2>
+        <div class="cs-note">Payment: id, merchant_id, amount, status, idempotency_key. LedgerEntry: account, debit, credit, payment_id. Outbox: event payload.</div><div class="cs-table-wrap"><table class="cs-table"><tr><th>Store</th><th>What</th><th>Why</th></tr><tr><td>PostgreSQL</td><td>Payments + ledger</td><td>ACID transactions</td></tr><tr><td>Redis</td><td>Idempotency cache</td><td>fast duplicate detect</td></tr><tr><td>S3</td><td>Settlement files</td><td>immutable audit</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-7">
+        <h2 class="cs-section-title">⑧ Deep dive — core components</h2>
+        <h3 class="cs-subheading">Idempotency and double charge prevention</h3><div class="cs-note">Idempotency-Key → unique index. First request inserts row processing; duplicate returns same response body. Never call PSP twice for same key.</div><h3 class="cs-subheading">Double-entry ledger</h3><div class="cs-note">Every money move = two entries balanced. Merchant +100 customer -100. Refund reverses entries. Audit reconstructs balance from entries only.</div>
+    </div>
+    <div class="cs-paper" id="cs-section-8">
+        <h2 class="cs-section-title">⑨ Trade-offs & alternatives</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Decision</th><th>Option A</th><th>Option B</th><th>Pick when</th></tr><tr><td>PSP sync</td><td>Sync authorize</td><td>Async queue</td><td>Sync simpler UX; queue for resilience</td></tr><tr><td>Ledger</td><td>SQL ACID</td><td>Event sourcing</td><td>SQL for financial correctness</td></tr><tr><td>Token</td><td>PSP tokenization</td><td>Own vault</td><td>Never own PAN — PCI scope</td></tr><tr><td>Webhook</td><td>At-least-once</td><td>Exactly-once</td><td>At-least-once + merchant idempotent</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-9">
+        <h2 class="cs-section-title">⑩ 45-minute interview script</h2>
+        <div class="cs-note"><ol><li>0–5 min: Charge/refund requirements</li><li>5–12 min: Correctness + PCI</li><li>12–22 min: API + idempotency</li><li>22–32 min: Ledger + states</li><li>32–40 min: Webhooks + reconciliation</li></ol></div>
+    </div>
+    <div class="cs-paper" id="cs-section-10">
+        <h2 class="cs-section-title">⑪ Likely follow-up questions</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Question</th><th>Short answer</th></tr><tr><td>Multi-currency FX?</td><td>FX rate table at authorize time; ledger in merchant settlement currency</td></tr><tr><td>Dispute chargeback flow?</td><td>Separate dispute state; pull funds from merchant balance; evidence upload portal</td></tr><tr><td>3DS authentication?</td><td>Redirect to issuer challenge before authorize; resume with session token</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-11">
+        <h2 class="cs-section-title">⑫ Revision checklist</h2>
+        <ul class="cs-checklist"><li>Idempotency keys</li><li>Payment state machine</li><li>Double-entry ledger</li><li>PSP token only</li><li>Transactional outbox</li><li>Webhook retries</li><li>Reconciliation job</li><li>Immutable audit log</li></ul><div class="cs-tags"><span class="cs-tag">payments</span><span class="cs-tag">fintech</span><span class="cs-tag">ledger</span><span class="cs-tag">idempotency</span><span class="cs-tag">pci</span></div>
+    </div>
+    <div class="cs-related"><h3>More in this category</h3><div class="cs-related-links"><a href="/cheat-sheets/system-design/">All SD cheat sheets</a><a href="/cheat-sheets/system-design/fundamentals">SD Fundamentals</a><a href="/cheat-sheets/system-design/url-shortener">URL Shortener</a></div></div>
+
+</div>
+</main>
+<script src="/js/cheat-sheet-videos.js"></script>
+<script src="/js/cheat-sheet-prompts.js"></script>
+<script src="/js/cheat-sheet.js"></script>
+<script src="/js/site-nav.js"></script>
+</body>
+</html>

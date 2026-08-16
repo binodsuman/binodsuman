@@ -12,53 +12,72 @@
             <ul class="nav-menu" id="navMenu">
                 <li class="nav-dropdown" data-dropdown="videos">
                     <button type="button" class="nav-dropdown-toggle" aria-expanded="false">
-                        Videos <i class="fas fa-chevron-down"></i>
+                        YouTube Video <i class="fas fa-chevron-down"></i>
                     </button>
                     <ul class="nav-dropdown-menu">
                         <li><a href="/#latest-videos" class="nav-link" data-nav="latest-videos">Latest Videos</a></li>
                         <li><a href="/#popular-videos" class="nav-link" data-nav="popular-videos">Popular Videos</a></li>
+                        <li><a href="/#playlists" class="nav-link" data-nav="playlists">Playlists</a></li>
+                        <li><a href="/#dsa" class="nav-link" data-nav="dsa">DSA</a></li>
                     </ul>
                 </li>
-                <li><a href="/#playlists" class="nav-link" data-nav="playlists">Playlists</a></li>
-                <li><a href="/#dsa" class="nav-link" data-nav="dsa">DSA</a></li>
                 <li><a href="/#about" class="nav-link" data-nav="about">Connect</a></li>
                 <li class="nav-dropdown" data-dropdown="cheat-sheets">
                     <button type="button" class="nav-dropdown-toggle" aria-expanded="false">
-                        Cheat Sheet <i class="fas fa-chevron-down"></i>
+                        Study Material <i class="fas fa-chevron-down"></i>
                     </button>
-                    <ul class="nav-dropdown-menu nav-dropdown-menu--cheats">
+                    <ul class="nav-dropdown-menu nav-dropdown-menu--study">
                         <li class="nav-dropdown-label">System Design</li>
-                        <li><a href="/cheat-sheets/system-design/" class="nav-link" data-nav="sd-hub">SD Top 15 Hub</a></li>
-                        <li><a href="/cheat-sheets/system-design/fundamentals" class="nav-link" data-nav="sd-fundamentals">SD Fundamentals</a></li>
-                        <li><a href="/cheat-sheets/system-design/patterns" class="nav-link" data-nav="sd-patterns">SD Interview Patterns</a></li>
-                        <li><a href="/cheat-sheets/system-design/url-shortener" class="nav-link" data-nav="sd-url-shortener">URL Shortener</a></li>
-                        <li><a href="/cheat-sheets/system-design/rate-limiter" class="nav-link" data-nav="sd-rate-limiter">Rate Limiter</a></li>
-                        <li><a href="/cheat-sheets/system-design/chat-system" class="nav-link" data-nav="sd-chat-system">Chat System</a></li>
-                        <li><a href="/cheat-sheets/system-design/news-feed" class="nav-link" data-nav="sd-news-feed">News Feed</a></li>
-                        <li><a href="/cheat-sheets/system-design/uber-rides" class="nav-link" data-nav="sd-uber-rides">Uber / Rides</a></li>
+                        <li><a href="/cheat-sheets/system-design/" class="nav-link" data-nav="sd-hub">SD Hub (24 topics)</a></li>
+                        <li class="nav-dropdown-child"><a href="/cheat-sheets/system-design/fundamentals" class="nav-link" data-nav="sd-fundamentals">SD Fundamentals</a></li>
+                        <li class="nav-dropdown-child"><a href="/cheat-sheets/system-design/patterns" class="nav-link" data-nav="sd-patterns">SD Interview Patterns</a></li>
+                        <li class="nav-dropdown-child"><a href="/cheat-sheets/system-design/url-shortener" class="nav-link" data-nav="sd-url-shortener">URL Shortener</a></li>
+                        <li class="nav-dropdown-child"><a href="/cheat-sheets/system-design/rate-limiter" class="nav-link" data-nav="sd-rate-limiter">Rate Limiter</a></li>
+                        <li class="nav-dropdown-child"><a href="/cheat-sheets/system-design/chat-system" class="nav-link" data-nav="sd-chat-system">WhatsApp & Chat</a></li>
+                        <li class="nav-dropdown-child"><a href="/cheat-sheets/system-design/news-feed" class="nav-link" data-nav="sd-news-feed">News Feed</a></li>
+                        <li class="nav-dropdown-child"><a href="/cheat-sheets/system-design/twitter-timeline" class="nav-link" data-nav="sd-twitter-timeline">Twitter</a></li>
+                        <li class="nav-dropdown-child"><a href="/cheat-sheets/system-design/youtube-streaming" class="nav-link" data-nav="sd-youtube-streaming">YouTube</a></li>
+                        <li class="nav-dropdown-child"><a href="/cheat-sheets/system-design/instagram-photos" class="nav-link" data-nav="sd-instagram-photos">Instagram</a></li>
+                        <li class="nav-dropdown-child"><a href="/cheat-sheets/system-design/web-crawler" class="nav-link" data-nav="sd-web-crawler">Web Crawler</a></li>
+                        <li class="nav-dropdown-child"><a href="/cheat-sheets/system-design/typeahead" class="nav-link" data-nav="sd-typeahead">Typeahead</a></li>
+                        <li class="nav-dropdown-child"><a href="/cheat-sheets/system-design/file-storage" class="nav-link" data-nav="sd-file-storage">File Storage</a></li>
+                        <li class="nav-dropdown-child"><a href="/cheat-sheets/system-design/api-gateway" class="nav-link" data-nav="sd-api-gateway">API Gateway</a></li>
+                        <li class="nav-dropdown-child"><a href="/cheat-sheets/system-design/notification-system" class="nav-link" data-nav="sd-notification-system">Notifications</a></li>
+                        <li class="nav-dropdown-child"><a href="/cheat-sheets/system-design/distributed-cache" class="nav-link" data-nav="sd-distributed-cache">Distributed Cache</a></li>
+                        <li class="nav-dropdown-child"><a href="/cheat-sheets/system-design/ticket-booking" class="nav-link" data-nav="sd-ticket-booking">Ticket Booking</a></li>
+                        <li class="nav-dropdown-child"><a href="/cheat-sheets/system-design/uber-rides" class="nav-link" data-nav="sd-uber-rides">Uber / Rides</a></li>
+                        <li class="nav-dropdown-child"><a href="/cheat-sheets/system-design/distributed-search" class="nav-link" data-nav="sd-distributed-search">Distributed Search</a></li>
+                        <li class="nav-dropdown-child"><a href="/cheat-sheets/system-design/distributed-logging" class="nav-link" data-nav="sd-distributed-logging">Distributed Logging</a></li>
+                        <li class="nav-dropdown-child"><a href="/cheat-sheets/system-design/distributed-task-scheduler" class="nav-link" data-nav="sd-distributed-task-scheduler">Task Scheduler</a></li>
+                        <li class="nav-dropdown-child"><a href="/cheat-sheets/system-design/shared-counter" class="nav-link" data-nav="sd-shared-counter">Shared Counter</a></li>
+                        <li class="nav-dropdown-child"><a href="/cheat-sheets/system-design/quora" class="nav-link" data-nav="sd-quora">Quora</a></li>
+                        <li class="nav-dropdown-child"><a href="/cheat-sheets/system-design/google-maps" class="nav-link" data-nav="sd-google-maps">Google Maps</a></li>
+                        <li class="nav-dropdown-child"><a href="/cheat-sheets/system-design/proximity-service" class="nav-link" data-nav="sd-proximity-service">Proximity Service</a></li>
+                        <li class="nav-dropdown-child"><a href="/cheat-sheets/system-design/payment-system" class="nav-link" data-nav="sd-payment-system">Payment System</a></li>
+                        <li class="nav-dropdown-child"><a href="/cheat-sheets/system-design/chatgpt-system" class="nav-link" data-nav="sd-chatgpt-system">ChatGPT System</a></li>
                         <li class="nav-dropdown-label">AI</li>
                         <li><a href="/cheat-sheets/ai/" class="nav-link" data-nav="ai-hub">AI Basics Hub</a></li>
-                        <li><a href="/cheat-sheets/ai/roadmap" class="nav-link" data-nav="ai-roadmap">AI Master Roadmap</a></li>
-                        <li><a href="/cheat-sheets/ai/ml-interview" class="nav-link" data-nav="ai-ml">ML/DL Interview Guide</a></li>
-                        <li><a href="/cheat-sheets/ai/rag" class="nav-link" data-nav="ai-rag">RAG</a></li>
-                        <li><a href="/cheat-sheets/ai/agents-intro" class="nav-link" data-nav="ai-agents">What is an Agent?</a></li>
-                        <li><a href="/cheat-sheets/ai/create-first-agent" class="nav-link" data-nav="ai-first-agent">Create First Agent</a></li>
-                        <li><a href="/cheat-sheets/ai/langchain-basics" class="nav-link" data-nav="ai-langchain">LangChain Basics</a></li>
-                        <li><a href="/cheat-sheets/ai/cursor-guide" class="nav-link" data-nav="ai-cursor">How to Use Cursor</a></li>
-                        <li><a href="/cheat-sheets/ai/claude-guide" class="nav-link" data-nav="ai-claude">How to Use Claude</a></li>
-                        <li><a href="/cheat-sheets/ai/cursor-vs-claude-code" class="nav-link" data-nav="ai-cursor-claude">Cursor vs Claude Code</a></li>
+                        <li class="nav-dropdown-child"><a href="/cheat-sheets/ai/roadmap" class="nav-link" data-nav="ai-roadmap">AI Master Roadmap</a></li>
+                        <li class="nav-dropdown-child"><a href="/cheat-sheets/ai/ml-interview" class="nav-link" data-nav="ai-ml">ML/DL Interview Guide</a></li>
+                        <li class="nav-dropdown-child"><a href="/cheat-sheets/ai/rag" class="nav-link" data-nav="ai-rag">RAG</a></li>
+                        <li class="nav-dropdown-child"><a href="/cheat-sheets/ai/agents-intro" class="nav-link" data-nav="ai-agents">What is an Agent?</a></li>
+                        <li class="nav-dropdown-child"><a href="/cheat-sheets/ai/create-first-agent" class="nav-link" data-nav="ai-first-agent">Create First Agent</a></li>
+                        <li class="nav-dropdown-child"><a href="/cheat-sheets/ai/langchain-basics" class="nav-link" data-nav="ai-langchain">LangChain Basics</a></li>
+                        <li class="nav-dropdown-child"><a href="/cheat-sheets/ai/cursor-guide" class="nav-link" data-nav="ai-cursor">How to Use Cursor</a></li>
+                        <li class="nav-dropdown-child"><a href="/cheat-sheets/ai/claude-guide" class="nav-link" data-nav="ai-claude">How to Use Claude</a></li>
+                        <li class="nav-dropdown-child"><a href="/cheat-sheets/ai/cursor-vs-claude-code" class="nav-link" data-nav="ai-cursor-claude">Cursor vs Claude Code</a></li>
                         <li class="nav-dropdown-label">Java</li>
                         <li><a href="/cheat-sheets/java/core" class="nav-link" data-nav="java-core">Java Core</a></li>
-                        <li><a href="/cheat-sheets/java/collections" class="nav-link" data-nav="java-collections">Collections & Concurrency</a></li>
+                        <li class="nav-dropdown-child"><a href="/cheat-sheets/java/collections" class="nav-link" data-nav="java-collections">Collections & Concurrency</a></li>
                         <li class="nav-dropdown-label">DSA</li>
                         <li><a href="/cheat-sheets/dsa/patterns" class="nav-link" data-nav="dsa-patterns">DSA Patterns</a></li>
-                        <li><a href="/cheat-sheets/dsa/top-problems" class="nav-link" data-nav="dsa-problems">Top Interview Problems</a></li>
+                        <li class="nav-dropdown-child"><a href="/cheat-sheets/dsa/top-problems" class="nav-link" data-nav="dsa-problems">Top Interview Problems</a></li>
                         <li class="nav-dropdown-label">Data Engineering</li>
                         <li><a href="/cheat-sheets/data-engineering/kafka" class="nav-link" data-nav="de-kafka">Apache Kafka</a></li>
-                        <li><a href="/cheat-sheets/data-engineering/spark" class="nav-link" data-nav="de-spark">Apache Spark</a></li>
+                        <li class="nav-dropdown-child"><a href="/cheat-sheets/data-engineering/spark" class="nav-link" data-nav="de-spark">Apache Spark</a></li>
                         <li class="nav-dropdown-label">Behaviour</li>
                         <li><a href="/cheat-sheets/behaviour/star" class="nav-link" data-nav="beh-star">STAR Method</a></li>
-                        <li><a href="/cheat-sheets/behaviour/questions" class="nav-link" data-nav="beh-questions">Top Behavioral Qs</a></li>
+                        <li class="nav-dropdown-child"><a href="/cheat-sheets/behaviour/questions" class="nav-link" data-nav="beh-questions">Top Behavioral Qs</a></li>
                     </ul>
                 </li>
                 <li class="nav-dropdown" data-dropdown="llm-prompt">
@@ -94,6 +113,15 @@
         '/cheat-sheets/system-design/distributed-cache': 'sd-distributed-cache',
         '/cheat-sheets/system-design/ticket-booking': 'sd-ticket-booking',
         '/cheat-sheets/system-design/uber-rides': 'sd-uber-rides',
+        '/cheat-sheets/system-design/distributed-search': 'sd-distributed-search',
+        '/cheat-sheets/system-design/distributed-logging': 'sd-distributed-logging',
+        '/cheat-sheets/system-design/distributed-task-scheduler': 'sd-distributed-task-scheduler',
+        '/cheat-sheets/system-design/shared-counter': 'sd-shared-counter',
+        '/cheat-sheets/system-design/quora': 'sd-quora',
+        '/cheat-sheets/system-design/google-maps': 'sd-google-maps',
+        '/cheat-sheets/system-design/proximity-service': 'sd-proximity-service',
+        '/cheat-sheets/system-design/payment-system': 'sd-payment-system',
+        '/cheat-sheets/system-design/chatgpt-system': 'sd-chatgpt-system',
         '/cheat-sheets/ai': 'ai-hub',
         '/cheat-sheets/ai/roadmap': 'ai-roadmap',
         '/cheat-sheets/ai/ml-interview': 'ai-ml',
@@ -145,12 +173,8 @@
 
         const hash = window.location.hash.replace('#', '');
         if (path === '/' || path === '/index.html') {
-            if (hash === 'latest-videos' || hash === 'popular-videos') {
+            if (hash === 'latest-videos' || hash === 'popular-videos' || hash === 'playlists' || hash === 'dsa') {
                 markChildActive('videos', hash);
-            } else if (hash === 'playlists') {
-                document.querySelector('[data-nav="playlists"]')?.classList.add('active-child');
-            } else if (hash === 'dsa') {
-                document.querySelector('[data-nav="dsa"]')?.classList.add('active-child');
             } else if (hash === 'about') {
                 document.querySelector('[data-nav="about"]')?.classList.add('active-child');
             }
