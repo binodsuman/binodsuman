@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <title>Load Balancing | Binod Suman Study Material</title>
+    <meta name="description" content="Distributes incoming traffic across multiple servers so no single machine becomes a bottleneck and failures are isolated.">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Kalam:wght@400;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/site-nav.css">
+    <link rel="stylesheet" href="/css/cheat-sheet.css">
+</head>
+<body class="cheat-sheet-page">
+<main class="cheat-sheet-page">
+<div class="cs-container">
+    <nav class="cs-breadcrumb"><a href="/">Home</a> · <a href="/cheat-sheets/">Study Material</a> · <a href="/cheat-sheets/system-design/">System Design</a> · <a href="/cheat-sheets/system-design/core/">Core Concepts</a> · Load Balancing</nav>
+    <header class="cs-hero">
+        <span class="cs-category-badge system-design">SD Core</span>
+        <h1 class="cs-title">Load Balancing</h1>
+        <p class="cs-subtitle">Distributes incoming traffic across multiple servers so no single machine becomes a bottleneck and failures are isolated.</p>
+    </header>
+    <div class="cs-interview-tip"><strong>Interview tip</strong> Lead with a 30-second definition, then one real system example and name 2–3 designs where Load Balancing is non-negotiable.</div>
+    <nav class="cs-toc" aria-label="On this page">
+    <div class="cs-toc-title">On this page</div>
+    <ol><li><a href="#cs-section-0">① What it is (30 seconds)</a></li><li><a href="#cs-section-1">② How it works in system design</a></li><li><a href="#cs-section-2">③ Concrete system design example</a></li><li><a href="#cs-section-3">④ Important interview Q&A</a></li><li><a href="#cs-section-4">⑤ Seen in these system designs</a></li><li><a href="#cs-section-5">⑥ Revision checklist</a></li></ol>
+  </nav>
+    
+    <div class="cs-paper" id="cs-section-0">
+        <h2 class="cs-section-title">① What it is (30 seconds)</h2>
+        <div class="cs-note">Distributes incoming traffic across multiple servers so no single machine becomes a bottleneck and failures are isolated.</div><div class="cs-note"><strong>Analogy:</strong> A restaurant host seating guests across waiters instead of one overloaded server.</div>
+    </div>
+    <div class="cs-paper" id="cs-section-1">
+        <h2 class="cs-section-title">② How it works in system design</h2>
+        <div class="cs-note">Client hits a load balancer (L4 TCP or L7 HTTP). LB picks a healthy backend via round-robin, least connections, or weighted rules. Health checks remove dead nodes. SSL termination and sticky sessions optional.</div><div class="cs-diagram"><div class="cs-diagram-title">Typical placement</div><div class="cs-flow"><span class="cs-box gray">Client</span><span class="cs-arrow">→</span><span class="cs-box">Edge / Gateway</span><span class="cs-arrow">→</span><span class="cs-box purple">Load</span><span class="cs-arrow">→</span><span class="cs-box green">Services</span><span class="cs-arrow">→</span><span class="cs-box orange">Data stores</span></div></div>
+    </div>
+    <div class="cs-paper" id="cs-section-2">
+        <h2 class="cs-section-title">③ Concrete system design example</h2>
+        <div class="cs-note"><strong>Scenario:</strong> URL shortener at 50K RPS: 20 stateless API pods behind an AWS ALB. ALB terminates TLS, routes by path, drains unhealthy pods during deploy. Session-free redirects need no stickiness.</div>
+    </div>
+    <div class="cs-paper" id="cs-section-3">
+        <h2 class="cs-section-title">④ Important interview Q&A</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Question</th><th>Answer</th></tr><tr><td>L4 vs L7 load balancer?</td><td>L4 routes by IP/port (fast, WebSocket-friendly). L7 routes by URL, headers, cookies (microservices, canary).</td></tr><tr><td>What if one server is slow?</td><td>Least-connections beats round-robin when request durations vary widely.</td></tr><tr><td>How handle deploy without downtime?</td><td>Rolling deploy + health check grace period; LB stops sending to old version.</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-4">
+        <h2 class="cs-section-title">⑤ Seen in these system designs</h2>
+        <div class="cs-note"><ul><li><a href="/cheat-sheets/system-design/url-shortener">URL Shortener</a> — redirect hot path</li><li><a href="/cheat-sheets/system-design/api-gateway">API Gateway</a> — edge routing</li><li><a href="/cheat-sheets/system-design/chat-system">WhatsApp & Chat</a> — WebSocket LB</li></ul></div><div class="cs-note">In interviews, after explaining the concept, say: "This shows up directly in …" and link two designs.</div>
+    </div>
+    <div class="cs-paper" id="cs-section-5">
+        <h2 class="cs-section-title">⑥ Revision checklist</h2>
+        <ul class="cs-checklist"><li>Named L4 vs L7</li><li>Health checks</li><li>SSL termination</li><li>Stateless vs sticky</li><li>Global + regional LB</li></ul><div class="cs-tags"><span class="cs-tag">load-balancer</span><span class="cs-tag">scalability</span><span class="cs-tag">high-availability</span></div>
+    </div>
+    <div class="cs-related"><h3>More in this category</h3><div class="cs-related-links"><a href="/cheat-sheets/system-design/core/">All core concepts</a><a href="/cheat-sheets/system-design/fundamentals">SD Fundamentals</a><a href="/cheat-sheets/system-design/">SD Hub</a></div></div>
+
+</div>
+</main>
+<script src="/js/cheat-sheet-videos.js"></script>
+<script src="/js/cheat-sheet-prompts.js"></script>
+<script src="/js/cheat-sheet.js"></script>
+<script src="/js/site-nav.js"></script>
+</body>
+</html>

@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <title>Design Google Ads Bidding System | Binod Suman Study Material</title>
+    <meta name="description" content="Real-time ad auction — relevance, bid, quality score, and millisecond ranking at search scale.">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Kalam:wght@400;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/site-nav.css">
+    <link rel="stylesheet" href="/css/cheat-sheet.css">
+</head>
+<body class="cheat-sheet-page">
+<main class="cheat-sheet-page">
+<div class="cs-container">
+    <nav class="cs-breadcrumb"><a href="/">Home</a> · <a href="/cheat-sheets/">Study Material</a> · <a href="/cheat-sheets/system-design/">System Design</a> · <a href="/cheat-sheets/system-design/google/">Google SD</a> · Design Google Ads Bidding System</nav>
+    <header class="cs-hero">
+        <span class="cs-category-badge system-design">Google SD</span>
+        <h1 class="cs-title">Design Google Ads Bidding System</h1>
+        <p class="cs-subtitle">Real-time ad auction — relevance, bid, quality score, and millisecond ranking at search scale.</p>
+    </header>
+    <div class="cs-interview-tip"><strong>Interview tip</strong> Clarify GSP vs VCG auction, quality score, budget pacing, and fraud filtering before ranking.</div>
+    <nav class="cs-toc" aria-label="On this page">
+    <div class="cs-toc-title">On this page</div>
+    <ol><li><a href="#cs-section-0">① Functional requirements</a></li><li><a href="#cs-section-1">② Non-functional requirements</a></li><li><a href="#cs-section-2">③ Back-of-the-envelope scale</a></li><li><a href="#cs-section-3">④ High-level architecture</a></li><li><a href="#cs-section-4">⑤ Data flow & execution path</a></li><li><a href="#cs-section-5">⑥ API & interfaces</a></li><li><a href="#cs-section-6">⑦ Data model & storage</a></li><li><a href="#cs-section-7">⑧ Deep dive — core components</a></li><li><a href="#cs-section-8">⑨ Trade-offs & alternatives</a></li><li><a href="#cs-section-9">⑩ 45-minute interview script</a></li><li><a href="#cs-section-10">⑪ Likely follow-up questions</a></li><li><a href="#cs-section-11">⑫ Revision checklist</a></li></ol>
+  </nav>
+    
+    <div class="cs-paper" id="cs-section-0">
+        <h2 class="cs-section-title">① Functional requirements</h2>
+        <div class="cs-note"><ul><li>Advertisers set bids and budgets</li><li>Match ads to query keywords + intent</li><li>Run auction per search impression</li><li>Track clicks and conversions</li><li>Budget pacing through the day</li><li>Policy and fraud filtering</li></ul></div>
+    </div>
+    <div class="cs-paper" id="cs-section-1">
+        <h2 class="cs-section-title">② Non-functional requirements</h2>
+        <div class="cs-note"><ul><li>Auction p99 &lt; 50ms</li><li>100K QPS auction peak</li><li>Billing accuracy — no double charge</li><li>Global multi-currency</li></ul></div>
+    </div>
+    <div class="cs-paper" id="cs-section-2">
+        <h2 class="cs-section-title">③ Back-of-the-envelope scale</h2>
+        <div class="cs-note"><strong>Assumptions</strong><ul><li>100K auctions/sec</li><li>Millions of active campaigns</li><li>Inverted index ads by keyword</li></ul></div>
+    </div>
+    <div class="cs-paper" id="cs-section-3">
+        <h2 class="cs-section-title">④ High-level architecture</h2>
+        <div class="cs-diagram"><div class="cs-diagram-title">Ads Auction</div><div class="cs-arch-grid"><div class="cs-arch-row"><div class="cs-arch-cell gray">Search query</div></div><div class="cs-arch-row"><div class="cs-arch-cell green">Ad retrieval index</div></div><div class="cs-arch-row"><div class="cs-arch-cell purple">Auction ranker</div></div><div class="cs-arch-row"><div class="cs-arch-cell orange">Impression log → billing</div></div></div></div>
+    </div>
+    <div class="cs-paper" id="cs-section-4">
+        <h2 class="cs-section-title">⑤ Data flow & execution path</h2>
+        <div class="cs-diagram"><div class="cs-diagram-title">Per-query auction</div><div class="cs-flow"><span class="cs-box gray">Keyword match</span><span class="cs-arrow">→</span><span class="cs-box orange">Filter policy</span><span class="cs-arrow">→</span><span class="cs-box purple">Score = bid × quality</span><span class="cs-arrow">→</span><span class="cs-box green">GSP pricing</span></div></div><div class="cs-layer-diagram"><div class="cs-layer l1">Quality score from CTR history</div><div class="cs-layer l2">Budget decrement async</div></div>
+    </div>
+    <div class="cs-paper" id="cs-section-5">
+        <h2 class="cs-section-title">⑥ API & interfaces</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Endpoint / flow</th><th>Purpose</th><th>Notes</th></tr><tr><td>POST /auction</td><td>Run auction</td><td>internal only</td></tr><tr><td>POST /campaigns</td><td>Advertiser CRUD</td><td>budget caps</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-6">
+        <h2 class="cs-section-title">⑦ Data model & storage</h2>
+        <div class="cs-note">Domain-specific entities sharded by user_id or geographic key.</div><div class="cs-table-wrap"><table class="cs-table"><tr><th>Store</th><th>What</th><th>Why</th></tr><tr><td>Distributed store</td><td>Primary data</td><td>Sharded for scale</td></tr><tr><td>Kafka / Pub/Sub</td><td>Event log</td><td>Async pipelines</td></tr><tr><td>Object store</td><td>Media / blobs</td><td>GCS-style durability</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-7">
+        <h2 class="cs-section-title">⑧ Deep dive — core components</h2>
+        <h3 class="cs-subheading">Generalized second price</h3><div class="cs-note">Winner pays second-price + epsilon — incentivizes truthful bidding.</div><h3 class="cs-subheading">Budget pacing</h3><div class="cs-note">Throttle impressions when spend rate exceeds daily budget curve.</div>
+    </div>
+    <div class="cs-paper" id="cs-section-8">
+        <h2 class="cs-section-title">⑨ Trade-offs & alternatives</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Decision</th><th>Option A</th><th>Option B</th><th>Pick when</th></tr><tr><td>Auction</td><td>GSP</td><td>VCG</td><td>GSP industry standard for search</td></tr><tr><td>Retrieval</td><td>Broad match</td><td>Exact</td><td>Broad more revenue; exact more relevance</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-9">
+        <h2 class="cs-section-title">⑩ 45-minute interview script</h2>
+        <div class="cs-note"><ol><li>0–5 min: Requirements + Google-scale assumptions</li><li>5–12 min: Back-of-envelope QPS and storage</li><li>12–22 min: Architecture diagram</li><li>22–35 min: Deep dive on hot path</li><li>35–42 min: Failure modes and trade-offs</li></ol></div>
+    </div>
+    <div class="cs-paper" id="cs-section-10">
+        <h2 class="cs-section-title">⑪ Likely follow-up questions</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Question</th><th>Short answer</th></tr><tr><td>How roll out globally?</td><td>Regional cells + gradual feature rollout</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-11">
+        <h2 class="cs-section-title">⑫ Revision checklist</h2>
+        <ul class="cs-checklist"><li>GSP explained</li><li>Quality score</li><li>Budget pacing</li><li>Fraud filter</li><li>Impression logging</li></ul><div class="cs-tags"><span class="cs-tag">google</span><span class="cs-tag">ads</span><span class="cs-tag">auction</span></div>
+    </div>
+    <div class="cs-related"><h3>More in this category</h3><div class="cs-related-links"><a href="/cheat-sheets/system-design/">SD Hub</a><a href="/cheat-sheets/system-design/google/">Google SD Hub</a><a href="/cheat-sheets/system-design/url-shortener">URL Shortener</a></div></div>
+
+</div>
+</main>
+<script src="/js/cheat-sheet-videos.js"></script>
+<script src="/js/cheat-sheet-prompts.js"></script>
+<script src="/js/cheat-sheet.js"></script>
+<script src="/js/site-nav.js"></script>
+</body>
+</html>

@@ -191,4 +191,58 @@ window.CHEAT_SHEET_VIDEOS = {
         { title: 'Building Chat Systems', url: 'https://youtu.be/yE3O28E38_E', thumbId: 'yE3O28E38_E' },
         { title: 'Geospatial / real-time', url: 'https://youtu.be/612Y0jXmWKk', thumbId: '612Y0jXmWKk' },
     ],
+    '/cheat-sheets/system-design/core': [
+        { title: 'Building Chat Systems', url: 'https://youtu.be/yE3O28E38_E', thumbId: 'yE3O28E38_E' },
+        { title: 'Task Scheduler Design', url: 'https://youtu.be/cTMomjk1iRc', thumbId: 'cTMomjk1iRc' },
+        { title: 'Vector Databases', url: 'https://youtu.be/612Y0jXmWKk', thumbId: '612Y0jXmWKk' },
+    ],
+    '/cheat-sheets/system-design/google': [
+        { title: 'CNN Architecture Deep Dive', url: 'https://youtu.be/Y1qxI-Df4Lk', thumbId: 'Y1qxI-Df4Lk' },
+        { title: 'Apache Spark Playlist', url: 'https://www.youtube.com/playlist?list=PLIRnO_sdVuEd1KxK5GtTDfZGQJt9XhH5i', thumbId: '612Y0jXmWKk', type: 'playlist', badge: '15 videos' },
+        { title: 'Vector Databases', url: 'https://youtu.be/612Y0jXmWKk', thumbId: '612Y0jXmWKk' },
+    ],
+    '/cheat-sheets/system-design/google-news': [
+        { title: 'Building Chat Systems', url: 'https://youtu.be/yE3O28E38_E', thumbId: 'yE3O28E38_E' },
+        { title: 'Vector Databases / Search', url: 'https://youtu.be/612Y0jXmWKk', thumbId: '612Y0jXmWKk' },
+    ],
+    '/cheat-sheets/system-design/google-docs': [
+        { title: 'Building Chat Systems', url: 'https://youtu.be/yE3O28E38_E', thumbId: 'yE3O28E38_E' },
+        { title: 'Task Scheduler Design', url: 'https://youtu.be/cTMomjk1iRc', thumbId: 'cTMomjk1iRc' },
+    ],
+    '/cheat-sheets/system-design/gmail-search': [
+        { title: 'Vector Databases', url: 'https://youtu.be/612Y0jXmWKk', thumbId: '612Y0jXmWKk' },
+        { title: 'Task Scheduler Design', url: 'https://youtu.be/cTMomjk1iRc', thumbId: 'cTMomjk1iRc' },
+    ],
+    '/cheat-sheets/system-design/google-trends': [
+        { title: 'Apache Spark Playlist', url: 'https://www.youtube.com/playlist?list=PLIRnO_sdVuEd1KxK5GtTDfZGQJt9XhH5i', thumbId: '612Y0jXmWKk', type: 'playlist', badge: '15 videos' },
+        { title: 'Understanding Box Plots', url: 'https://youtu.be/sytBDWefYb0', thumbId: 'sytBDWefYb0' },
+    ],
+    '/cheat-sheets/system-design/google-realtime-analytics': [
+        { title: 'Apache Kafka Playlist', url: 'https://www.youtube.com/playlist?list=PLIRnO_sdVuEf1Ao9hnE9G8c0WHd0MbsOk', thumbId: 'P3FKlI86t3Q', type: 'playlist', badge: '12 videos' },
+        { title: 'Apache Spark Playlist', url: 'https://www.youtube.com/playlist?list=PLIRnO_sdVuEd1KxK5GtTDfZGQJt9XhH5i', thumbId: '612Y0jXmWKk', type: 'playlist', badge: '15 videos' },
+    ],
+    '/cheat-sheets/system-design/google-maps': [
+        { title: 'Geospatial / real-time', url: 'https://youtu.be/612Y0jXmWKk', thumbId: '612Y0jXmWKk' },
+        { title: 'Building Chat Systems', url: 'https://youtu.be/yE3O28E38_E', thumbId: 'yE3O28E38_E' },
+    ],
+    '/cheat-sheets/system-design/core/load-balancing': [
+        { title: 'Building Chat Systems', url: 'https://youtu.be/yE3O28E38_E', thumbId: 'yE3O28E38_E' },
+        { title: 'Vector Databases', url: 'https://youtu.be/612Y0jXmWKk', thumbId: '612Y0jXmWKk' },
+    ],
+    '/cheat-sheets/system-design/core/cdn': [
+        { title: 'CNN Architecture Deep Dive', url: 'https://youtu.be/Y1qxI-Df4Lk', thumbId: 'Y1qxI-Df4Lk' },
+        { title: 'YouTube / streaming scale', url: 'https://youtu.be/Y1qxI-Df4Lk', thumbId: 'Y1qxI-Df4Lk' },
+    ],
+    '/cheat-sheets/system-design/core/messaging-queue': [
+        { title: 'Apache Kafka Playlist', url: 'https://www.youtube.com/playlist?list=PLIRnO_sdVuEf1Ao9hnE9G8c0WHd0MbsOk', thumbId: 'P3FKlI86t3Q', type: 'playlist', badge: '12 videos' },
+        { title: 'Building Chat Systems', url: 'https://youtu.be/yE3O28E38_E', thumbId: 'yE3O28E38_E' },
+    ],
+    '/cheat-sheets/system-design/core/vector-db': [
+        { title: 'Vector Databases Explained', url: 'https://youtu.be/612Y0jXmWKk', thumbId: '612Y0jXmWKk' },
+        { title: 'Word2Vec in NLP', url: 'https://youtu.be/9Ppg8NLk4NE', thumbId: '9Ppg8NLk4NE' },
+    ],
+    '/cheat-sheets/system-design/core/lambda-architecture': [
+        { title: 'Apache Spark Playlist', url: 'https://www.youtube.com/playlist?list=PLIRnO_sdVuEd1KxK5GtTDfZGQJt9XhH5i', thumbId: '612Y0jXmWKk', type: 'playlist', badge: '15 videos' },
+        { title: 'Apache Kafka Playlist', url: 'https://www.youtube.com/playlist?list=PLIRnO_sdVuEf1Ao9hnE9G8c0WHd0MbsOk', thumbId: 'P3FKlI86t3Q', type: 'playlist', badge: '12 videos' },
+    ],
 };

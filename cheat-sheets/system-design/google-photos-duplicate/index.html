@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <title>Design Google Photos Duplicate Detection | Binod Suman Study Material</title>
+    <meta name="description" content="Find near-duplicate and burst photos — perceptual hashing, clustering, and user-facing suggestions.">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Kalam:wght@400;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/site-nav.css">
+    <link rel="stylesheet" href="/css/cheat-sheet.css">
+</head>
+<body class="cheat-sheet-page">
+<main class="cheat-sheet-page">
+<div class="cs-container">
+    <nav class="cs-breadcrumb"><a href="/">Home</a> · <a href="/cheat-sheets/">Study Material</a> · <a href="/cheat-sheets/system-design/">System Design</a> · <a href="/cheat-sheets/system-design/google/">Google SD</a> · Design Google Photos Duplicate Detection</nav>
+    <header class="cs-hero">
+        <span class="cs-category-badge system-design">Google SD</span>
+        <h1 class="cs-title">Design Google Photos Duplicate Detection</h1>
+        <p class="cs-subtitle">Find near-duplicate and burst photos — perceptual hashing, clustering, and user-facing suggestions.</p>
+    </header>
+    <div class="cs-interview-tip"><strong>Interview tip</strong> Pipeline: hash → bucket candidates → ML refine. Mention privacy (on-device vs cloud) and scale of billions of images.</div>
+    <nav class="cs-toc" aria-label="On this page">
+    <div class="cs-toc-title">On this page</div>
+    <ol><li><a href="#cs-section-0">① Functional requirements</a></li><li><a href="#cs-section-1">② Non-functional requirements</a></li><li><a href="#cs-section-2">③ Back-of-the-envelope scale</a></li><li><a href="#cs-section-3">④ High-level architecture</a></li><li><a href="#cs-section-4">⑤ Data flow & execution path</a></li><li><a href="#cs-section-5">⑥ API & interfaces</a></li><li><a href="#cs-section-6">⑦ Data model & storage</a></li><li><a href="#cs-section-7">⑧ Deep dive — core components</a></li><li><a href="#cs-section-8">⑨ Trade-offs & alternatives</a></li><li><a href="#cs-section-9">⑩ 45-minute interview script</a></li><li><a href="#cs-section-10">⑪ Likely follow-up questions</a></li><li><a href="#cs-section-11">⑫ Revision checklist</a></li></ol>
+  </nav>
+    
+    <div class="cs-paper" id="cs-section-0">
+        <h2 class="cs-section-title">① Functional requirements</h2>
+        <div class="cs-note"><ul><li>Detect visually similar photos and videos</li><li>Group bursts into stacks</li><li>Suggest "best" photo to keep</li><li>On-upload processing</li><li>User can dismiss suggestions</li><li>Works across resolutions and crops</li></ul></div>
+    </div>
+    <div class="cs-paper" id="cs-section-1">
+        <h2 class="cs-section-title">② Non-functional requirements</h2>
+        <div class="cs-note"><ul><li>Process upload within seconds</li><li>Billions of photos corpus</li><li>Low false positive on faces</li><li>Privacy — user data isolated</li></ul></div>
+    </div>
+    <div class="cs-paper" id="cs-section-2">
+        <h2 class="cs-section-title">③ Back-of-the-envelope scale</h2>
+        <div class="cs-note"><strong>Assumptions</strong><ul><li>5B photos</li><li>50M uploads/day</li><li>pHash 64-bit per image</li></ul></div>
+    </div>
+    <div class="cs-paper" id="cs-section-3">
+        <h2 class="cs-section-title">④ High-level architecture</h2>
+        <div class="cs-diagram"><div class="cs-diagram-title">Photos Duplicate</div><div class="cs-arch-grid"><div class="cs-arch-row"><div class="cs-arch-cell gray">Upload</div></div><div class="cs-arch-row"><div class="cs-arch-cell purple">Perceptual hash worker</div></div><div class="cs-arch-row"><div class="cs-arch-cell green">Similarity index</div></div><div class="cs-arch-row"><div class="cs-arch-cell orange">Cluster + rank best</div></div></div></div>
+    </div>
+    <div class="cs-paper" id="cs-section-4">
+        <h2 class="cs-section-title">⑤ Data flow & execution path</h2>
+        <div class="cs-diagram"><div class="cs-diagram-title">Duplicate pipeline</div><div class="cs-flow"><span class="cs-box gray">Generate pHash</span><span class="cs-arrow">→</span><span class="cs-box purple">Hamming bucket</span><span class="cs-arrow">→</span><span class="cs-box green">ML verify</span><span class="cs-arrow">→</span><span class="cs-box">Suggest stack</span></div></div><div class="cs-layer-diagram"><div class="cs-layer l1">On-device hash optional</div><div class="cs-layer l2">Embeddings for semantic similarity</div></div>
+    </div>
+    <div class="cs-paper" id="cs-section-5">
+        <h2 class="cs-section-title">⑥ API & interfaces</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Endpoint / flow</th><th>Purpose</th><th>Notes</th></tr><tr><td>POST /photos</td><td>Upload triggers pipeline</td><td>async</td></tr><tr><td>GET /stacks</td><td>Duplicate groups</td><td>user scoped</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-6">
+        <h2 class="cs-section-title">⑦ Data model & storage</h2>
+        <div class="cs-note">Domain-specific entities sharded by user_id or geographic key.</div><div class="cs-table-wrap"><table class="cs-table"><tr><th>Store</th><th>What</th><th>Why</th></tr><tr><td>Distributed store</td><td>Primary data</td><td>Sharded for scale</td></tr><tr><td>Kafka / Pub/Sub</td><td>Event log</td><td>Async pipelines</td></tr><tr><td>Object store</td><td>Media / blobs</td><td>GCS-style durability</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-7">
+        <h2 class="cs-section-title">⑧ Deep dive — core components</h2>
+        <h3 class="cs-subheading">Perceptual hash bucketing</h3><div class="cs-note">Hamming distance ≤ 5 → candidate pair; CNN embedding for final merge.</div><h3 class="cs-subheading">Best photo selection</h3><div class="cs-note">Score sharpness, faces smiling, exposure — lightweight on-device model.</div>
+    </div>
+    <div class="cs-paper" id="cs-section-8">
+        <h2 class="cs-section-title">⑨ Trade-offs & alternatives</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Decision</th><th>Option A</th><th>Option B</th><th>Pick when</th></tr><tr><td>Where compute</td><td>Cloud</td><td>On-device</td><td>On-device privacy; cloud more accurate</td></tr><tr><td>Index</td><td>LSH</td><td>Brute on recent</td><td>Recent window brute; archive LSH</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-9">
+        <h2 class="cs-section-title">⑩ 45-minute interview script</h2>
+        <div class="cs-note"><ol><li>0–5 min: Requirements + Google-scale assumptions</li><li>5–12 min: Back-of-envelope QPS and storage</li><li>12–22 min: Architecture diagram</li><li>22–35 min: Deep dive on hot path</li><li>35–42 min: Failure modes and trade-offs</li></ol></div>
+    </div>
+    <div class="cs-paper" id="cs-section-10">
+        <h2 class="cs-section-title">⑪ Likely follow-up questions</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Question</th><th>Short answer</th></tr><tr><td>How roll out globally?</td><td>Regional cells + gradual feature rollout</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-11">
+        <h2 class="cs-section-title">⑫ Revision checklist</h2>
+        <ul class="cs-checklist"><li>pHash</li><li>Hamming threshold</li><li>ML second stage</li><li>Privacy boundary</li><li>User dismiss</li></ul><div class="cs-tags"><span class="cs-tag">google</span><span class="cs-tag">photos</span><span class="cs-tag">perceptual-hash</span></div>
+    </div>
+    <div class="cs-related"><h3>More in this category</h3><div class="cs-related-links"><a href="/cheat-sheets/system-design/">SD Hub</a><a href="/cheat-sheets/system-design/google/">Google SD Hub</a><a href="/cheat-sheets/system-design/url-shortener">URL Shortener</a></div></div>
+
+</div>
+</main>
+<script src="/js/cheat-sheet-videos.js"></script>
+<script src="/js/cheat-sheet-prompts.js"></script>
+<script src="/js/cheat-sheet.js"></script>
+<script src="/js/site-nav.js"></script>
+</body>
+</html>

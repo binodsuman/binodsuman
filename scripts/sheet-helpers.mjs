@@ -186,3 +186,44 @@ export function buildAIPages(configs) {
     ],
   }));
 }
+
+export function buildCoreConceptPages(configs) {
+  return configs.map((c) => ({
+    slug: c.slug,
+    title: c.title,
+    subtitle: c.subtitle,
+    tip: c.tip,
+    prompt: c.prompt,
+    papers: [
+      {
+        title: '① What it is (30 seconds)',
+        body: note(c.summary) + (c.analogy ? note(`<strong>Analogy:</strong> ${c.analogy}`) : ''),
+      },
+      {
+        title: '② How it works in system design',
+        body: c.howItWorks + (c.diagram ? c.diagram : ''),
+      },
+      {
+        title: '③ Concrete system design example',
+        body: c.example,
+      },
+      {
+        title: '④ Important interview Q&A',
+        body: table(['Question', 'Answer'], c.qa),
+      },
+      {
+        title: '⑤ Seen in these system designs',
+        body:
+          note(
+            `<ul>${c.usedIn
+              .map((l) => `<li><a href="${l.href}">${l.label}</a> — ${l.why || 'core dependency'}</li>`)
+              .join('')}</ul>`
+          ) + (c.usedInNote ? note(c.usedInNote) : ''),
+      },
+      {
+        title: '⑥ Revision checklist',
+        body: checklist(c.checklist) + tags(c.tags || []),
+      },
+    ],
+  }));
+}
