@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <title>Cache Design | Binod Suman Study Material</title>
+    <meta name="description" content="Stores hot data in fast memory to cut latency and database load — with explicit invalidation and eviction policies.">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Kalam:wght@400;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/site-nav.css">
+    <link rel="stylesheet" href="/css/cheat-sheet.css">
+</head>
+<body class="cheat-sheet-page">
+<main class="cheat-sheet-page">
+<div class="cs-container">
+    <nav class="cs-breadcrumb"><a href="/">Home</a> · <a href="/cheat-sheets/">Study Material</a> · <a href="/cheat-sheets/system-design/">System Design</a> · <a href="/cheat-sheets/system-design/core/">Core Concepts</a> · Cache Design</nav>
+    <header class="cs-hero">
+        <span class="cs-category-badge system-design">SD Core</span>
+        <h1 class="cs-title">Cache Design</h1>
+        <p class="cs-subtitle">Stores hot data in fast memory to cut latency and database load — with explicit invalidation and eviction policies.</p>
+    </header>
+    <div class="cs-interview-tip"><strong>Interview tip</strong> Lead with a 30-second definition, then one real system example and name 2–3 designs where Cache Design is non-negotiable.</div>
+    <nav class="cs-toc" aria-label="On this page">
+    <div class="cs-toc-title">On this page</div>
+    <ol><li><a href="#cs-section-0">① What it is (30 seconds)</a></li><li><a href="#cs-section-1">② How it works in system design</a></li><li><a href="#cs-section-2">③ Concrete system design example</a></li><li><a href="#cs-section-3">④ Important interview Q&A</a></li><li><a href="#cs-section-4">⑤ Seen in these system designs</a></li><li><a href="#cs-section-5">⑥ Revision checklist</a></li></ol>
+  </nav>
+    
+    <div class="cs-paper" id="cs-section-0">
+        <h2 class="cs-section-title">① What it is (30 seconds)</h2>
+        <div class="cs-note">Stores hot data in fast memory to cut latency and database load — with explicit invalidation and eviction policies.</div>
+    </div>
+    <div class="cs-paper" id="cs-section-1">
+        <h2 class="cs-section-title">② How it works in system design</h2>
+        <div class="cs-note">Cache-aside: app reads cache, on miss reads DB and populates. Writes update DB then delete cache key. TTL + LRU eviction. Watch hot keys and stampede (singleflight).</div><div class="cs-diagram"><div class="cs-diagram-title">Typical placement</div><div class="cs-flow"><span class="cs-box gray">Client</span><span class="cs-arrow">→</span><span class="cs-box">Edge / Gateway</span><span class="cs-arrow">→</span><span class="cs-box purple">Cache</span><span class="cs-arrow">→</span><span class="cs-box green">Services</span><span class="cs-arrow">→</span><span class="cs-box orange">Data stores</span></div></div>
+    </div>
+    <div class="cs-paper" id="cs-section-2">
+        <h2 class="cs-section-title">③ Concrete system design example</h2>
+        <div class="cs-note"><strong>Scenario:</strong> News feed: precomputed feed cells cached in Redis per user_id with 60s TTL. On new post, fan-out worker deletes affected users’ cache keys.</div>
+    </div>
+    <div class="cs-paper" id="cs-section-3">
+        <h2 class="cs-section-title">④ Important interview Q&A</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Question</th><th>Answer</th></tr><tr><td>Cache-aside vs read-through?</td><td>Cache-aside: app owns logic. Read-through: cache library fetches DB on miss — simpler app code.</td></tr><tr><td>How prevent stale reads?</td><td>TTL safety net + delete-on-write + version keys for critical entities.</td></tr><tr><td>Thundering herd?</td><td>Singleflight: one thread repopulates; others wait on same key.</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-4">
+        <h2 class="cs-section-title">⑤ Seen in these system designs</h2>
+        <div class="cs-note"><ul><li><a href="/cheat-sheets/system-design/url-shortener">URL Shortener</a> — redirect path</li><li><a href="/cheat-sheets/system-design/distributed-cache">Distributed Cache</a> — full design</li><li><a href="/cheat-sheets/system-design/news-feed">News Feed</a> — feed cells</li></ul></div><div class="cs-note">In interviews, after explaining the concept, say: "This shows up directly in …" and link two designs.</div>
+    </div>
+    <div class="cs-paper" id="cs-section-5">
+        <h2 class="cs-section-title">⑥ Revision checklist</h2>
+        <ul class="cs-checklist"><li>Pattern named</li><li>TTL + eviction</li><li>Invalidation on write</li><li>Hot key plan</li><li>Stampede mitigation</li></ul><div class="cs-tags"><span class="cs-tag">caching</span><span class="cs-tag">redis</span><span class="cs-tag">performance</span></div>
+    </div>
+    <div class="cs-related"><h3>More in this category</h3><div class="cs-related-links"><a href="/cheat-sheets/system-design/core/">All core concepts</a><a href="/cheat-sheets/system-design/fundamentals">SD Fundamentals</a><a href="/cheat-sheets/system-design/">SD Hub</a></div></div>
+
+</div>
+</main>
+<script src="/js/cheat-sheet-videos.js"></script>
+<script src="/js/cheat-sheet-prompts.js"></script>
+<script src="/js/cheat-sheet.js"></script>
+<script src="/js/site-nav.js"></script>
+</body>
+</html>

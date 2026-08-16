@@ -229,6 +229,174 @@
     background: rgba(37, 99, 235, 0.05);
 }
 
+/* Mega menu — Study Material */
+.site-header .nav-dropdown--mega {
+    position: relative;
+}
+
+.site-header .nav-mega-menu {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    min-width: 340px;
+    max-width: 420px;
+    background: white;
+    border: 1px solid var(--gray-light);
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(6px);
+    transition: all 0.2s ease;
+    z-index: 1001;
+    padding: 0;
+    list-style: none;
+}
+
+.site-header .nav-dropdown--mega:hover .nav-mega-menu,
+.site-header .nav-dropdown--mega.open .nav-mega-menu {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+@media (min-width: 769px) {
+    .site-header .nav-dropdown--mega.open:not(:hover) .nav-mega-menu {
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(6px);
+    }
+}
+
+.site-header .nav-mega-tabs {
+    display: flex;
+    gap: 0;
+    border-bottom: 1px solid var(--gray-light);
+    padding: 0.35rem 0.5rem 0;
+    background: var(--light);
+    border-radius: 12px 12px 0 0;
+}
+
+.site-header .nav-mega-tab {
+    flex: 1;
+    border: none;
+    background: transparent;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--gray);
+    padding: 0.5rem 0.4rem;
+    cursor: pointer;
+    border-radius: 6px 6px 0 0;
+    transition: var(--transition);
+}
+
+.site-header .nav-mega-tab:hover {
+    color: var(--primary);
+}
+
+.site-header .nav-mega-tab.active {
+    color: var(--primary);
+    background: white;
+    box-shadow: 0 -2px 0 var(--primary) inset;
+}
+
+.site-header .nav-mega-panels {
+    padding: 0.65rem 0.75rem 0.5rem;
+}
+
+.site-header .nav-mega-panel[hidden] {
+    display: none;
+}
+
+.site-header .nav-mega-hub {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.55rem 0.65rem;
+    margin-bottom: 0.35rem;
+    border-radius: 8px;
+    text-decoration: none;
+    color: var(--dark);
+    font-weight: 600;
+    font-size: 0.9rem;
+    background: rgba(37, 99, 235, 0.06);
+    transition: var(--transition);
+}
+
+.site-header .nav-mega-hub:hover {
+    background: rgba(37, 99, 235, 0.12);
+    color: var(--primary);
+}
+
+.site-header .nav-mega-hub span {
+    font-weight: 500;
+    font-size: 0.75rem;
+    color: var(--gray);
+    margin-left: auto;
+}
+
+.site-header .nav-mega-hub i {
+    color: var(--primary);
+    width: 1.1rem;
+    text-align: center;
+}
+
+.site-header .nav-mega-label {
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--gray);
+    padding: 0.45rem 0.25rem 0.2rem;
+}
+
+.site-header .nav-mega-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.15rem 0.5rem;
+    padding-bottom: 0.35rem;
+}
+
+.site-header .nav-mega-grid .nav-link {
+    font-size: 0.84rem;
+    padding: 0.35rem 0.5rem;
+    border-radius: 6px;
+}
+
+.site-header .nav-mega-grid .nav-link:hover {
+    background: rgba(37, 99, 235, 0.06);
+}
+
+.site-header .nav-mega-footer {
+    display: block;
+    padding: 0.65rem 1rem;
+    border-top: 1px solid var(--gray-light);
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--primary);
+    text-decoration: none;
+    border-radius: 0 0 12px 12px;
+    background: var(--light);
+}
+
+.site-header .nav-mega-footer:hover {
+    background: rgba(37, 99, 235, 0.08);
+}
+
+.site-header .nav-dropdown-divider {
+    height: 1px;
+    background: var(--gray-light);
+    margin: 0.35rem 0.75rem;
+    list-style: none;
+}
+
+.site-header .nav-mega-hub.active-child,
+.site-header .nav-mega-grid .nav-link.active-child {
+    color: var(--primary);
+    background: rgba(37, 99, 235, 0.1);
+}
+
 .site-header .nav-dropdown-menu--cheats {
     min-width: 260px;
     max-height: 70vh;
@@ -305,9 +473,27 @@ body.has-site-nav {
         transition: max-height 0.3s ease;
     }
 
-    .site-header .nav-dropdown.open .nav-dropdown-menu {
-        max-height: 70vh;
-        padding: 0.25rem 0;
+    .site-header .nav-dropdown.open .nav-dropdown-menu,
+    .site-header .nav-dropdown.open .nav-mega-menu {
+        max-height: 80vh;
+        overflow-y: auto;
+        padding: 0;
+    }
+
+    .site-header .nav-mega-menu {
+        position: static;
+        opacity: 1;
+        visibility: visible;
+        transform: none;
+        box-shadow: none;
+        border: none;
+        max-height: 0;
+        overflow: hidden;
+        min-width: 100%;
+    }
+
+    .site-header .nav-dropdown.open .nav-mega-menu {
+        max-height: 80vh;
     }
 
     .site-header .nav-dropdown:hover .nav-dropdown-menu {

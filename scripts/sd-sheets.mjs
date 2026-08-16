@@ -10,6 +10,9 @@ import {
   diagram,
 } from './sheet-helpers.mjs';
 import { extraSdConfigs } from './sd-sheets-extra.mjs';
+import { googleSdConfigs, GOOGLE_SD_SLUGS } from './sd-google-sheets.mjs';
+
+export { GOOGLE_SD_SLUGS };
 
 const baseSdConfigs = [
   // ─── 1. URL Shortener ───────────────────────────────────────────────
@@ -2666,7 +2669,7 @@ function withDataFlow(c) {
   };
 }
 
-export const sdConfigs = [...baseSdConfigs, ...extraSdConfigs].map(withDataFlow);
+export const sdConfigs = [...baseSdConfigs, ...extraSdConfigs, ...googleSdConfigs].map(withDataFlow);
 
 export const sdPages = buildSDPages(sdConfigs);
 

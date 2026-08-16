@@ -1,8 +1,9 @@
 import fs from 'fs';
 import path from 'path';
 import { aiPages } from './ai-sheets.mjs';
-import { sdPages } from './sd-sheets.mjs';
+import { sdPages, GOOGLE_SD_SLUGS } from './sd-sheets.mjs';
 import { legacyPages } from './legacy-sheets.mjs';
+import { corePages } from './sd-core-sheets.mjs';
 
 const ROOT = path.resolve(import.meta.dirname, '..');
 
@@ -106,6 +107,7 @@ function writePromptsFile(entries) {
 }
 
 const promptEntries = [];
+const googleSlugSet = new Set(GOOGLE_SD_SLUGS);
 
 for (const p of aiPages) {
   const pathKey = `/cheat-sheets/ai/${p.slug}`;
@@ -119,7 +121,7 @@ for (const p of aiPages) {
     tip: p.tip,
     papers: p.papers,
     related: [
-      { href: '/cheat-sheets/ai/', label: 'All AI cheat sheets' },
+      { href: '/cheat-sheets/ai/', label: 'All AI sheets' },
       { href: '/cheat-sheets/ai/rag', label: 'RAG' },
       { href: '/cheat-sheets/ai/agents-intro', label: 'What is an Agent?' },
     ],
@@ -127,20 +129,43 @@ for (const p of aiPages) {
   writePage(path.join(ROOT, 'cheat-sheets/ai', p.slug, 'index.html'), html);
 }
 
-for (const p of sdPages) {
-  const pathKey = `/cheat-sheets/system-design/${p.slug}`;
+for (const p of corePages) {
+  const pathKey = `/cheat-sheets/system-design/core/${p.slug}`;
   if (p.prompt) promptEntries.push([pathKey, p.prompt]);
   const html = page({
-    badge: 'System Design',
+    badge: 'SD Core',
     badgeClass: 'system-design',
     title: p.title,
     subtitle: p.subtitle,
-    breadcrumb: `<a href="/">Home</a> · <a href="/cheat-sheets/">Study Material</a> · <a href="/cheat-sheets/system-design/">System Design</a> · ${p.title}`,
+    breadcrumb: `<a href="/">Home</a> · <a href="/cheat-sheets/">Study Material</a> · <a href="/cheat-sheets/system-design/">System Design</a> · <a href="/cheat-sheets/system-design/core/">Core Concepts</a> · ${p.title}`,
     tip: p.tip,
     papers: p.papers,
     related: [
-      { href: '/cheat-sheets/system-design/', label: 'All SD cheat sheets' },
+      { href: '/cheat-sheets/system-design/core/', label: 'All core concepts' },
       { href: '/cheat-sheets/system-design/fundamentals', label: 'SD Fundamentals' },
+      { href: '/cheat-sheets/system-design/', label: 'SD Hub' },
+    ],
+  });
+  writePage(path.join(ROOT, 'cheat-sheets/system-design/core', p.slug, 'index.html'), html);
+}
+
+for (const p of sdPages) {
+  const pathKey = `/cheat-sheets/system-design/${p.slug}`;
+  if (p.prompt) promptEntries.push([pathKey, p.prompt]);
+  const isGoogle = googleSlugSet.has(p.slug);
+  const html = page({
+    badge: isGoogle ? 'Google SD' : 'System Design',
+    badgeClass: 'system-design',
+    title: p.title,
+    subtitle: p.subtitle,
+    breadcrumb: isGoogle
+      ? `<a href="/">Home</a> · <a href="/cheat-sheets/">Study Material</a> · <a href="/cheat-sheets/system-design/">System Design</a> · <a href="/cheat-sheets/system-design/google/">Google SD</a> · ${p.title}`
+      : `<a href="/">Home</a> · <a href="/cheat-sheets/">Study Material</a> · <a href="/cheat-sheets/system-design/">System Design</a> · ${p.title}`,
+    tip: p.tip,
+    papers: p.papers,
+    related: [
+      { href: '/cheat-sheets/system-design/', label: 'SD Hub' },
+      { href: isGoogle ? '/cheat-sheets/system-design/google/' : '/cheat-sheets/system-design/core/', label: isGoogle ? 'Google SD Hub' : 'Core Concepts' },
       { href: '/cheat-sheets/system-design/url-shortener', label: 'URL Shortener' },
     ],
   });
@@ -153,11 +178,50 @@ const aiHubLinks = [
   ...aiPages.map((p) => ({ href: `/cheat-sheets/ai/${p.slug}`, label: p.title })),
 ];
 
-const sdHubLinks = [
-  { href: '/cheat-sheets/system-design/fundamentals', label: 'SD Fundamentals' },
-  { href: '/cheat-sheets/system-design/patterns', label: 'SD Interview Patterns' },
-  ...sdPages.map((p) => ({ href: `/cheat-sheets/system-design/${p.slug}`, label: p.title })),
-];
+const coreHubLinks = corePages.map((p) => ({
+  href: `/cheat-sheets/system-design/core/${p.slug}`,
+  label: p.title,
+}));
+
+const googleHubLinks = sdPages
+  .filter((p) => googleSlugSet.has(p.slug))
+  .map((p) => ({ href: `/cheat-sheets/system-design/${p.slug}`, label: p.title }));
+
+const classicHubLinks = sdPages
+  .filter((p) => !googleSlugSet.has(p.slug))
+  .map((p) => ({ href: `/cheat-sheets/system-design/${p.slug}`, label: p.title }));
+
+writePage(
+  path.join(ROOT, 'cheat-sheets/system-design/core/index.html'),
+  hubPage({
+    title: 'System Design Core Concepts',
+    subtitle: '30 essential building blocks — how each works, interview Q&A, and which designs use them.',
+    badge: 'SD Core',
+    badgeClass: 'system-design',
+    breadcrumb: '<a href="/">Home</a> · <a href="/cheat-sheets/">Study Material</a> · <a href="/cheat-sheets/system-design/">System Design</a> · Core Concepts',
+    sections: [
+      { label: 'Infrastructure & scale', links: coreHubLinks.filter((l) => /load-balancing|api-gateway|service-discovery|cdn|forward-reverse|serverless/.test(l.href)) },
+      { label: 'Data & storage', links: coreHubLinks.filter((l) => /cache|sql-vs-nosql|sharding|consistent-hashing|materialized|vector-db|data-warehouse/.test(l.href)) },
+      { label: 'Distributed patterns', links: coreHubLinks.filter((l) => /messaging|circuit|cap|cdc|event-driven|outbox|distributed-transaction|lambda/.test(l.href)) },
+      { label: 'Algorithms & structures', links: coreHubLinks.filter((l) => /bloom|hyperloglog|inverted|trie|perceptual|quadtree|websocket|rate-limiting|zookeeper|solid/.test(l.href)) },
+    ],
+  })
+);
+
+writePage(
+  path.join(ROOT, 'cheat-sheets/system-design/google/index.html'),
+  hubPage({
+    title: 'Google System Design',
+    subtitle: 'Interview-style designs modeled on Google products — News, Ads, Gmail, Maps, Docs, and planetary analytics.',
+    badge: 'Google SD',
+    badgeClass: 'system-design',
+    breadcrumb: '<a href="/">Home</a> · <a href="/cheat-sheets/">Study Material</a> · <a href="/cheat-sheets/system-design/">System Design</a> · Google SD',
+    sections: [
+      { label: 'Consumer products', links: googleHubLinks.filter((l) => /youtube|maps|news|photos|docs|street|trends/.test(l.href)) },
+      { label: 'Platform & infra', links: googleHubLinks.filter((l) => /feature|ads|gmail|chrome|realtime/.test(l.href)) },
+    ],
+  })
+);
 
 writePage(
   path.join(ROOT, 'cheat-sheets/ai/index.html'),
@@ -180,13 +244,21 @@ writePage(
   path.join(ROOT, 'cheat-sheets/system-design/index.html'),
   hubPage({
     title: 'System Design Study Material',
-    subtitle: '24 interview questions — full revision sheets with diagrams, scale math, data flow, and trade-offs.',
+    subtitle: `${classicHubLinks.length + googleHubLinks.length} interview designs + 30 core concepts — diagrams, scale math, data flow, and trade-offs.`,
     badge: 'System Design',
     badgeClass: 'system-design',
     breadcrumb: '<a href="/">Home</a> · <a href="/cheat-sheets/">Study Material</a> · System Design',
     sections: [
-      { label: 'Core', links: sdHubLinks.slice(0, 2) },
-      { label: 'Interview Questions (24)', links: sdHubLinks.slice(2) },
+      {
+        label: 'Start here',
+        links: [
+          { href: '/cheat-sheets/system-design/fundamentals', label: 'SD Fundamentals (overview)' },
+          { href: '/cheat-sheets/system-design/patterns', label: 'SD Interview Patterns' },
+          { href: '/cheat-sheets/system-design/core/', label: 'Core Concepts (30 topics)' },
+        ],
+      },
+      { label: 'Google SD (' + googleHubLinks.length + ')', links: googleHubLinks },
+      { label: 'Classic interview SD (' + classicHubLinks.length + ')', links: classicHubLinks },
     ],
   })
 );
@@ -199,7 +271,7 @@ for (const lp of legacyPages) {
     badgeClass: lp.badgeClass,
     title: lp.title,
     subtitle: lp.subtitle,
-    breadcrumb: lp.breadcrumb,
+    breadcrumb: lp.breadcrumb.replace(/Cheat Sheets/g, 'Study Material'),
     tip: lp.tip,
     papers: lp.papers,
     related: lp.related || [],
@@ -209,4 +281,6 @@ for (const lp of legacyPages) {
 
 writePromptsFile(promptEntries);
 
-console.log(`Generated ${aiPages.length} AI + ${sdPages.length} SD + ${legacyPages.length} legacy pages + 2 hubs + ${promptEntries.length} prompts`);
+console.log(
+  `Generated ${aiPages.length} AI + ${corePages.length} core + ${sdPages.length} SD + ${legacyPages.length} legacy + hubs + ${promptEntries.length} prompts`
+);

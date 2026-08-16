@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <title>Design Google Global Real-time Analytics | Binod Suman Study Material</title>
+    <meta name="description" content="Unified metrics across Search, Ads, YouTube — stream processing + batch correction at planetary scale.">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Kalam:wght@400;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/site-nav.css">
+    <link rel="stylesheet" href="/css/cheat-sheet.css">
+</head>
+<body class="cheat-sheet-page">
+<main class="cheat-sheet-page">
+<div class="cs-container">
+    <nav class="cs-breadcrumb"><a href="/">Home</a> · <a href="/cheat-sheets/">Study Material</a> · <a href="/cheat-sheets/system-design/">System Design</a> · <a href="/cheat-sheets/system-design/google/">Google SD</a> · Design Google Global Real-time Analytics</nav>
+    <header class="cs-hero">
+        <span class="cs-category-badge system-design">Google SD</span>
+        <h1 class="cs-title">Design Google Global Real-time Analytics</h1>
+        <p class="cs-subtitle">Unified metrics across Search, Ads, YouTube — stream processing + batch correction at planetary scale.</p>
+    </header>
+    <div class="cs-interview-tip"><strong>Interview tip</strong> Lambda architecture: Kafka/Pub/Sub → Flink speed layer + BigQuery batch; mention exactly-once, regional aggregation, global merge.</div>
+    <nav class="cs-toc" aria-label="On this page">
+    <div class="cs-toc-title">On this page</div>
+    <ol><li><a href="#cs-section-0">① Functional requirements</a></li><li><a href="#cs-section-1">② Non-functional requirements</a></li><li><a href="#cs-section-2">③ Back-of-the-envelope scale</a></li><li><a href="#cs-section-3">④ High-level architecture</a></li><li><a href="#cs-section-4">⑤ Data flow & execution path</a></li><li><a href="#cs-section-5">⑥ API & interfaces</a></li><li><a href="#cs-section-6">⑦ Data model & storage</a></li><li><a href="#cs-section-7">⑧ Deep dive — core components</a></li><li><a href="#cs-section-8">⑨ Trade-offs & alternatives</a></li><li><a href="#cs-section-9">⑩ 45-minute interview script</a></li><li><a href="#cs-section-10">⑪ Likely follow-up questions</a></li><li><a href="#cs-section-11">⑫ Revision checklist</a></li></ol>
+  </nav>
+    
+    <div class="cs-paper" id="cs-section-0">
+        <h2 class="cs-section-title">① Functional requirements</h2>
+        <div class="cs-note"><ul><li>Collect events from all product surfaces</li><li>Real-time dashboards (last hour)</li><li>Accurate daily reports</li><li>Alerting on anomaly thresholds</li><li>Per-product and global views</li><li>Role-based access to metrics</li></ul></div>
+    </div>
+    <div class="cs-paper" id="cs-section-1">
+        <h2 class="cs-section-title">② Non-functional requirements</h2>
+        <div class="cs-note"><ul><li>Speed layer latency &lt; 1 minute</li><li>Trillions of events/day</li><li>No double-count in aggregates</li><li>Regional fault isolation</li></ul></div>
+    </div>
+    <div class="cs-paper" id="cs-section-2">
+        <h2 class="cs-section-title">③ Back-of-the-envelope scale</h2>
+        <div class="cs-note"><strong>Assumptions</strong><ul><li>Trillions events/day</li><li>Flink on Kafka</li><li>BigQuery batch reconcile nightly</li></ul></div>
+    </div>
+    <div class="cs-paper" id="cs-section-3">
+        <h2 class="cs-section-title">④ High-level architecture</h2>
+        <div class="cs-diagram"><div class="cs-diagram-title">Global Analytics</div><div class="cs-arch-grid"><div class="cs-arch-row"><div class="cs-arch-cell gray">Product event collectors</div></div><div class="cs-arch-row"><div class="cs-arch-cell orange">Pub/Sub global bus</div></div><div class="cs-arch-row"><div class="cs-arch-cell purple">Flink speed layer</div></div><div class="cs-arch-row"><div class="cs-arch-cell green">BigQuery batch layer</div></div><div class="cs-arch-row"><div class="cs-arch-cell gray">Serving + dashboards</div></div></div></div>
+    </div>
+    <div class="cs-paper" id="cs-section-4">
+        <h2 class="cs-section-title">⑤ Data flow & execution path</h2>
+        <div class="cs-diagram"><div class="cs-diagram-title">Event to metric</div><div class="cs-flow"><span class="cs-box gray">Event</span><span class="cs-arrow">→</span><span class="cs-box purple">Regional aggregate</span><span class="cs-arrow">→</span><span class="cs-box green">Global merge</span><span class="cs-arrow">→</span><span class="cs-box">Dashboard</span></div></div><div class="cs-layer-diagram"><div class="cs-layer l1">Watermarks for late events</div><div class="cs-layer l2">Batch layer fixes speed approximations</div></div>
+    </div>
+    <div class="cs-paper" id="cs-section-5">
+        <h2 class="cs-section-title">⑥ API & interfaces</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Endpoint / flow</th><th>Purpose</th><th>Notes</th></tr><tr><td>POST /events</td><td>High-volume ingest</td><td>batched</td></tr><tr><td>GET /metrics</td><td>Query API</td><td>scoped by product</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-6">
+        <h2 class="cs-section-title">⑦ Data model & storage</h2>
+        <div class="cs-note">Domain-specific entities sharded by user_id or geographic key.</div><div class="cs-table-wrap"><table class="cs-table"><tr><th>Store</th><th>What</th><th>Why</th></tr><tr><td>Distributed store</td><td>Primary data</td><td>Sharded for scale</td></tr><tr><td>Kafka / Pub/Sub</td><td>Event log</td><td>Async pipelines</td></tr><tr><td>Object store</td><td>Media / blobs</td><td>GCS-style durability</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-7">
+        <h2 class="cs-section-title">⑧ Deep dive — core components</h2>
+        <h3 class="cs-subheading">Lambda merge</h3><div class="cs-note">Dashboard queries sum speed layer (today) + batch tables (history) with documented staleness.</div><h3 class="cs-subheading">Cardinality control</h3><div class="cs-note">HyperLogLog for UV; rollups pre-aggregate high-cardinality dimensions.</div>
+    </div>
+    <div class="cs-paper" id="cs-section-8">
+        <h2 class="cs-section-title">⑨ Trade-offs & alternatives</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Decision</th><th>Option A</th><th>Option B</th><th>Pick when</th></tr><tr><td>Processing</td><td>Flink</td><td>Spark Streaming</td><td>Flink lower latency ops</td></tr><tr><td>Accuracy</td><td>Approximate RT</td><td>Exact batch</td><td>Standard lambda trade-off</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-9">
+        <h2 class="cs-section-title">⑩ 45-minute interview script</h2>
+        <div class="cs-note"><ol><li>0–5 min: Requirements + Google-scale assumptions</li><li>5–12 min: Back-of-envelope QPS and storage</li><li>12–22 min: Architecture diagram</li><li>22–35 min: Deep dive on hot path</li><li>35–42 min: Failure modes and trade-offs</li></ol></div>
+    </div>
+    <div class="cs-paper" id="cs-section-10">
+        <h2 class="cs-section-title">⑪ Likely follow-up questions</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Question</th><th>Short answer</th></tr><tr><td>How roll out globally?</td><td>Regional cells + gradual feature rollout</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-11">
+        <h2 class="cs-section-title">⑫ Revision checklist</h2>
+        <ul class="cs-checklist"><li>Pub/Sub ingest</li><li>Flink speed</li><li>BigQuery batch</li><li>Lambda merge</li><li>HLL for UV</li><li>Late data</li></ul><div class="cs-tags"><span class="cs-tag">google</span><span class="cs-tag">analytics</span><span class="cs-tag">lambda</span><span class="cs-tag">flink</span></div>
+    </div>
+    <div class="cs-related"><h3>More in this category</h3><div class="cs-related-links"><a href="/cheat-sheets/system-design/">SD Hub</a><a href="/cheat-sheets/system-design/google/">Google SD Hub</a><a href="/cheat-sheets/system-design/url-shortener">URL Shortener</a></div></div>
+
+</div>
+</main>
+<script src="/js/cheat-sheet-videos.js"></script>
+<script src="/js/cheat-sheet-prompts.js"></script>
+<script src="/js/cheat-sheet.js"></script>
+<script src="/js/site-nav.js"></script>
+</body>
+</html>

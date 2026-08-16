@@ -1,5 +1,5 @@
 /**
- * Shared navigation bar — same font & layout as home page on every page.
+ * Shared navigation — mega-menu Study Material + YouTube Video dropdown.
  */
 (function () {
     const NAV_HTML = `
@@ -19,66 +19,69 @@
                         <li><a href="/#popular-videos" class="nav-link" data-nav="popular-videos">Popular Videos</a></li>
                         <li><a href="/#playlists" class="nav-link" data-nav="playlists">Playlists</a></li>
                         <li><a href="/#dsa" class="nav-link" data-nav="dsa">DSA</a></li>
+                        <li class="nav-dropdown-divider"></li>
+                        <li><a href="https://youtube.com/@binodsuman" target="_blank" rel="noopener" class="nav-link" data-nav="youtube-channel">YouTube Channel <i class="fas fa-external-link-alt"></i></a></li>
                     </ul>
                 </li>
                 <li><a href="/#about" class="nav-link" data-nav="about">Connect</a></li>
-                <li class="nav-dropdown" data-dropdown="cheat-sheets">
+                <li class="nav-dropdown nav-dropdown--mega" data-dropdown="cheat-sheets">
                     <button type="button" class="nav-dropdown-toggle" aria-expanded="false">
                         Study Material <i class="fas fa-chevron-down"></i>
                     </button>
-                    <ul class="nav-dropdown-menu nav-dropdown-menu--study">
-                        <li class="nav-dropdown-label">System Design</li>
-                        <li><a href="/cheat-sheets/system-design/" class="nav-link" data-nav="sd-hub">SD Hub (24 topics)</a></li>
-                        <li class="nav-dropdown-child"><a href="/cheat-sheets/system-design/fundamentals" class="nav-link" data-nav="sd-fundamentals">SD Fundamentals</a></li>
-                        <li class="nav-dropdown-child"><a href="/cheat-sheets/system-design/patterns" class="nav-link" data-nav="sd-patterns">SD Interview Patterns</a></li>
-                        <li class="nav-dropdown-child"><a href="/cheat-sheets/system-design/url-shortener" class="nav-link" data-nav="sd-url-shortener">URL Shortener</a></li>
-                        <li class="nav-dropdown-child"><a href="/cheat-sheets/system-design/rate-limiter" class="nav-link" data-nav="sd-rate-limiter">Rate Limiter</a></li>
-                        <li class="nav-dropdown-child"><a href="/cheat-sheets/system-design/chat-system" class="nav-link" data-nav="sd-chat-system">WhatsApp & Chat</a></li>
-                        <li class="nav-dropdown-child"><a href="/cheat-sheets/system-design/news-feed" class="nav-link" data-nav="sd-news-feed">News Feed</a></li>
-                        <li class="nav-dropdown-child"><a href="/cheat-sheets/system-design/twitter-timeline" class="nav-link" data-nav="sd-twitter-timeline">Twitter</a></li>
-                        <li class="nav-dropdown-child"><a href="/cheat-sheets/system-design/youtube-streaming" class="nav-link" data-nav="sd-youtube-streaming">YouTube</a></li>
-                        <li class="nav-dropdown-child"><a href="/cheat-sheets/system-design/instagram-photos" class="nav-link" data-nav="sd-instagram-photos">Instagram</a></li>
-                        <li class="nav-dropdown-child"><a href="/cheat-sheets/system-design/web-crawler" class="nav-link" data-nav="sd-web-crawler">Web Crawler</a></li>
-                        <li class="nav-dropdown-child"><a href="/cheat-sheets/system-design/typeahead" class="nav-link" data-nav="sd-typeahead">Typeahead</a></li>
-                        <li class="nav-dropdown-child"><a href="/cheat-sheets/system-design/file-storage" class="nav-link" data-nav="sd-file-storage">File Storage</a></li>
-                        <li class="nav-dropdown-child"><a href="/cheat-sheets/system-design/api-gateway" class="nav-link" data-nav="sd-api-gateway">API Gateway</a></li>
-                        <li class="nav-dropdown-child"><a href="/cheat-sheets/system-design/notification-system" class="nav-link" data-nav="sd-notification-system">Notifications</a></li>
-                        <li class="nav-dropdown-child"><a href="/cheat-sheets/system-design/distributed-cache" class="nav-link" data-nav="sd-distributed-cache">Distributed Cache</a></li>
-                        <li class="nav-dropdown-child"><a href="/cheat-sheets/system-design/ticket-booking" class="nav-link" data-nav="sd-ticket-booking">Ticket Booking</a></li>
-                        <li class="nav-dropdown-child"><a href="/cheat-sheets/system-design/uber-rides" class="nav-link" data-nav="sd-uber-rides">Uber / Rides</a></li>
-                        <li class="nav-dropdown-child"><a href="/cheat-sheets/system-design/distributed-search" class="nav-link" data-nav="sd-distributed-search">Distributed Search</a></li>
-                        <li class="nav-dropdown-child"><a href="/cheat-sheets/system-design/distributed-logging" class="nav-link" data-nav="sd-distributed-logging">Distributed Logging</a></li>
-                        <li class="nav-dropdown-child"><a href="/cheat-sheets/system-design/distributed-task-scheduler" class="nav-link" data-nav="sd-distributed-task-scheduler">Task Scheduler</a></li>
-                        <li class="nav-dropdown-child"><a href="/cheat-sheets/system-design/shared-counter" class="nav-link" data-nav="sd-shared-counter">Shared Counter</a></li>
-                        <li class="nav-dropdown-child"><a href="/cheat-sheets/system-design/quora" class="nav-link" data-nav="sd-quora">Quora</a></li>
-                        <li class="nav-dropdown-child"><a href="/cheat-sheets/system-design/google-maps" class="nav-link" data-nav="sd-google-maps">Google Maps</a></li>
-                        <li class="nav-dropdown-child"><a href="/cheat-sheets/system-design/proximity-service" class="nav-link" data-nav="sd-proximity-service">Proximity Service</a></li>
-                        <li class="nav-dropdown-child"><a href="/cheat-sheets/system-design/payment-system" class="nav-link" data-nav="sd-payment-system">Payment System</a></li>
-                        <li class="nav-dropdown-child"><a href="/cheat-sheets/system-design/chatgpt-system" class="nav-link" data-nav="sd-chatgpt-system">ChatGPT System</a></li>
-                        <li class="nav-dropdown-label">AI</li>
-                        <li><a href="/cheat-sheets/ai/" class="nav-link" data-nav="ai-hub">AI Basics Hub</a></li>
-                        <li class="nav-dropdown-child"><a href="/cheat-sheets/ai/roadmap" class="nav-link" data-nav="ai-roadmap">AI Master Roadmap</a></li>
-                        <li class="nav-dropdown-child"><a href="/cheat-sheets/ai/ml-interview" class="nav-link" data-nav="ai-ml">ML/DL Interview Guide</a></li>
-                        <li class="nav-dropdown-child"><a href="/cheat-sheets/ai/rag" class="nav-link" data-nav="ai-rag">RAG</a></li>
-                        <li class="nav-dropdown-child"><a href="/cheat-sheets/ai/agents-intro" class="nav-link" data-nav="ai-agents">What is an Agent?</a></li>
-                        <li class="nav-dropdown-child"><a href="/cheat-sheets/ai/create-first-agent" class="nav-link" data-nav="ai-first-agent">Create First Agent</a></li>
-                        <li class="nav-dropdown-child"><a href="/cheat-sheets/ai/langchain-basics" class="nav-link" data-nav="ai-langchain">LangChain Basics</a></li>
-                        <li class="nav-dropdown-child"><a href="/cheat-sheets/ai/cursor-guide" class="nav-link" data-nav="ai-cursor">How to Use Cursor</a></li>
-                        <li class="nav-dropdown-child"><a href="/cheat-sheets/ai/claude-guide" class="nav-link" data-nav="ai-claude">How to Use Claude</a></li>
-                        <li class="nav-dropdown-child"><a href="/cheat-sheets/ai/cursor-vs-claude-code" class="nav-link" data-nav="ai-cursor-claude">Cursor vs Claude Code</a></li>
-                        <li class="nav-dropdown-label">Java</li>
-                        <li><a href="/cheat-sheets/java/core" class="nav-link" data-nav="java-core">Java Core</a></li>
-                        <li class="nav-dropdown-child"><a href="/cheat-sheets/java/collections" class="nav-link" data-nav="java-collections">Collections & Concurrency</a></li>
-                        <li class="nav-dropdown-label">DSA</li>
-                        <li><a href="/cheat-sheets/dsa/patterns" class="nav-link" data-nav="dsa-patterns">DSA Patterns</a></li>
-                        <li class="nav-dropdown-child"><a href="/cheat-sheets/dsa/top-problems" class="nav-link" data-nav="dsa-problems">Top Interview Problems</a></li>
-                        <li class="nav-dropdown-label">Data Engineering</li>
-                        <li><a href="/cheat-sheets/data-engineering/kafka" class="nav-link" data-nav="de-kafka">Apache Kafka</a></li>
-                        <li class="nav-dropdown-child"><a href="/cheat-sheets/data-engineering/spark" class="nav-link" data-nav="de-spark">Apache Spark</a></li>
-                        <li class="nav-dropdown-label">Behaviour</li>
-                        <li><a href="/cheat-sheets/behaviour/star" class="nav-link" data-nav="beh-star">STAR Method</a></li>
-                        <li class="nav-dropdown-child"><a href="/cheat-sheets/behaviour/questions" class="nav-link" data-nav="beh-questions">Top Behavioral Qs</a></li>
-                    </ul>
+                    <div class="nav-dropdown-menu nav-mega-menu" role="menu">
+                        <div class="nav-mega-tabs" role="tablist">
+                            <button type="button" class="nav-mega-tab active" data-mega-tab="sd" role="tab" aria-selected="true">System Design</button>
+                            <button type="button" class="nav-mega-tab" data-mega-tab="ai" role="tab" aria-selected="false">AI</button>
+                            <button type="button" class="nav-mega-tab" data-mega-tab="more" role="tab" aria-selected="false">Java · DSA · More</button>
+                        </div>
+                        <div class="nav-mega-panels">
+                            <div class="nav-mega-panel active" data-mega-panel="sd" role="tabpanel">
+                                <a href="/cheat-sheets/system-design/core/" class="nav-mega-hub" data-nav="sd-core-hub"><i class="fas fa-cubes"></i> Core Concepts <span>30 topics</span></a>
+                                <a href="/cheat-sheets/system-design/google/" class="nav-mega-hub" data-nav="sd-google-hub"><i class="fab fa-google"></i> Google SD <span>12 designs</span></a>
+                                <a href="/cheat-sheets/system-design/" class="nav-mega-hub" data-nav="sd-hub"><i class="fas fa-layer-group"></i> Classic SD Hub</a>
+                                <div class="nav-mega-label">Quick links</div>
+                                <div class="nav-mega-grid">
+                                    <a href="/cheat-sheets/system-design/url-shortener" class="nav-link" data-nav="sd-url-shortener">URL Shortener</a>
+                                    <a href="/cheat-sheets/system-design/rate-limiter" class="nav-link" data-nav="sd-rate-limiter">Rate Limiter</a>
+                                    <a href="/cheat-sheets/system-design/chatgpt-system" class="nav-link" data-nav="sd-chatgpt-system">ChatGPT</a>
+                                    <a href="/cheat-sheets/system-design/payment-system" class="nav-link" data-nav="sd-payment-system">Payments</a>
+                                    <a href="/cheat-sheets/system-design/youtube-streaming" class="nav-link" data-nav="sd-youtube-streaming">YouTube</a>
+                                    <a href="/cheat-sheets/system-design/google-maps" class="nav-link" data-nav="sd-google-maps">Google Maps</a>
+                                </div>
+                            </div>
+                            <div class="nav-mega-panel" data-mega-panel="ai" role="tabpanel" hidden>
+                                <a href="/cheat-sheets/ai/" class="nav-mega-hub" data-nav="ai-hub"><i class="fas fa-robot"></i> AI Study Hub</a>
+                                <div class="nav-mega-grid">
+                                    <a href="/cheat-sheets/ai/roadmap" class="nav-link" data-nav="ai-roadmap">AI Roadmap</a>
+                                    <a href="/cheat-sheets/ai/rag" class="nav-link" data-nav="ai-rag">RAG</a>
+                                    <a href="/cheat-sheets/ai/agents-intro" class="nav-link" data-nav="ai-agents">Agents</a>
+                                    <a href="/cheat-sheets/ai/langchain-basics" class="nav-link" data-nav="ai-langchain">LangChain</a>
+                                    <a href="/cheat-sheets/ai/cursor-guide" class="nav-link" data-nav="ai-cursor">Cursor</a>
+                                    <a href="/cheat-sheets/ai/claude-guide" class="nav-link" data-nav="ai-claude">Claude</a>
+                                </div>
+                            </div>
+                            <div class="nav-mega-panel" data-mega-panel="more" role="tabpanel" hidden>
+                                <div class="nav-mega-label">Java</div>
+                                <div class="nav-mega-grid">
+                                    <a href="/cheat-sheets/java/core" class="nav-link" data-nav="java-core">Java Core</a>
+                                    <a href="/cheat-sheets/java/collections" class="nav-link" data-nav="java-collections">Collections</a>
+                                </div>
+                                <div class="nav-mega-label">DSA</div>
+                                <div class="nav-mega-grid">
+                                    <a href="/cheat-sheets/dsa/patterns" class="nav-link" data-nav="dsa-patterns">DSA Patterns</a>
+                                    <a href="/cheat-sheets/dsa/top-problems" class="nav-link" data-nav="dsa-problems">Top Problems</a>
+                                </div>
+                                <div class="nav-mega-label">Data Engineering · Behaviour</div>
+                                <div class="nav-mega-grid">
+                                    <a href="/cheat-sheets/data-engineering/kafka" class="nav-link" data-nav="de-kafka">Kafka</a>
+                                    <a href="/cheat-sheets/data-engineering/spark" class="nav-link" data-nav="de-spark">Spark</a>
+                                    <a href="/cheat-sheets/behaviour/star" class="nav-link" data-nav="beh-star">STAR</a>
+                                    <a href="/cheat-sheets/behaviour/questions" class="nav-link" data-nav="beh-questions">Behavioral Qs</a>
+                                </div>
+                            </div>
+                        </div>
+                        <a href="/cheat-sheets/" class="nav-mega-footer">Browse all Study Material <i class="fas fa-arrow-right"></i></a>
+                    </div>
                 </li>
                 <li class="nav-dropdown" data-dropdown="llm-prompt">
                     <button type="button" class="nav-dropdown-toggle" aria-expanded="false">
@@ -89,13 +92,23 @@
                         <li><a href="/commands" class="nav-link" data-nav="slash-prompt">Slash Prompt</a></li>
                     </ul>
                 </li>
-                <li><a href="http://youtube.com/@binodsuman" target="_blank" rel="noopener" class="nav-link">YouTube <i class="fas fa-external-link-alt"></i></a></li>
             </ul>
         </div>
     </header>`;
 
+    const CORE_SLUGS = [
+        'load-balancing', 'api-gateway', 'service-discovery', 'cache-design', 'cdn', 'messaging-queue',
+        'zookeeper', 'circuit-breaker', 'sharding', 'sql-vs-nosql', 'consistent-hashing', 'cap-theorem',
+        'solid-principles', 'cdc', 'event-driven-architecture', 'serverless', 'inverted-indexing', 'websocket',
+        'rate-limiting', 'data-warehouse', 'bloom-filter', 'hyperloglog', 'forward-reverse-proxy',
+        'quadtree-geohashing', 'distributed-transaction', 'vector-db', 'outbox-pattern', 'materialized-view',
+        'perceptual-hash', 'trie', 'lambda-architecture',
+    ];
+
     const CHEAT_SHEET_NAV_MAP = {
         '/cheat-sheets/system-design': 'sd-hub',
+        '/cheat-sheets/system-design/core': 'sd-core-hub',
+        '/cheat-sheets/system-design/google': 'sd-google-hub',
         '/cheat-sheets/system-design/fundamentals': 'sd-fundamentals',
         '/cheat-sheets/system-design/patterns': 'sd-patterns',
         '/cheat-sheets/system-design/url-shortener': 'sd-url-shortener',
@@ -122,6 +135,16 @@
         '/cheat-sheets/system-design/proximity-service': 'sd-proximity-service',
         '/cheat-sheets/system-design/payment-system': 'sd-payment-system',
         '/cheat-sheets/system-design/chatgpt-system': 'sd-chatgpt-system',
+        '/cheat-sheets/system-design/google-news': 'sd-google-news',
+        '/cheat-sheets/system-design/google-feature-flags': 'sd-google-feature-flags',
+        '/cheat-sheets/system-design/google-ads-bidding': 'sd-google-ads-bidding',
+        '/cheat-sheets/system-design/google-photos-duplicate': 'sd-google-photos-duplicate',
+        '/cheat-sheets/system-design/google-docs': 'sd-google-docs',
+        '/cheat-sheets/system-design/chrome-malware-detection': 'sd-chrome-malware',
+        '/cheat-sheets/system-design/gmail-search': 'sd-gmail-search',
+        '/cheat-sheets/system-design/google-trends': 'sd-google-trends',
+        '/cheat-sheets/system-design/google-street-view': 'sd-google-street-view',
+        '/cheat-sheets/system-design/google-realtime-analytics': 'sd-google-realtime-analytics',
         '/cheat-sheets/ai': 'ai-hub',
         '/cheat-sheets/ai/roadmap': 'ai-roadmap',
         '/cheat-sheets/ai/ml-interview': 'ai-ml',
@@ -150,6 +173,10 @@
         '/cheat-sheets/behaviour/questions': 'beh-questions',
     };
 
+    CORE_SLUGS.forEach((slug) => {
+        CHEAT_SHEET_NAV_MAP[`/cheat-sheets/system-design/core/${slug}`] = `sd-core-${slug}`;
+    });
+
     document.body.classList.add('has-site-nav');
     document.body.insertAdjacentHTML('afterbegin', NAV_HTML);
 
@@ -166,6 +193,13 @@
             const navId = CHEAT_SHEET_NAV_MAP[path];
             if (navId) {
                 markChildActive('cheat-sheets', navId);
+                if (path.includes('/core/')) {
+                    activateMegaTab('sd');
+                } else if (path.includes('/google') || path.includes('google-') || path.endsWith('youtube-streaming')) {
+                    activateMegaTab('sd');
+                } else if (path.startsWith('/cheat-sheets/ai')) {
+                    activateMegaTab('ai');
+                }
             } else {
                 document.querySelector('[data-dropdown="cheat-sheets"] .nav-dropdown-toggle')?.classList.add('active-parent');
             }
@@ -179,6 +213,13 @@
                 document.querySelector('[data-nav="about"]')?.classList.add('active-child');
             }
         }
+
+        document.querySelectorAll('.nav-mega-tab').forEach((tab) => {
+            tab.addEventListener('click', (e) => {
+                e.stopPropagation();
+                activateMegaTab(tab.getAttribute('data-mega-tab'));
+            });
+        });
 
         mobileMenuBtn?.addEventListener('click', () => {
             const isOpen = navMenu.classList.toggle('active');
@@ -198,7 +239,7 @@
             });
         });
 
-        navMenu?.querySelectorAll('.nav-link').forEach(link => {
+        navMenu?.querySelectorAll('.nav-link, .nav-mega-hub').forEach(link => {
             link.addEventListener('click', () => {
                 navMenu.classList.remove('active');
                 if (mobileMenuBtn) mobileMenuBtn.innerHTML = '<i class="fas fa-bars"></i>';
@@ -217,6 +258,19 @@
                     }
                 }
             });
+        });
+    }
+
+    function activateMegaTab(tabId) {
+        document.querySelectorAll('.nav-mega-tab').forEach((t) => {
+            const active = t.getAttribute('data-mega-tab') === tabId;
+            t.classList.toggle('active', active);
+            t.setAttribute('aria-selected', active);
+        });
+        document.querySelectorAll('.nav-mega-panel').forEach((p) => {
+            const active = p.getAttribute('data-mega-panel') === tabId;
+            p.classList.toggle('active', active);
+            p.hidden = !active;
         });
     }
 
