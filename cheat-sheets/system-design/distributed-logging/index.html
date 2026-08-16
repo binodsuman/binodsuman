@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <title>Design Distributed Logging | Binod Suman Study Material</title>
+    <meta name="description" content="High-volume log ingestion, indexing, retention tiers, and search across petabytes.">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Kalam:wght@400;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/site-nav.css">
+    <link rel="stylesheet" href="/css/cheat-sheet.css">
+</head>
+<body class="cheat-sheet-page">
+<main class="cheat-sheet-page">
+<div class="cs-container">
+    <nav class="cs-breadcrumb"><a href="/">Home</a> · <a href="/cheat-sheets/">Study Material</a> · <a href="/cheat-sheets/system-design/">System Design</a> · Design Distributed Logging</nav>
+    <header class="cs-hero">
+        <span class="cs-category-badge system-design">System Design</span>
+        <h1 class="cs-title">Design Distributed Logging</h1>
+        <p class="cs-subtitle">High-volume log ingestion, indexing, retention tiers, and search across petabytes.</p>
+    </header>
+    <div class="cs-interview-tip"><strong>Interview tip</strong> Separate hot write path (append-only) from query path. Mention Kafka, time-based indices, and retention (hot/warm/cold).</div>
+    <nav class="cs-toc" aria-label="On this page">
+    <div class="cs-toc-title">On this page</div>
+    <ol><li><a href="#cs-section-0">① Functional requirements</a></li><li><a href="#cs-section-1">② Non-functional requirements</a></li><li><a href="#cs-section-2">③ Back-of-the-envelope scale</a></li><li><a href="#cs-section-3">④ High-level architecture</a></li><li><a href="#cs-section-4">⑤ Data flow & execution path</a></li><li><a href="#cs-section-5">⑥ API & interfaces</a></li><li><a href="#cs-section-6">⑦ Data model & storage</a></li><li><a href="#cs-section-7">⑧ Deep dive — core components</a></li><li><a href="#cs-section-8">⑨ Trade-offs & alternatives</a></li><li><a href="#cs-section-9">⑩ 45-minute interview script</a></li><li><a href="#cs-section-10">⑪ Likely follow-up questions</a></li><li><a href="#cs-section-11">⑫ Revision checklist</a></li></ol>
+  </nav>
+    
+    <div class="cs-paper" id="cs-section-0">
+        <h2 class="cs-section-title">① Functional requirements</h2>
+        <div class="cs-note"><ul><li>Collect logs/metrics from services via agents or sidecars</li><li>Parse structured and unstructured lines into fields</li><li>Search by keyword, field filters, and time range</li><li>Dashboards and saved queries</li><li>Alerting on query thresholds (error rate spike)</li><li>Per-team namespaces with ACLs</li></ul></div>
+    </div>
+    <div class="cs-paper" id="cs-section-1">
+        <h2 class="cs-section-title">② Non-functional requirements</h2>
+        <div class="cs-note"><ul><li>Ingest 2M events/sec sustained</li><li>Query p95 &lt; 5s for 24h window on common filters</li><li>99.9% ingest availability</li><li>90-day retention with tiered storage cost</li><li>No single tenant can starve shared pipeline</li></ul></div>
+    </div>
+    <div class="cs-paper" id="cs-section-2">
+        <h2 class="cs-section-title">③ Back-of-the-envelope scale</h2>
+        <div class="cs-note"><strong>Assumptions</strong><ul><li>2M events/sec × 500 bytes ≈ 1 GB/sec raw</li><li>7-day hot index ≈ 60TB before compression</li><li>Time-based indices: hourly shards → easy drop/rollover</li><li>20 query nodes for parallel scan</li><li>Compression 5× on cold tier → S3 Glacier</li></ul></div>
+    </div>
+    <div class="cs-paper" id="cs-section-3">
+        <h2 class="cs-section-title">④ High-level architecture</h2>
+        <div class="cs-diagram"><div class="cs-diagram-title">Logging Platform</div><div class="cs-arch-grid"><div class="cs-arch-row"><div class="cs-arch-cell gray">Log agents / Fluent Bit</div></div><div class="cs-arch-row"><div class="cs-arch-cell orange">Kafka (partition by service)</div></div><div class="cs-arch-row"><div class="cs-arch-cell purple">Stream parsers → enrich</div></div><div class="cs-arch-row"><div class="cs-arch-cell green">Indexer cluster (hot)</div></div><div class="cs-arch-row"><div class="cs-arch-cell gray">Object store (warm/cold)</div></div><div class="cs-arch-row"><div class="cs-arch-cell purple">Query API + UI</div></div></div></div><div class="cs-note">Agents batch and compress. Kafka absorbs spikes. Indexers bulk-write time-sliced indices. ILM policy rolls hot → warm → delete.</div>
+    </div>
+    <div class="cs-paper" id="cs-section-4">
+        <h2 class="cs-section-title">⑤ Data flow & execution path</h2>
+        <div class="cs-diagram"><div class="cs-diagram-title">Log event lifecycle</div><div class="cs-flow"><span class="cs-box gray">① Agent batch</span><span class="cs-arrow">→</span><span class="cs-box orange">② Kafka partition</span><span class="cs-arrow">→</span><span class="cs-box purple">③ Parse/enrich</span><span class="cs-arrow">→</span><span class="cs-box green">④ Bulk index</span><span class="cs-arrow">→</span><span class="cs-box">⑤ Query scan</span></div></div><div class="cs-layer-diagram"><div class="cs-layer l1">At-least-once ingest with offset commits</div><div class="cs-layer l2">Schema-on-read for unstructured logs</div><div class="cs-layer l3">Hot tier: SSD indices last 48h</div><div class="cs-layer l4">Cold tier: S3 + async restore for forensics</div></div><div class="cs-note">Trace one ERROR log line from host to searchable index. Mention duplicate handling via event_id.</div>
+    </div>
+    <div class="cs-paper" id="cs-section-5">
+        <h2 class="cs-section-title">⑥ API & interfaces</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Endpoint / flow</th><th>Purpose</th><th>Notes</th></tr><tr><td>POST /v1/logs</td><td>Agent ingest</td><td>gzip batch; 202 accepted</td></tr><tr><td>GET /search</td><td>Query DSL</td><td>time range + filters</td></tr><tr><td>POST /alerts</td><td>Create alert</td><td>runs query every N minutes</td></tr><tr><td>GET /indices</td><td>Retention status</td><td>per-tenant rollover</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-6">
+        <h2 class="cs-section-title">⑦ Data model & storage</h2>
+        <div class="cs-note">Event: timestamp, service, level, message, trace_id, host, custom fields. Index template per service family.</div><div class="cs-table-wrap"><table class="cs-table"><tr><th>Store</th><th>What</th><th>Why</th></tr><tr><td>Kafka</td><td>Ingest buffer</td><td>24h retention for replay</td></tr><tr><td>Hot Elasticsearch</td><td>Recent logs</td><td>Fast search</td></tr><tr><td>S3</td><td>Cold archive</td><td>Cheap long retention</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-7">
+        <h2 class="cs-section-title">⑧ Deep dive — core components</h2>
+        <h3 class="cs-subheading">Cardinality and field explosion</h3><div class="cs-note">High-cardinality fields (user_id on every line) bloat indices. Use sampling for metrics, separate high-cardinality store, or indexed only on ERROR level.</div><h3 class="cs-subheading">Multi-tenant isolation</h3><div class="cs-note">Namespace per team; RBAC on indices. Rate limit ingest per tenant. Noisy neighbor: dedicated Kafka topic quotas.</div>
+    </div>
+    <div class="cs-paper" id="cs-section-8">
+        <h2 class="cs-section-title">⑨ Trade-offs & alternatives</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Decision</th><th>Option A</th><th>Option B</th><th>Pick when</th></tr><tr><td>Ingest</td><td>Kafka</td><td>Direct HTTP</td><td>Kafka handles spikes and replay</td></tr><tr><td>Index</td><td>Elasticsearch</td><td>ClickHouse</td><td>ES for text; CH for analytics aggregates</td></tr><tr><td>Retention</td><td>Time indices</td><td>Single huge index</td><td>Time indices simplify delete</td></tr><tr><td>Parsing</td><td>At ingest</td><td>At query</td><td>Ingest parsing speeds search; query parsing flexible</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-9">
+        <h2 class="cs-section-title">⑩ 45-minute interview script</h2>
+        <div class="cs-note"><ol><li>0–5 min: Requirements and retention</li><li>5–12 min: Volume math</li><li>12–22 min: Pipeline diagram</li><li>22–32 min: Indexing and ILM tiers</li><li>32–40 min: Query performance and alerts</li></ol></div>
+    </div>
+    <div class="cs-paper" id="cs-section-10">
+        <h2 class="cs-section-title">⑪ Likely follow-up questions</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Question</th><th>Short answer</th></tr><tr><td>Trace_id correlation across services?</td><td>Shared trace_id field indexed; join queries or trace store (Jaeger) linked from log UI</td></tr><tr><td>PII scrubbing at ingest?</td><td>Regex + ML scrubber in parser stage before index; drop or hash sensitive fields</td></tr><tr><td>Live tail vs search?</td><td>Live tail reads Kafka consumer lag stream; search hits indexed store — different paths</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-11">
+        <h2 class="cs-section-title">⑫ Revision checklist</h2>
+        <ul class="cs-checklist"><li>Agent batching + compression</li><li>Kafka backpressure</li><li>Time-based indices</li><li>ILM hot/warm/cold</li><li>Tenant ACLs</li><li>Cardinality controls</li><li>Alerting on scheduled queries</li><li>Replay from Kafka on indexer failure</li></ul><div class="cs-tags"><span class="cs-tag">logging</span><span class="cs-tag">elk</span><span class="cs-tag">kafka</span><span class="cs-tag">observability</span><span class="cs-tag">retention</span></div>
+    </div>
+    <div class="cs-related"><h3>More in this category</h3><div class="cs-related-links"><a href="/cheat-sheets/system-design/">All SD cheat sheets</a><a href="/cheat-sheets/system-design/fundamentals">SD Fundamentals</a><a href="/cheat-sheets/system-design/url-shortener">URL Shortener</a></div></div>
+
+</div>
+</main>
+<script src="/js/cheat-sheet-videos.js"></script>
+<script src="/js/cheat-sheet-prompts.js"></script>
+<script src="/js/cheat-sheet.js"></script>
+<script src="/js/site-nav.js"></script>
+</body>
+</html>

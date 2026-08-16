@@ -9,8 +9,9 @@ import {
   tags,
   diagram,
 } from './sheet-helpers.mjs';
+import { extraSdConfigs } from './sd-sheets-extra.mjs';
 
-export const sdConfigs = [
+const baseSdConfigs = [
   // ─── 1. URL Shortener ───────────────────────────────────────────────
   {
     slug: 'url-shortener',
@@ -367,7 +368,7 @@ Challenge with: different limits per endpoint tier, global vs per-region limits,
   // ─── 3. Chat System ─────────────────────────────────────────────────
   {
     slug: 'chat-system',
-    title: 'Design Chat / Messaging System',
+    title: 'Design WhatsApp & Chat System',
     subtitle: 'WhatsApp-scale messaging — WebSockets, delivery guarantees, group chat fan-out, and presence at 500M+ users.',
     tip: 'Cover online presence, per-channel message ordering, at-least-once delivery + client idempotency, and fan-out on write vs read for groups.',
     prompt: `You are a principal engineer conducting a 45-minute system design interview on a real-time chat system like WhatsApp or Messenger.
@@ -725,7 +726,7 @@ Challenge: "A celebrity with 50M followers posts — what happens?" and "How to 
   // ─── 5. Twitter Timeline ────────────────────────────────────────────
   {
     slug: 'twitter-timeline',
-    title: 'Design Twitter Timeline',
+    title: 'Design Twitter',
     subtitle: 'Home timeline, tweets, retweets, search, and trending — hybrid fan-out with Snowflake IDs and real-time search.',
     tip: 'Same fan-out hybrid as news feed. Add tweet ID as Snowflake, separate search index for @mentions and hashtags, and retweet deduplication in timeline.',
     prompt: `You are a staff engineer conducting a 45-minute system design interview to design Twitter (X) — tweets, home timeline, search, and trending topics.
@@ -898,7 +899,7 @@ Evaluate understanding of hybrid push/pull, search vs feed separation, and hot k
   // ─── 6. YouTube Streaming ─────────────────────────────────────────────
   {
     slug: 'youtube-streaming',
-    title: 'Design YouTube / Video Streaming',
+    title: 'Design YouTube',
     subtitle: 'Upload pipeline, transcoding, CDN delivery, adaptive bitrate, and view counting at billions of views.',
     tip: 'Separate upload path (blob storage + queue + workers) from read path (CDN + HLS/DASH). View counts are approximate — batch aggregate, never sync increment per view.',
     prompt: `You are a principal engineer interviewing a candidate on designing a video platform like YouTube at scale.
@@ -1072,7 +1073,7 @@ Ask: "How do you ensure smooth playback on 3G vs fiber?" and "Upload of a 4GB fi
   // ─── 7. Instagram Photos ────────────────────────────────────────────
   {
     slug: 'instagram-photos',
-    title: 'Design Instagram / Photo Sharing',
+    title: 'Design Instagram',
     subtitle: 'Photo upload, feed, likes, comments, stories, and object storage at 2B+ users with global CDN delivery.',
     tip: 'Photos → S3 + CDN thumbnails (multiple sizes). Metadata in Cassandra. Feed uses same hybrid fan-out as news feed. Separate hot path for image bytes vs metadata.',
     prompt: `You are a senior engineer conducting a 45-minute system design interview on an Instagram-like photo sharing platform.
@@ -2637,6 +2638,35 @@ Ask: "Rider requests ride in downtown at 5pm Friday — walk through the full fl
     tags: ['geospatial', 'real-time', 'matching', 'state machine', 'location'],
   },
 ];
+
+function withDataFlow(c) {
+  if (c.dataFlow) return c;
+  return {
+    ...c,
+    dataFlow:
+      diagram(
+        'End-to-end execution flow',
+        flow([
+          { text: '① Client', class: 'gray' },
+          { text: '② API / LB', class: '' },
+          { text: '③ Core services', class: 'purple' },
+          { text: '④ Cache + DB', class: 'green' },
+          { text: '⑤ Message queue', class: 'orange' },
+          { text: '⑥ Async workers', class: 'purple' },
+        ])
+      ) +
+      layers([
+        'Sync path: validate → authorize → read/write primary store',
+        'Async path: publish domain events → consumers (email, analytics, search index)',
+        'Read-heavy path: CDN / edge cache → regional cache → DB replica',
+        'Failure path: retry with backoff, DLQ, idempotent handlers',
+      ]),
+    dataFlowNotes:
+      'In interviews, trace one user action through this diagram. State what is synchronous (user waits) vs asynchronous (background), and where you enforce idempotency.',
+  };
+}
+
+export const sdConfigs = [...baseSdConfigs, ...extraSdConfigs].map(withDataFlow);
 
 export const sdPages = buildSDPages(sdConfigs);
 

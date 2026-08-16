@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <title>Design Google Maps | Binod Suman Study Material</title>
+    <meta name="description" content="Tiles, routing, geospatial index, real-time traffic, and global CDN delivery.">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Kalam:wght@400;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/site-nav.css">
+    <link rel="stylesheet" href="/css/cheat-sheet.css">
+</head>
+<body class="cheat-sheet-page">
+<main class="cheat-sheet-page">
+<div class="cs-container">
+    <nav class="cs-breadcrumb"><a href="/">Home</a> · <a href="/cheat-sheets/">Study Material</a> · <a href="/cheat-sheets/system-design/">System Design</a> · Design Google Maps</nav>
+    <header class="cs-hero">
+        <span class="cs-category-badge system-design">System Design</span>
+        <h1 class="cs-title">Design Google Maps</h1>
+        <p class="cs-subtitle">Tiles, routing, geospatial index, real-time traffic, and global CDN delivery.</p>
+    </header>
+    <div class="cs-interview-tip"><strong>Interview tip</strong> Split map tiles (static CDN) from dynamic routing (graph search). Mention quadtree/geohash, A*/Dijkstra on contracted graphs, and traffic-weighted edges.</div>
+    <nav class="cs-toc" aria-label="On this page">
+    <div class="cs-toc-title">On this page</div>
+    <ol><li><a href="#cs-section-0">① Functional requirements</a></li><li><a href="#cs-section-1">② Non-functional requirements</a></li><li><a href="#cs-section-2">③ Back-of-the-envelope scale</a></li><li><a href="#cs-section-3">④ High-level architecture</a></li><li><a href="#cs-section-4">⑤ Data flow & execution path</a></li><li><a href="#cs-section-5">⑥ API & interfaces</a></li><li><a href="#cs-section-6">⑦ Data model & storage</a></li><li><a href="#cs-section-7">⑧ Deep dive — core components</a></li><li><a href="#cs-section-8">⑨ Trade-offs & alternatives</a></li><li><a href="#cs-section-9">⑩ 45-minute interview script</a></li><li><a href="#cs-section-10">⑪ Likely follow-up questions</a></li><li><a href="#cs-section-11">⑫ Revision checklist</a></li></ol>
+  </nav>
+    
+    <div class="cs-paper" id="cs-section-0">
+        <h2 class="cs-section-title">① Functional requirements</h2>
+        <div class="cs-note"><ul><li>Display map tiles at zoom levels</li><li>Search places by name or category</li><li>Compute driving route A → B</li><li>ETA with live traffic</li><li>Turn-by-turn navigation updates</li><li>Save favorite places</li></ul></div>
+    </div>
+    <div class="cs-paper" id="cs-section-1">
+        <h2 class="cs-section-title">② Non-functional requirements</h2>
+        <div class="cs-note"><ul><li>Route p99 &lt; 500ms for metro areas</li><li>Tile load &lt; 100ms via CDN</li><li>Global availability 99.99%</li><li>Traffic data refreshed every 1–2 minutes</li><li>Offline map packs for mobile</li></ul></div>
+    </div>
+    <div class="cs-paper" id="cs-section-2">
+        <h2 class="cs-section-title">③ Back-of-the-envelope scale</h2>
+        <div class="cs-note"><strong>Assumptions</strong><ul><li>Tile pyramid: zoom 0–20 → billions of tiles, mostly static CDN</li><li>Routing graph: continental graph contracted to GB-scale in memory</li><li>10K route QPS → GPU/CPU farm for path search</li><li>Traffic: 100M road segments updated per minute</li></ul></div>
+    </div>
+    <div class="cs-paper" id="cs-section-3">
+        <h2 class="cs-section-title">④ High-level architecture</h2>
+        <div class="cs-diagram"><div class="cs-diagram-title">Google Maps</div><div class="cs-arch-grid"><div class="cs-arch-row"><div class="cs-arch-cell gray">Mobile / web clients</div></div><div class="cs-arch-row"><div class="cs-arch-cell green">CDN (map tiles)</div></div><div class="cs-arch-row"><div class="cs-arch-cell purple">Places API + search</div></div><div class="cs-arch-row"><div class="cs-arch-cell orange">Routing service (graph)</div></div><div class="cs-arch-row"><div class="cs-arch-cell purple">Traffic ingestion pipeline</div></div><div class="cs-arch-row"><div class="cs-arch-cell gray">Geospatial index DB</div></div></div></div><div class="cs-note">Tiles immutable — aggressive CDN cache. Routing uses preprocessed hierarchical graph (highways first). Traffic overlays edge weights.</div>
+    </div>
+    <div class="cs-paper" id="cs-section-4">
+        <h2 class="cs-section-title">⑤ Data flow & execution path</h2>
+        <div class="cs-diagram"><div class="cs-diagram-title">Route request path</div><div class="cs-flow"><span class="cs-box gray">① Snap A,B to graph</span><span class="cs-arrow">→</span><span class="cs-box orange">② Load traffic weights</span><span class="cs-arrow">→</span><span class="cs-box purple">③ Bidirectional search</span><span class="cs-arrow">→</span><span class="cs-box green">④ Polyline encode</span><span class="cs-arrow">→</span><span class="cs-box">⑤ Return ETA + steps</span></div></div><div class="cs-layer-diagram"><div class="cs-layer l1">Tile path: CDN cache hit → no origin</div><div class="cs-layer l2">Place search: geospatial index + text search</div><div class="cs-layer l3">Navigation: periodic reroute on traffic delta</div><div class="cs-layer l4">Mobile offline: bundled tile region packs</div></div><div class="cs-note">Separate static tile delivery from compute-heavy routing. Mention contraction hierarchies for interview depth.</div>
+    </div>
+    <div class="cs-paper" id="cs-section-5">
+        <h2 class="cs-section-title">⑥ API & interfaces</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Endpoint / flow</th><th>Purpose</th><th>Notes</th></tr><tr><td>GET /tiles/{z}/{x}/{y}</td><td>Map tile</td><td>CDN cached</td></tr><tr><td>GET /places/search</td><td>Place search</td><td>lat,lng + query</td></tr><tr><td>POST /routes</td><td>Compute route</td><td>mode=driving|walking</td></tr><tr><td>GET /routes/{id}/traffic</td><td>Reroute hint</td><td>WebSocket for nav</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-6">
+        <h2 class="cs-section-title">⑦ Data model & storage</h2>
+        <div class="cs-note">Road graph: nodes, edges, speed limits. Tiles: z/x/y PNG/vector. Place: name, lat, lng, categories. Traffic: edge_id → speed_factor.</div><div class="cs-table-wrap"><table class="cs-table"><tr><th>Store</th><th>What</th><th>Why</th></tr><tr><td>CDN + S3</td><td>Map tiles</td><td>Immutable static</td></tr><tr><td>In-memory graph</td><td>Routing</td><td>Preprocessed CH index</td></tr><tr><td>PostGIS / S2</td><td>Place index</td><td>Geo queries</td></tr><tr><td>Redis</td><td>Traffic overlay</td><td>TTL 2 min</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-7">
+        <h2 class="cs-section-title">⑧ Deep dive — core components</h2>
+        <h3 class="cs-subheading">Contraction hierarchies</h3><div class="cs-note">Preprocess graph offline to add shortcut edges. Query runs bidirectional search on hierarchy — ms on continental graphs vs seconds on raw Dijkstra.</div><h3 class="cs-subheading">Tile pyramid</h3><div class="cs-note">Web Mercator grid. Parent tile covers 4 children. Vector tiles reduce bandwidth vs raster. CDN cache keyed by tile URL forever (immutable version in path).</div>
+    </div>
+    <div class="cs-paper" id="cs-section-8">
+        <h2 class="cs-section-title">⑨ Trade-offs & alternatives</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Decision</th><th>Option A</th><th>Option B</th><th>Pick when</th></tr><tr><td>Routing</td><td>CH preprocess</td><td>Live Dijkstra</td><td>CH fast query; heavy preprocess on map updates</td></tr><tr><td>Tiles</td><td>Vector</td><td>Raster</td><td>Vector smaller + style client; raster simpler</td></tr><tr><td>Traffic</td><td>Probe fusion</td><td>Fixed historical</td><td>Live traffic better ETA; fallback patterns</td></tr><tr><td>Search</td><td>Geo first</td><td>Text first</td><td>Geo bias when lat/lng known</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-9">
+        <h2 class="cs-section-title">⑩ 45-minute interview script</h2>
+        <div class="cs-note"><ol><li>0–5 min: Map + route + search</li><li>5–12 min: Tile CDN vs routing compute</li><li>12–22 min: Routing graph + traffic</li><li>22–32 min: Place search geospatial</li><li>32–40 min: Navigation reroute</li></ol></div>
+    </div>
+    <div class="cs-paper" id="cs-section-10">
+        <h2 class="cs-section-title">⑪ Likely follow-up questions</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Question</th><th>Short answer</th></tr><tr><td>Multi-modal transit?</td><td>Layered graphs per mode; transfer edges at stations; longer compute budget</td></tr><tr><td>Map update pipeline?</td><td>Probe + government feeds → traffic service; weekly graph rebuild for road changes</td></tr><tr><td>Privacy on location history?</td><td>On-device storage option; server TTL; aggregate analytics only</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-11">
+        <h2 class="cs-section-title">⑫ Revision checklist</h2>
+        <ul class="cs-checklist"><li>Tile CDN pyramid</li><li>Road graph storage</li><li>Contraction hierarchies</li><li>Traffic-weighted edges</li><li>Place geospatial index</li><li>Route polyline encoding</li><li>Reroute on traffic</li><li>Offline region packs</li></ul><div class="cs-tags"><span class="cs-tag">maps</span><span class="cs-tag">routing</span><span class="cs-tag">geospatial</span><span class="cs-tag">cdn</span><span class="cs-tag">traffic</span></div>
+    </div>
+    <div class="cs-related"><h3>More in this category</h3><div class="cs-related-links"><a href="/cheat-sheets/system-design/">All SD cheat sheets</a><a href="/cheat-sheets/system-design/fundamentals">SD Fundamentals</a><a href="/cheat-sheets/system-design/url-shortener">URL Shortener</a></div></div>
+
+</div>
+</main>
+<script src="/js/cheat-sheet-videos.js"></script>
+<script src="/js/cheat-sheet-prompts.js"></script>
+<script src="/js/cheat-sheet.js"></script>
+<script src="/js/site-nav.js"></script>
+</body>
+</html>

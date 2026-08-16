@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <title>Design Distributed Task Scheduler | Binod Suman Study Material</title>
+    <meta name="description" content="Cron at scale — leader election, job queue, at-least-once execution, and idempotent workers.">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Kalam:wght@400;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/site-nav.css">
+    <link rel="stylesheet" href="/css/cheat-sheet.css">
+</head>
+<body class="cheat-sheet-page">
+<main class="cheat-sheet-page">
+<div class="cs-container">
+    <nav class="cs-breadcrumb"><a href="/">Home</a> · <a href="/cheat-sheets/">Study Material</a> · <a href="/cheat-sheets/system-design/">System Design</a> · Design Distributed Task Scheduler</nav>
+    <header class="cs-hero">
+        <span class="cs-category-badge system-design">System Design</span>
+        <h1 class="cs-title">Design Distributed Task Scheduler</h1>
+        <p class="cs-subtitle">Cron at scale — leader election, job queue, at-least-once execution, and idempotent workers.</p>
+    </header>
+    <div class="cs-interview-tip"><strong>Interview tip</strong> Split schedule metadata store from execution queue. Mention leader for cron tick, partition jobs by shard, and visibility timeout for stuck workers.</div>
+    <nav class="cs-toc" aria-label="On this page">
+    <div class="cs-toc-title">On this page</div>
+    <ol><li><a href="#cs-section-0">① Functional requirements</a></li><li><a href="#cs-section-1">② Non-functional requirements</a></li><li><a href="#cs-section-2">③ Back-of-the-envelope scale</a></li><li><a href="#cs-section-3">④ High-level architecture</a></li><li><a href="#cs-section-4">⑤ Data flow & execution path</a></li><li><a href="#cs-section-5">⑥ API & interfaces</a></li><li><a href="#cs-section-6">⑦ Data model & storage</a></li><li><a href="#cs-section-7">⑧ Deep dive — core components</a></li><li><a href="#cs-section-8">⑨ Trade-offs & alternatives</a></li><li><a href="#cs-section-9">⑩ 45-minute interview script</a></li><li><a href="#cs-section-10">⑪ Likely follow-up questions</a></li><li><a href="#cs-section-11">⑫ Revision checklist</a></li></ol>
+  </nav>
+    
+    <div class="cs-paper" id="cs-section-0">
+        <h2 class="cs-section-title">① Functional requirements</h2>
+        <div class="cs-note"><ul><li>Register job with cron expression or fixed interval</li><li>Trigger execution at scheduled time</li><li>Retry failed runs with backoff</li><li>Pause/resume and manual trigger</li><li>View run history and status</li><li>Optional DAG dependencies between jobs</li></ul></div>
+    </div>
+    <div class="cs-paper" id="cs-section-1">
+        <h2 class="cs-section-title">② Non-functional requirements</h2>
+        <div class="cs-note"><ul><li>Fire within 1s of scheduled minute</li><li>50K concurrent executions</li><li>At-least-once execution with idempotent workers</li><li>Survive scheduler leader failure in &lt;10s</li><li>Fair scheduling across tenants</li></ul></div>
+    </div>
+    <div class="cs-paper" id="cs-section-2">
+        <h2 class="cs-section-title">③ Back-of-the-envelope scale</h2>
+        <div class="cs-note"><strong>Assumptions</strong><ul><li>10M jobs → minute tick evaluates subset via time buckets</li><li>50K workers pull from partitioned queues</li><li>Metadata DB: job defs + run records</li><li>Leader scans next 60s window every second</li></ul></div>
+    </div>
+    <div class="cs-paper" id="cs-section-3">
+        <h2 class="cs-section-title">④ High-level architecture</h2>
+        <div class="cs-diagram"><div class="cs-diagram-title">Task Scheduler</div><div class="cs-arch-grid"><div class="cs-arch-row"><div class="cs-arch-cell gray">API (job CRUD)</div></div><div class="cs-arch-row"><div class="cs-arch-cell green">Metadata DB (jobs, runs)</div></div><div class="cs-arch-row"><div class="cs-arch-cell purple">Leader scheduler (elected)</div></div><div class="cs-arch-row"><div class="cs-arch-cell orange">Execution queues (sharded)</div></div><div class="cs-arch-row"><div class="cs-arch-cell gray">Worker pool</div></div></div></div><div class="cs-note">Only leader advances cron clock. Enqueues run_id to shard queue by hash(job_id). Workers ack after success; visibility timeout requeues on crash.</div>
+    </div>
+    <div class="cs-paper" id="cs-section-4">
+        <h2 class="cs-section-title">⑤ Data flow & execution path</h2>
+        <div class="cs-diagram"><div class="cs-diagram-title">Scheduled run execution</div><div class="cs-flow"><span class="cs-box gray">① Leader tick</span><span class="cs-arrow">→</span><span class="cs-box orange">② Enqueue run</span><span class="cs-arrow">→</span><span class="cs-box purple">③ Worker pull</span><span class="cs-arrow">→</span><span class="cs-box green">④ Execute + log</span><span class="cs-arrow">→</span><span class="cs-box">⑤ Ack / retry</span></div></div><div class="cs-layer-diagram"><div class="cs-layer l1">Leader election via etcd lease</div><div class="cs-layer l2">Time bucket index for O(log n) job lookup</div><div class="cs-layer l3">Idempotency key = run_id in worker</div><div class="cs-layer l4">DLQ after max retries</div></div><div class="cs-note">Explain how you avoid double-fire when leader fails mid-tick — transactional outbox or lease-bound tick version.</div>
+    </div>
+    <div class="cs-paper" id="cs-section-5">
+        <h2 class="cs-section-title">⑥ API & interfaces</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Endpoint / flow</th><th>Purpose</th><th>Notes</th></tr><tr><td>POST /jobs</td><td>Create scheduled job</td><td>cron + payload + retry policy</td></tr><tr><td>POST /jobs/{id}/run</td><td>Manual trigger</td><td>enqueue immediately</td></tr><tr><td>GET /runs/{id}</td><td>Run status</td><td>pending|running|success|failed</td></tr><tr><td>DELETE /jobs/{id}</td><td>Remove schedule</td><td>soft delete + stop future runs</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-6">
+        <h2 class="cs-section-title">⑦ Data model & storage</h2>
+        <div class="cs-note">Job: id, cron, payload, tenant, next_run_at. Run: run_id, job_id, status, started_at, attempts.</div><div class="cs-table-wrap"><table class="cs-table"><tr><th>Store</th><th>What</th><th>Why</th></tr><tr><td>PostgreSQL</td><td>Job metadata + runs</td><td>ACID for schedule state</td></tr><tr><td>Redis/SQS queues</td><td>Execution queue</td><td>Sharded by job_id hash</td></tr><tr><td>etcd</td><td>Leader lock</td><td>Single active scheduler</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-7">
+        <h2 class="cs-section-title">⑧ Deep dive — core components</h2>
+        <h3 class="cs-subheading">Cron evaluation at 10M jobs</h3><div class="cs-note">Bucket jobs by next_run minute in Redis sorted set. Leader pulls due bucket only — not scan 10M rows. Pre-compute next_fire on each execution.</div><h3 class="cs-subheading">Exactly-once vs at-least-once</h3><div class="cs-note">True exactly-once hard — use at-least-once + idempotent workers (dedupe by run_id). Optional dedupe store with TTL for side effects.</div>
+    </div>
+    <div class="cs-paper" id="cs-section-8">
+        <h2 class="cs-section-title">⑨ Trade-offs & alternatives</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Decision</th><th>Option A</th><th>Option B</th><th>Pick when</th></tr><tr><td>Queue</td><td>Kafka</td><td>SQS</td><td>Kafka ordering per partition; SQS simpler ops</td></tr><tr><td>Leader</td><td>Single leader</td><td>Distributed tick</td><td>Single leader simpler; shard leaders for scale</td></tr><tr><td>DAG</td><td>Built-in</td><td>External orchestrator</td><td>DAG adds complexity — scope carefully</td></tr><tr><td>Storage</td><td>SQL</td><td>etcd only</td><td>SQL for history queries; etcd for small coordination</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-9">
+        <h2 class="cs-section-title">⑩ 45-minute interview script</h2>
+        <div class="cs-note"><ol><li>0–5 min: Cron + execution requirements</li><li>5–12 min: Scale — jobs vs executions/sec</li><li>12–22 min: Leader + queue + workers</li><li>22–32 min: Failure, retry, idempotency</li><li>32–40 min: DAG mention if time</li></ol></div>
+    </div>
+    <div class="cs-paper" id="cs-section-10">
+        <h2 class="cs-section-title">⑪ Likely follow-up questions</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Question</th><th>Short answer</th></tr><tr><td>Job runs long past next schedule?</td><td>Skip or queue overlapping run based on policy; max_concurrent_runs per job</td></tr><tr><td>Timezone handling?</td><td>Store cron in UTC + tenant TZ; convert at schedule registration</td></tr><tr><td>Priority queues?</td><td>Separate queues per priority tier; workers poll high first</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-11">
+        <h2 class="cs-section-title">⑫ Revision checklist</h2>
+        <ul class="cs-checklist"><li>Leader election</li><li>Time-bucket job index</li><li>Sharded execution queues</li><li>Visibility timeout</li><li>Idempotent run_id</li><li>Run history audit</li><li>Tenant fair-share</li><li>DLQ for poison jobs</li></ul><div class="cs-tags"><span class="cs-tag">scheduler</span><span class="cs-tag">cron</span><span class="cs-tag">distributed</span><span class="cs-tag">queue</span><span class="cs-tag">leader-election</span></div>
+    </div>
+    <div class="cs-related"><h3>More in this category</h3><div class="cs-related-links"><a href="/cheat-sheets/system-design/">All SD cheat sheets</a><a href="/cheat-sheets/system-design/fundamentals">SD Fundamentals</a><a href="/cheat-sheets/system-design/url-shortener">URL Shortener</a></div></div>
+
+</div>
+</main>
+<script src="/js/cheat-sheet-videos.js"></script>
+<script src="/js/cheat-sheet-prompts.js"></script>
+<script src="/js/cheat-sheet.js"></script>
+<script src="/js/site-nav.js"></script>
+</body>
+</html>

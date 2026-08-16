@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <title>Design Quora | Binod Suman Study Material</title>
+    <meta name="description" content="Q&A feeds, topic graph, ranking, and moderation at hundreds of millions of questions.">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Kalam:wght@400;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/site-nav.css">
+    <link rel="stylesheet" href="/css/cheat-sheet.css">
+</head>
+<body class="cheat-sheet-page">
+<main class="cheat-sheet-page">
+<div class="cs-container">
+    <nav class="cs-breadcrumb"><a href="/">Home</a> · <a href="/cheat-sheets/">Study Material</a> · <a href="/cheat-sheets/system-design/">System Design</a> · Design Quora</nav>
+    <header class="cs-hero">
+        <span class="cs-category-badge system-design">System Design</span>
+        <h1 class="cs-title">Design Quora</h1>
+        <p class="cs-subtitle">Q&A feeds, topic graph, ranking, and moderation at hundreds of millions of questions.</p>
+    </header>
+    <div class="cs-interview-tip"><strong>Interview tip</strong> Model Question, Answer, Topic, User. Feed = mix of topic interest + social graph + quality score. Search overlaps with distributed search patterns.</div>
+    <nav class="cs-toc" aria-label="On this page">
+    <div class="cs-toc-title">On this page</div>
+    <ol><li><a href="#cs-section-0">① Functional requirements</a></li><li><a href="#cs-section-1">② Non-functional requirements</a></li><li><a href="#cs-section-2">③ Back-of-the-envelope scale</a></li><li><a href="#cs-section-3">④ High-level architecture</a></li><li><a href="#cs-section-4">⑤ Data flow & execution path</a></li><li><a href="#cs-section-5">⑥ API & interfaces</a></li><li><a href="#cs-section-6">⑦ Data model & storage</a></li><li><a href="#cs-section-7">⑧ Deep dive — core components</a></li><li><a href="#cs-section-8">⑨ Trade-offs & alternatives</a></li><li><a href="#cs-section-9">⑩ 45-minute interview script</a></li><li><a href="#cs-section-10">⑪ Likely follow-up questions</a></li><li><a href="#cs-section-11">⑫ Revision checklist</a></li></ol>
+  </nav>
+    
+    <div class="cs-paper" id="cs-section-0">
+        <h2 class="cs-section-title">① Functional requirements</h2>
+        <div class="cs-note"><ul><li>Post question with topics</li><li>Write/edit answers with rich text</li><li>Upvote/downvote answers</li><li>Follow topics and users</li><li>Personalized home feed of questions</li><li>Search questions and answers</li></ul></div>
+    </div>
+    <div class="cs-paper" id="cs-section-1">
+        <h2 class="cs-section-title">② Non-functional requirements</h2>
+        <div class="cs-note"><ul><li>Feed generation p99 &lt; 300ms</li><li>99.9% availability</li><li>Moderation queue for flagged content</li><li>Global CDN for read-heavy traffic</li><li>Eventual consistency OK for vote counts</li></ul></div>
+    </div>
+    <div class="cs-paper" id="cs-section-2">
+        <h2 class="cs-section-title">③ Back-of-the-envelope scale</h2>
+        <div class="cs-note"><strong>Assumptions</strong><ul><li>10M DAU × 50 feed items = 500M feed cells/day precomputed</li><li>200 writes/sec answers peak</li><li>Vote bursts on viral answer: 10K/sec incr</li><li>Search: 2K QPS</li></ul></div>
+    </div>
+    <div class="cs-paper" id="cs-section-3">
+        <h2 class="cs-section-title">④ High-level architecture</h2>
+        <div class="cs-diagram"><div class="cs-diagram-title">Quora Architecture</div><div class="cs-arch-grid"><div class="cs-arch-row"><div class="cs-arch-cell gray">Web / mobile clients</div></div><div class="cs-arch-row"><div class="cs-arch-cell purple">API gateway</div></div><div class="cs-arch-row"><div class="cs-arch-cell green">Q&A service</div><div class="cs-arch-cell green">Feed service</div><div class="cs-arch-cell orange">Vote/counter service</div></div><div class="cs-arch-row"><div class="cs-arch-cell purple">Search index</div></div><div class="cs-arch-row"><div class="cs-arch-cell gray">PostgreSQL + Cassandra</div></div></div></div><div class="cs-note">Questions/answers in SQL for ACID edits. Feed candidates precomputed on write fan-out to followers. Votes via counter service.</div>
+    </div>
+    <div class="cs-paper" id="cs-section-4">
+        <h2 class="cs-section-title">⑤ Data flow & execution path</h2>
+        <div class="cs-diagram"><div class="cs-diagram-title">New answer fan-out</div><div class="cs-flow"><span class="cs-box gray">① Post answer</span><span class="cs-arrow">→</span><span class="cs-box green">② Persist Q&A DB</span><span class="cs-arrow">→</span><span class="cs-box purple">③ Fan-out feed cells</span><span class="cs-arrow">→</span><span class="cs-box orange">④ Index search</span><span class="cs-arrow">→</span><span class="cs-box">⑤ Notify followers</span></div></div><div class="cs-layer-diagram"><div class="cs-layer l1">Feed read: pull precomputed cells + rank on read</div><div class="cs-layer l2">Topic graph expands candidate pool</div><div class="cs-layer l3">Quality score decays spam answers</div><div class="cs-layer l4">Async moderation ML scan</div></div><div class="cs-note">Contrast fan-out on write (followers) vs fan-in on read for home feed — pick hybrid for celebrity authors.</div>
+    </div>
+    <div class="cs-paper" id="cs-section-5">
+        <h2 class="cs-section-title">⑥ API & interfaces</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Endpoint / flow</th><th>Purpose</th><th>Notes</th></tr><tr><td>POST /questions</td><td>Create question</td><td>topics[] required</td></tr><tr><td>POST /answers</td><td>Post answer</td><td>question_id + body</td></tr><tr><td>GET /feed</td><td>Home feed</td><td>cursor pagination</td></tr><tr><td>POST /vote</td><td>Upvote answer</td><td>idempotent per user</td></tr><tr><td>GET /search</td><td>Search Q&A</td><td>delegates to search cluster</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-6">
+        <h2 class="cs-section-title">⑦ Data model & storage</h2>
+        <div class="cs-note">Question, Answer, Topic, UserTopic, Vote(user, answer), FeedCell(user, question, score, ts).</div><div class="cs-table-wrap"><table class="cs-table"><tr><th>Store</th><th>What</th><th>Why</th></tr><tr><td>PostgreSQL</td><td>Q&A content</td><td>ACID edits</td></tr><tr><td>Cassandra</td><td>Feed cells per user</td><td>Wide rows by user_id</td></tr><tr><td>Redis</td><td>Hot feeds cache</td><td>Top stories</td></tr><tr><td>Search cluster</td><td>Full-text</td><td>Questions + answers</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-7">
+        <h2 class="cs-section-title">⑧ Deep dive — core components</h2>
+        <h3 class="cs-subheading">Feed ranking features</h3><div class="cs-note">Score = topic_match × author_quality × recency × social_proof (votes). Train logistic model offline; serve weighted sum online for speed.</div><h3 class="cs-subheading">Celebrity fan-out</h3><div class="cs-note">User with 10M followers: skip write fan-out — merge celebrity posts at read time from celebrity bucket.</div>
+    </div>
+    <div class="cs-paper" id="cs-section-8">
+        <h2 class="cs-section-title">⑨ Trade-offs & alternatives</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Decision</th><th>Option A</th><th>Option B</th><th>Pick when</th></tr><tr><td>Feed</td><td>Fan-out write</td><td>Fan-in read</td><td>Hybrid for celebrities</td></tr><tr><td>Votes</td><td>Counter service</td><td>DB row</td><td>Counter service for hot answers</td></tr><tr><td>Content</td><td>SQL</td><td>NoSQL</td><td>SQL for editable rich text</td></tr><tr><td>Moderation</td><td>Sync block</td><td>Async queue</td><td>Async ML + human review queue</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-9">
+        <h2 class="cs-section-title">⑩ 45-minute interview script</h2>
+        <div class="cs-note"><ol><li>0–5 min: Q&A + feed requirements</li><li>5–12 min: Scale and DAU math</li><li>12–22 min: Services diagram</li><li>22–32 min: Feed fan-out + ranking</li><li>32–40 min: Search + moderation</li></ol></div>
+    </div>
+    <div class="cs-paper" id="cs-section-10">
+        <h2 class="cs-section-title">⑪ Likely follow-up questions</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Question</th><th>Short answer</th></tr><tr><td>Duplicate questions merge?</td><td>Detect similar titles via embedding similarity; moderator merges canonical question</td></tr><tr><td>Anonymous posting?</td><td>Pseudonymous user_id; still rate limit; reduced trust weight in ranking</td></tr><tr><td>Multi-language?</td><td>Language detect on post; separate search indices or multilingual embeddings</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-11">
+        <h2 class="cs-section-title">⑫ Revision checklist</h2>
+        <ul class="cs-checklist"><li>Q&A data model</li><li>Topic graph</li><li>Feed precomputation</li><li>Celebrity hybrid fan-out</li><li>Vote counter service</li><li>Search indexing</li><li>Moderation pipeline</li><li>CDN for static assets</li></ul><div class="cs-tags"><span class="cs-tag">quora</span><span class="cs-tag">feed</span><span class="cs-tag">qa</span><span class="cs-tag">ranking</span><span class="cs-tag">social</span></div>
+    </div>
+    <div class="cs-related"><h3>More in this category</h3><div class="cs-related-links"><a href="/cheat-sheets/system-design/">All SD cheat sheets</a><a href="/cheat-sheets/system-design/fundamentals">SD Fundamentals</a><a href="/cheat-sheets/system-design/url-shortener">URL Shortener</a></div></div>
+
+</div>
+</main>
+<script src="/js/cheat-sheet-videos.js"></script>
+<script src="/js/cheat-sheet-prompts.js"></script>
+<script src="/js/cheat-sheet.js"></script>
+<script src="/js/site-nav.js"></script>
+</body>
+</html>

@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <title>Design Shared Counter | Binod Suman Study Material</title>
+    <meta name="description" content="Global view/like counters — sharding, aggregation, and read-your-writes at billions of events/day.">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Kalam:wght@400;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/site-nav.css">
+    <link rel="stylesheet" href="/css/cheat-sheet.css">
+</head>
+<body class="cheat-sheet-page">
+<main class="cheat-sheet-page">
+<div class="cs-container">
+    <nav class="cs-breadcrumb"><a href="/">Home</a> · <a href="/cheat-sheets/">Study Material</a> · <a href="/cheat-sheets/system-design/">System Design</a> · Design Shared Counter</nav>
+    <header class="cs-hero">
+        <span class="cs-category-badge system-design">System Design</span>
+        <h1 class="cs-title">Design Shared Counter</h1>
+        <p class="cs-subtitle">Global view/like counters — sharding, aggregation, and read-your-writes at billions of events/day.</p>
+    </header>
+    <div class="cs-interview-tip"><strong>Interview tip</strong> Separate hot counter shards from periodic flush to DB. Mention local aggregation, Redis INCR, and handling counter rebuild after loss.</div>
+    <nav class="cs-toc" aria-label="On this page">
+    <div class="cs-toc-title">On this page</div>
+    <ol><li><a href="#cs-section-0">① Functional requirements</a></li><li><a href="#cs-section-1">② Non-functional requirements</a></li><li><a href="#cs-section-2">③ Back-of-the-envelope scale</a></li><li><a href="#cs-section-3">④ High-level architecture</a></li><li><a href="#cs-section-4">⑤ Data flow & execution path</a></li><li><a href="#cs-section-5">⑥ API & interfaces</a></li><li><a href="#cs-section-6">⑦ Data model & storage</a></li><li><a href="#cs-section-7">⑧ Deep dive — core components</a></li><li><a href="#cs-section-8">⑨ Trade-offs & alternatives</a></li><li><a href="#cs-section-9">⑩ 45-minute interview script</a></li><li><a href="#cs-section-10">⑪ Likely follow-up questions</a></li><li><a href="#cs-section-11">⑫ Revision checklist</a></li></ol>
+  </nav>
+    
+    <div class="cs-paper" id="cs-section-0">
+        <h2 class="cs-section-title">① Functional requirements</h2>
+        <div class="cs-note"><ul><li>increment(entity_id) — add 1 or N</li><li>get_count(entity_id) — current total</li><li>batch_get(entity_ids[]) — mget counts</li><li>Optional decrement for unlike</li><li>Admin reset / adjust count</li></ul></div>
+    </div>
+    <div class="cs-paper" id="cs-section-1">
+        <h2 class="cs-section-title">② Non-functional requirements</h2>
+        <div class="cs-note"><ul><li>1M increments/sec peak</li><li>get p99 &lt; 10ms</li><li>Counts accurate within 1% or flush every few seconds</li><li>Horizontally scalable</li><li>Survive Redis node loss without permanent drift</li></ul></div>
+    </div>
+    <div class="cs-paper" id="cs-section-2">
+        <h2 class="cs-section-title">③ Back-of-the-envelope scale</h2>
+        <div class="cs-note"><strong>Assumptions</strong><ul><li>100B/day ≈ 1.2M incr/sec average; 3× peak → ~4M/sec</li><li>1B entities — most cold, top 1% hot</li><li>Batch flush every 5s reduces DB writes 100×</li><li>100 counter shards × Redis cluster</li></ul></div>
+    </div>
+    <div class="cs-paper" id="cs-section-3">
+        <h2 class="cs-section-title">④ High-level architecture</h2>
+        <div class="cs-diagram"><div class="cs-diagram-title">Counter Service</div><div class="cs-arch-grid"><div class="cs-arch-row"><div class="cs-arch-cell gray">Clients</div></div><div class="cs-arch-row"><div class="cs-arch-cell purple">Counter API</div></div><div class="cs-arch-row"><div class="cs-arch-cell green">Redis shards (INCR)</div></div><div class="cs-arch-row"><div class="cs-arch-cell orange">Flush workers → DB</div></div><div class="cs-arch-row"><div class="cs-arch-cell gray">Read cache / CDN edge</div></div></div></div><div class="cs-note">increment always hits Redis shard. Periodic flush merges shard delta into Cassandra/DB. Cold entities read from DB + cache.</div>
+    </div>
+    <div class="cs-paper" id="cs-section-4">
+        <h2 class="cs-section-title">⑤ Data flow & execution path</h2>
+        <div class="cs-diagram"><div class="cs-diagram-title">Increment path</div><div class="cs-flow"><span class="cs-box gray">① INCR shard</span><span class="cs-arrow">→</span><span class="cs-box orange">② Async flush</span><span class="cs-arrow">→</span><span class="cs-box green">③ Merge DB total</span><span class="cs-arrow">→</span><span class="cs-box purple">④ Read cache</span></div></div><div class="cs-layer-diagram"><div class="cs-layer l1">Hot path: Redis INCR only — no DB on write</div><div class="cs-layer l2">Flush: shard delta + persisted_total</div><div class="cs-layer l3">Read: Redis + DB persisted + delta</div><div class="cs-layer l4">Rebuild: replay increment log if Redis lost</div></div><div class="cs-note">Clarify acceptable staleness on read vs write cost. Viral video = hot key — local aggregator on API nodes.</div>
+    </div>
+    <div class="cs-paper" id="cs-section-5">
+        <h2 class="cs-section-title">⑥ API & interfaces</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Endpoint / flow</th><th>Purpose</th><th>Notes</th></tr><tr><td>POST /v1/incr/{id}</td><td>Increment</td><td>returns new approximate count</td></tr><tr><td>GET /v1/count/{id}</td><td>Read count</td><td>cache-aside</td></tr><tr><td>POST /v1/mget</td><td>Batch read</td><td>parallel shard fetch</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-6">
+        <h2 class="cs-section-title">⑦ Data model & storage</h2>
+        <div class="cs-note">Redis: counter_key → integer delta. DB: entity_id → persisted_total, flushed_at. Optional Kafka log for replay.</div><div class="cs-table-wrap"><table class="cs-table"><tr><th>Store</th><th>What</th><th>Why</th></tr><tr><td>Redis cluster</td><td>Hot counters</td><td>INCR atomic</td></tr><tr><td>Cassandra</td><td>Persisted totals</td><td>Wide-column per entity</td></tr><tr><td>Kafka</td><td>Increment log</td><td>Replay and analytics</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-7">
+        <h2 class="cs-section-title">⑧ Deep dive — core components</h2>
+        <h3 class="cs-subheading">Hot key mitigation</h3><div class="cs-note">Per-API-node local buffer aggregates 1000 increments before single INCR. Risk brief loss on crash — acceptable for views. Or replicate hot key across nodes with periodic merge.</div><h3 class="cs-subheading">Accuracy vs cost</h3><div class="cs-note">Flush every 5s: reads may lag few seconds. For likes show exact — shorter flush or read from Redis primary only.</div>
+    </div>
+    <div class="cs-paper" id="cs-section-8">
+        <h2 class="cs-section-title">⑨ Trade-offs & alternatives</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Decision</th><th>Option A</th><th>Option B</th><th>Pick when</th></tr><tr><td>Store</td><td>Redis + DB</td><td>DB only</td><td>Redis for speed; DB for durability</td></tr><tr><td>Flush</td><td>Time-based</td><td>Threshold-based</td><td>Time simpler; threshold fewer writes for cold keys</td></tr><tr><td>Hot key</td><td>Local aggregate</td><td>Key replicate</td><td>Local aggregate lower Redis load</td></tr><tr><td>Accuracy</td><td>Strong</td><td>Eventual</td><td>Views tolerate eventual; payments need strong</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-9">
+        <h2 class="cs-section-title">⑩ 45-minute interview script</h2>
+        <div class="cs-note"><ol><li>0–5 min: incr/get requirements</li><li>5–10 min: Scale math</li><li>10–20 min: Redis shard + flush</li><li>20–30 min: Hot key and accuracy</li><li>30–38 min: Failure recovery</li></ol></div>
+    </div>
+    <div class="cs-paper" id="cs-section-10">
+        <h2 class="cs-section-title">⑪ Likely follow-up questions</h2>
+        <div class="cs-table-wrap"><table class="cs-table"><tr><th>Question</th><th>Short answer</th></tr><tr><td>Unique viewer vs raw views?</td><td>Separate dedupe set (HyperLogLog or bloom) for unique; raw incr for total views</td></tr><tr><td>Global vs per-region counts?</td><td>Regional shards + periodic merge to global aggregate for display</td></tr><tr><td>Counter reset attack?</td><td>Rate limit incr per IP/user; cap velocity; anomaly detection on spikes</td></tr></table></div>
+    </div>
+    <div class="cs-paper" id="cs-section-11">
+        <h2 class="cs-section-title">⑫ Revision checklist</h2>
+        <ul class="cs-checklist"><li>Redis INCR sharding</li><li>Periodic DB flush</li><li>Hot key local aggregation</li><li>Kafka replay log</li><li>batch_get parallel</li><li>Read merge persisted + delta</li><li>Monitoring shard balance</li><li>Rate limit abusive incr</li></ul><div class="cs-tags"><span class="cs-tag">counter</span><span class="cs-tag">redis</span><span class="cs-tag">hot-key</span><span class="cs-tag">aggregation</span><span class="cs-tag">scale</span></div>
+    </div>
+    <div class="cs-related"><h3>More in this category</h3><div class="cs-related-links"><a href="/cheat-sheets/system-design/">All SD cheat sheets</a><a href="/cheat-sheets/system-design/fundamentals">SD Fundamentals</a><a href="/cheat-sheets/system-design/url-shortener">URL Shortener</a></div></div>
+
+</div>
+</main>
+<script src="/js/cheat-sheet-videos.js"></script>
+<script src="/js/cheat-sheet-prompts.js"></script>
+<script src="/js/cheat-sheet.js"></script>
+<script src="/js/site-nav.js"></script>
+</body>
+</html>
