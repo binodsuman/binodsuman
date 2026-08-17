@@ -53,6 +53,16 @@ window.CHEAT_SHEET_VIDEOS = {
         { title: 'Trapping Rain Water', url: 'https://youtu.be/d0NBK4nSOjA', thumbId: 'd0NBK4nSOjA' },
         { title: 'Binary Tree from Inorder', url: 'https://youtu.be/xNT8sEcL08o', thumbId: 'xNT8sEcL08o' },
     ],
+    '/cheat-sheets/dsa/leetcode-25': [
+        { title: 'Two Sum Problem', url: 'https://youtu.be/JEMSeUrtmjI', thumbId: 'JEMSeUrtmjI' },
+        { title: 'House Robber Problem', url: 'https://youtu.be/qcIQKYGvdgk', thumbId: 'qcIQKYGvdgk' },
+        { title: 'Coin Change Problem', url: 'https://youtu.be/aoND2FXdVSQ', thumbId: 'aoND2FXdVSQ' },
+        { title: 'Trapping Rain Water', url: 'https://youtu.be/d0NBK4nSOjA', thumbId: 'd0NBK4nSOjA' },
+        { title: 'Number of Islands', url: 'https://youtu.be/sdTS_WJGRZg', thumbId: 'sdTS_WJGRZg' },
+        { title: 'Three Sum', url: 'https://youtu.be/rdXs7cjVn9o', thumbId: 'rdXs7cjVn9o' },
+        { title: 'Merge Intervals', url: 'https://youtu.be/3q5SECdDA8k', thumbId: '3q5SECdDA8k' },
+        { title: 'Reverse Linked List', url: 'https://youtu.be/2GS3LeSAJjM', thumbId: '2GS3LeSAJjM' },
+    ],
     '/cheat-sheets/behaviour/star': [
         { title: 'Binod Suman YouTube Channel', url: 'https://youtube.com/@binodsuman', thumbId: 'Y1qxI-Df4Lk', type: 'channel' },
     ],
