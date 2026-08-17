@@ -68,6 +68,7 @@
                                 </div>
                                 <div class="nav-mega-label">DSA</div>
                                 <div class="nav-mega-grid">
+                                    <a href="/cheat-sheets/dsa/leetcode-25/" class="nav-link" data-nav="dsa-leetcode-25">25 LeetCode Problems</a>
                                     <a href="/cheat-sheets/dsa/patterns" class="nav-link" data-nav="dsa-patterns">DSA Patterns</a>
                                     <a href="/cheat-sheets/dsa/top-problems" class="nav-link" data-nav="dsa-problems">Top Problems</a>
                                 </div>
@@ -165,8 +166,10 @@
         '/cheat-sheets/ai/mcp-basics': 'ai-mcp',
         '/cheat-sheets/java/core': 'java-core',
         '/cheat-sheets/java/collections': 'java-collections',
+        '/cheat-sheets/dsa': 'dsa-hub',
         '/cheat-sheets/dsa/patterns': 'dsa-patterns',
         '/cheat-sheets/dsa/top-problems': 'dsa-problems',
+        '/cheat-sheets/dsa/leetcode-25': 'dsa-leetcode-25',
         '/cheat-sheets/data-engineering/kafka': 'de-kafka',
         '/cheat-sheets/data-engineering/spark': 'de-spark',
         '/cheat-sheets/behaviour/star': 'beh-star',

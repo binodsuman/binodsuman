@@ -873,3 +873,36 @@ body.home-page .site-header .mobile-menu-btn {
         font-size: 1.4rem;
     }
 }
+
+body.home-page .dsa-home-banner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem 1.25rem;
+    margin: 0 0 1.5rem;
+    padding: 1rem 1.15rem;
+    border: 1px solid rgba(74, 222, 128, 0.25);
+    border-radius: 10px;
+    background: linear-gradient(135deg, rgba(22, 163, 74, 0.16), rgba(56, 189, 248, 0.1));
+    text-decoration: none;
+    color: #e2e8f0;
+}
+
+body.home-page .dsa-home-banner strong {
+    display: block;
+    font-size: 1.05rem;
+    margin-bottom: 0.2rem;
+}
+
+body.home-page .dsa-home-banner span {
+    font-size: 0.9rem;
+    opacity: 0.85;
+}
+
+body.home-page .dsa-home-banner em {
+    font-style: normal;
+    font-weight: 700;
+    color: #4ade80;
+}
+
