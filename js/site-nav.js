@@ -174,6 +174,7 @@
         '/cheat-sheets/data-engineering/spark': 'de-spark',
         '/cheat-sheets/behaviour/star': 'beh-star',
         '/cheat-sheets/behaviour/questions': 'beh-questions',
+        '/binodtech': 'binodtech',
     };
 
     CORE_SLUGS.forEach((slug) => {
