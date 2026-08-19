@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <title>System Prompts for ChatGPT, Claude &amp; Cursor | Binod Suman</title>
+    <meta name="description" content="25 reusable system prompts — architect, code review, interview, debug, RAG. Copy for Custom Instructions, or open in ChatGPT and Claude in one tap.">
+    <link rel="canonical" href="https://binodsuman.com/system-prompts/">
+    <meta property="og:title" content="System Prompts for ChatGPT, Claude &amp; Cursor | Binod Suman">
+    <meta property="og:description" content="Role prompts for ChatGPT Custom Instructions, Claude Projects, and Cursor Rules. Search, copy, or open in chat.">
+    <meta property="og:url" content="https://binodsuman.com/system-prompts/">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/site-nav.css">
+    <link rel="stylesheet" href="/css/prompt-pages.css">
+</head>
+<body class="prompt-page">
+    <section style="max-width:1200px;margin:0 auto;padding:1.5rem 1.5rem 0;text-align:center;">
+        <span style="display:inline-block;background:rgba(37,99,235,0.1);color:#2563eb;font-size:0.8rem;font-weight:600;padding:0.35rem 0.85rem;border-radius:50px;margin-bottom:0.75rem;">25 SYSTEM PROMPTS</span>
+        <h1 style="font-size:clamp(1.5rem,3vw,2.25rem);font-weight:700;margin-bottom:0.5rem;background:linear-gradient(135deg,#2563eb,#7c3aed);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">Role prompts for ChatGPT, Claude &amp; Cursor</h1>
+        <p style="color:#64748b;max-width:680px;margin:0 auto 0.75rem;font-size:0.95rem;">
+            Set the AI’s persona once — architect, reviewer, interview coach, and more.
+            <strong>Copy</strong> into Custom Instructions / Project Instructions / Cursor Rules,
+            or open a quick try in <strong>ChatGPT</strong> or <strong>Claude</strong>.
+        </p>
+        <p style="color:#94a3b8;max-width:640px;margin:0 auto 1rem;font-size:0.85rem;">
+            Tip: Best results come from pasting into settings (not only as a chat message). Cursor has no deep-link — use Copy, then paste under Rules.
+        </p>
+    </section>
+
+    <div class="prompt-controls">
+        <div class="prompt-search-row">
+            <div class="prompt-search-wrap">
+                <i class="fas fa-search"></i>
+                <input type="text" id="searchInput" placeholder="Search system prompts… (press /)" autocomplete="off">
+            </div>
+            <div class="prompt-count-badge"><span id="visibleCount">0</span> prompts</div>
+        </div>
+        <div class="prompt-filter-tabs" id="filterTabs"></div>
+    </div>
+
+    <div class="prompt-grid" id="commandGrid"></div>
+    <div class="prompt-toast" id="toast"><i class="fas fa-check-circle"></i> System prompt copied!</div>
+
+    <script src="/js/site-nav.js"></script>
+    <script src="system-prompts-data.js"></script>
+    <script src="/js/escape-html.js"></script>
+    <script>
+        const FAV_KEY = 'binodsuman_sysprompt_favorites';
+        const favorites = new Set(JSON.parse(localStorage.getItem(FAV_KEY) || '[]'));
+        let activeFilter = 'all';
+        let searchQuery = '';
+
+        function getCategoryName(id) {
+            return SYSTEM_PROMPT_CATEGORIES.find((c) => c.id === id)?.name || '';
+        }
+
+        /** Prefill chat with instructions — for Custom Instructions paste, use Copy instead */
+        function buildChatQuery(p) {
+            return `Follow these system instructions for this conversation:\n\n${p.prompt}\n\nConfirm you understand, then wait for my first question.`;
+        }
+
+        function buildUrl(base, p) {
+            return `${base}${encodeURIComponent(buildChatQuery(p))}`;
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            if (msg) toast.innerHTML = '<i class="fas fa-check-circle"></i> ' + msg;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2200);
+        }
+
+        function getFiltered() {
+            return SYSTEM_PROMPTS.filter((p) => {
+                if (activeFilter === 'favorites' && !favorites.has(p.id)) return false;
+                if (activeFilter !== 'all' && activeFilter !== 'favorites' && p.category !== activeFilter) return false;
+                if (searchQuery) {
+                    const q = searchQuery.toLowerCase();
+                    return p.cmd.toLowerCase().includes(q) ||
+                        p.desc.toLowerCase().includes(q) ||
+                        (p.prompt && p.prompt.toLowerCase().includes(q));
+                }
+                return true;
+            });
+        }
+
+        function updateFilterCounts() {
+            document.querySelectorAll('.prompt-filter-btn').forEach((btn) => {
+                const id = btn.dataset.filter;
+                let n;
+                if (id === 'all') n = SYSTEM_PROMPTS.length;
+                else if (id === 'favorites') n = favorites.size;
+                else n = SYSTEM_PROMPTS.filter((p) => p.category === id).length;
+                const badge = btn.querySelector('.tab-count');
+                if (badge) badge.textContent = n;
+            });
+        }
+
+        function renderFilters() {
+            const tabs = document.getElementById('filterTabs');
+            const items = [{ id: 'all', name: 'All' }, { id: 'favorites', name: '★ Saved' }, ...SYSTEM_PROMPT_CATEGORIES];
+            tabs.innerHTML = items.map((c) => {
+                const count = c.id === 'all' ? SYSTEM_PROMPTS.length
+                    : c.id === 'favorites' ? favorites.size
+                    : SYSTEM_PROMPTS.filter((p) => p.category === c.id).length;
+                return `<button type="button" class="prompt-filter-btn ${activeFilter === c.id ? 'active' : ''}" data-filter="${c.id}">${c.name} <span class="tab-count">${count}</span></button>`;
+            }).join('');
+            tabs.querySelectorAll('.prompt-filter-btn').forEach((btn) => {
+                btn.addEventListener('click', () => {
+                    activeFilter = btn.dataset.filter;
+                    renderFilters();
+                    render();
+                });
+            });
+        }
+
+        function render() {
+            const grid = document.getElementById('commandGrid');
+            const filtered = getFiltered();
+            document.getElementById('visibleCount').textContent = filtered.length;
+
+            if (!filtered.length) {
+                grid.innerHTML = '<div class="prompt-empty"><i class="fas fa-search"></i><p>No prompts match your search.</p></div>';
+                return;
+            }
+
+            grid.innerHTML = filtered.map((p) => {
+                const isFav = favorites.has(p.id);
+                return `
+                    <article class="prompt-card" data-id="${p.id}">
+                        <div class="prompt-card-top">
+                            <span class="prompt-cmd">${escapeHtml(p.cmd)}</span>
+                            <button type="button" class="prompt-star ${isFav ? 'active' : ''}" aria-label="Save prompt" title="Save to this browser — persists after refresh">★</button>
+                        </div>
+                        <p class="prompt-desc">${escapeHtml(p.desc)}</p>
+                        <div class="prompt-card-footer">
+                            <div class="prompt-open-links">
+                                <a href="${buildUrl('https://chatgpt.com/?q=', p)}" target="_blank" rel="noopener" class="gpt-link" title="Open a ChatGPT chat with this role">ChatGPT ↗</a>
+                                <a href="${buildUrl('https://claude.ai/new?q=', p)}" target="_blank" rel="noopener" class="claude-link" title="Open a Claude chat with this role">Claude ↗</a>
+                                <button type="button" class="cursor-link" data-cursor-copy title="Copy for Cursor Rules / Custom Instructions">Cursor</button>
+                            </div>
+                            <span class="prompt-cat-label">${escapeHtml(getCategoryName(p.category))}</span>
+                        </div>
+                    </article>`;
+            }).join('');
+
+            grid.querySelectorAll('.prompt-card').forEach((card) => {
+                const id = parseInt(card.dataset.id, 10);
+                const p = SYSTEM_PROMPTS.find((x) => x.id === id);
+
+                card.addEventListener('click', (e) => {
+                    if (e.target.closest('.prompt-star') || e.target.closest('a') || e.target.closest('[data-cursor-copy]')) return;
+                    navigator.clipboard.writeText(p.prompt).then(() => {
+                        showToast('System prompt copied!');
+                        card.classList.add('copied');
+                        setTimeout(() => card.classList.remove('copied'), 1500);
+                    });
+                });
+
+                card.querySelector('.prompt-star').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const btn = e.target;
+                    if (favorites.has(id)) {
+                        favorites.delete(id);
+                        btn.classList.remove('active');
+                    } else {
+                        favorites.add(id);
+                        btn.classList.add('active');
+                    }
+                    localStorage.setItem(FAV_KEY, JSON.stringify([...favorites]));
+                    updateFilterCounts();
+                    if (activeFilter === 'favorites') render();
+                });
+
+                card.querySelectorAll('a').forEach((link) => {
+                    link.addEventListener('click', (e) => e.stopPropagation());
+                });
+
+                card.querySelector('[data-cursor-copy]')?.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    navigator.clipboard.writeText(p.prompt).then(() => {
+                        showToast('Copied — paste in Cursor → Rules');
+                        card.classList.add('copied');
+                        setTimeout(() => card.classList.remove('copied'), 1500);
+                    });
+                });
+            });
+        }
+
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            searchQuery = e.target.value.trim();
+            render();
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === '/' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
+                e.preventDefault();
+                document.getElementById('searchInput').focus();
+            }
+        });
+
+        renderFilters();
+        render();
+    </script>
+</body>
+</html>

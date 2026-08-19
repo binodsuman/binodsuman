@@ -4,294 +4,330 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-    <title>JSON Formatter, JWT, Regex, LLM Tokens &amp; Dev Tools | Binod Suman</title>
-    <meta name="description" content="Free in-browser tools for software engineers: JSON, JWT, Base64, URL encode, Unix time, UUID, hash, regex, cron, LLM token estimate, and text diff. Nothing is uploaded.">
+    <title>Free Dev Tools — JSON, Markdown, JWT, SQL, API &amp; More | Binod Suman</title>
+    <meta name="description" content="30+ free in-browser tools for engineers: JSON, SQL, XML, YAML, Markdown, JWT, CSV, cURL, HTTP status codes, K8s YAML, passwords, and LLM token estimate. Nothing uploaded.">
     <link rel="canonical" href="https://binodsuman.com/tools/">
-    <meta property="og:title" content="Free Dev Tools for Engineers | Binod Suman">
-    <meta property="og:description" content="JSON, JWT, regex, cron, LLM token estimate, and more — all in your browser.">
-    <meta property="og:url" content="https://binodsuman.com/tools/">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/css/site-nav.css">
     <link rel="stylesheet" href="/css/tools.css">
+    <link rel="stylesheet" href="/css/prompt-pages.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/4.1.0/js-yaml.min.js" defer></script>
 </head>
 <body class="tools-page">
-    <section class="tools-hero">
-        <span class="tools-hero-badge">FREE DEV TOOLS</span>
-        <h1>Everyday tools for software engineers</h1>
-        <p>JSON, JWT, regex, cron, LLM tokens, and converters — open a tab, paste, copy. Nothing leaves your browser.</p>
-        <div class="tools-privacy"><i class="fas fa-lock"></i> Runs in your browser. Nothing is sent to a server.</div>
+    <section class="tools-hero tools-hero-compact">
+        <span class="tools-hero-badge">30+ FREE TOOLS</span>
+        <h1>Developer tools hub</h1>
+        <p>Formatters, command cheat sheets, converters &amp; utilities — pick a category in the sidebar.</p>
+        <div class="tools-privacy"><i class="fas fa-lock"></i> Nothing is sent to a server</div>
     </section>
 
-    <div class="tools-tabs" role="tablist">
-        <button type="button" class="tools-tab active" data-tool="json" role="tab">JSON</button>
-        <button type="button" class="tools-tab" data-tool="jwt" role="tab">JWT</button>
-        <button type="button" class="tools-tab" data-tool="base64" role="tab">Base64</button>
-        <button type="button" class="tools-tab" data-tool="url" role="tab">URL</button>
-        <button type="button" class="tools-tab" data-tool="timestamp" role="tab">Timestamp</button>
-        <button type="button" class="tools-tab" data-tool="uuid" role="tab">UUID</button>
-        <button type="button" class="tools-tab" data-tool="hash" role="tab">Hash</button>
-        <button type="button" class="tools-tab" data-tool="regex" role="tab">Regex</button>
-        <button type="button" class="tools-tab" data-tool="cron" role="tab">Cron</button>
-        <button type="button" class="tools-tab" data-tool="tokens" role="tab">LLM tokens</button>
-        <button type="button" class="tools-tab" data-tool="diff" role="tab">Diff</button>
-    </div>
+    <div class="tools-hub">
+        <aside class="tools-sidebar-wrap">
+            <div class="tools-search-wrap tools-sidebar-search">
+                <i class="fas fa-search"></i>
+                <input type="text" id="toolSearch" placeholder="Search tools…" autocomplete="off">
+            </div>
+            <nav class="tools-sidebar" id="toolsSidebar" aria-label="Tools"></nav>
+        </aside>
 
-    <section id="panel-json" class="tools-panel active">
-        <div class="tools-card">
-            <div class="tools-blurb">
-                <strong>What JSON is for</strong>
-                <p>Pretty-print or minify API responses and config files, and catch a missing comma before you debug for an hour.</p>
-            </div>
-            <label class="tools-label" for="jsonIn">JSON input</label>
-            <textarea id="jsonIn" class="tools-textarea" placeholder='{"hello": "world"}'></textarea>
-            <div class="tools-actions">
-                <button type="button" class="tools-btn" id="jsonFormat">Format</button>
-                <button type="button" class="tools-btn secondary" id="jsonMinify">Minify</button>
-                <button type="button" class="tools-btn secondary" id="jsonValidate">Validate</button>
-                <button type="button" class="tools-btn secondary" id="jsonCopy">Copy output</button>
-                <button type="button" class="tools-btn secondary" id="jsonClear">Clear</button>
-            </div>
-            <div class="tools-status" id="jsonStatus"></div>
-            <label class="tools-label" for="jsonOut">Output</label>
-            <textarea id="jsonOut" class="tools-textarea" placeholder="Formatted JSON appears here"></textarea>
-        </div>
-    </section>
+        <main class="tools-main">
+            <header class="tools-panel-head">
+                <h2 id="toolsPanelTitle">JSON Formatter</h2>
+                <p id="toolsPanelBlurb"></p>
+                <button type="button" class="tools-btn demo" data-demo="json" id="toolsDemoBtn" hidden>Try example</button>
+            </header>
 
-    <section id="panel-jwt" class="tools-panel">
-        <div class="tools-card">
-            <div class="tools-blurb">
-                <strong>What JWT is for</strong>
-                <p>Decode a login/API token to see user id, expiry, and roles — without sending the token to a third-party website.</p>
-            </div>
-            <label class="tools-label" for="jwtIn">JWT</label>
-            <p class="tools-hint">Signature is not verified here. Use this to inspect claims, not to trust a token.</p>
-            <textarea id="jwtIn" class="tools-textarea" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."></textarea>
-            <div class="tools-actions">
-                <button type="button" class="tools-btn" id="jwtDecode">Decode</button>
-                <button type="button" class="tools-btn secondary" id="jwtCopy">Copy payload</button>
-            </div>
-            <div class="tools-status" id="jwtStatus"></div>
-            <div class="tools-meta" id="jwtMeta"></div>
-            <div class="tools-split">
-                <div class="tools-jwt-block">
-                    <h3>Header</h3>
-                    <pre class="tools-pre" id="jwtHeader"></pre>
-                </div>
-                <div class="tools-jwt-block">
-                    <h3>Payload</h3>
-                    <pre class="tools-pre" id="jwtPayload"></pre>
+            <!-- JSON -->
+            <div class="tools-panel active" data-tool-panel="json">
+                <div class="tools-card">
+                    <textarea id="jsonIn" class="tools-textarea" placeholder="Paste JSON…"></textarea>
+                    <div class="tools-actions">
+                        <button type="button" class="tools-btn demo" data-demo="json">Try example</button>
+                        <button type="button" class="tools-btn" id="jsonFormat">Format</button>
+                        <button type="button" class="tools-btn secondary" id="jsonMinify">Minify</button>
+                        <button type="button" class="tools-btn secondary" data-copy="jsonOut">Copy</button>
+                    </div>
+                    <div class="tools-status" id="jsonStatus"></div>
+                    <textarea id="jsonOut" class="tools-textarea" readonly placeholder="Output…"></textarea>
                 </div>
             </div>
-        </div>
-    </section>
 
-    <section id="panel-base64" class="tools-panel">
-        <div class="tools-card">
-            <div class="tools-blurb">
-                <strong>What Base64 is for</strong>
-                <p>Turn text (or small binary) into a safe ASCII string for JSON, emails, or Basic Auth — and decode it back.</p>
-            </div>
-            <label class="tools-label" for="b64In">Input</label>
-            <textarea id="b64In" class="tools-textarea" placeholder="Text to encode, or Base64 to decode"></textarea>
-            <div class="tools-actions">
-                <button type="button" class="tools-btn" id="b64Encode">Encode</button>
-                <button type="button" class="tools-btn" id="b64Decode">Decode</button>
-                <button type="button" class="tools-btn secondary" id="b64Swap">Swap</button>
-                <button type="button" class="tools-btn secondary" id="b64Copy">Copy output</button>
-            </div>
-            <div class="tools-status" id="b64Status"></div>
-            <label class="tools-label" for="b64Out">Output</label>
-            <textarea id="b64Out" class="tools-textarea"></textarea>
-        </div>
-    </section>
-
-    <section id="panel-url" class="tools-panel">
-        <div class="tools-card">
-            <div class="tools-blurb">
-                <strong>What URL encode is for</strong>
-                <p>A URL cannot contain spaces or most punctuation. Encoding turns <code>hello world</code> into <code>hello%20world</code> so you can safely put search text, names, or JSON into a query string or API path.</p>
-            </div>
-            <p class="tools-example"><strong>When you need it:</strong> building <code>?q=...</code>, <code>?redirect=https://...</code>, or copying a broken link from logs that looks like <code>%2Flearn%2Fdsa</code>. Encode before you send; decode to read it as a human.</p>
-            <label class="tools-label" for="urlIn">Text or URL piece</label>
-            <textarea id="urlIn" class="tools-textarea" placeholder="hello world  OR  https://binodsuman.com/?q=system design">hello world</textarea>
-            <div class="tools-actions">
-                <button type="button" class="tools-btn" id="urlEncode">Encode (make URL-safe)</button>
-                <button type="button" class="tools-btn" id="urlDecode">Decode (make readable)</button>
-                <button type="button" class="tools-btn secondary" id="urlCopy">Copy output</button>
-            </div>
-            <label class="tools-label" for="urlOut">Output</label>
-            <textarea id="urlOut" class="tools-textarea" placeholder="hello%20world"></textarea>
-        </div>
-    </section>
-
-    <section id="panel-timestamp" class="tools-panel">
-        <div class="tools-card">
-            <div class="tools-blurb">
-                <strong>What timestamps are for</strong>
-                <p>APIs and databases store time as a Unix number (seconds since 1 Jan 1970). This turns that number into a date you can read — and the other way around.</p>
-            </div>
-            <p class="tools-example"><strong>Unix → date:</strong> paste <code>1735689600</code> from a log, then click that button to see the calendar date.<br>
-            <strong>ISO → Unix:</strong> paste <code>2026-08-19T09:24:00Z</code> from an API, then click to get the number to put in a query or DB.</p>
-            <div class="tools-actions">
-                <button type="button" class="tools-btn" id="tsNow">Fill with now</button>
-                <button type="button" class="tools-btn secondary" id="tsFromUnix">Unix → date</button>
-                <button type="button" class="tools-btn secondary" id="tsFromIso">ISO → Unix</button>
-                <button type="button" class="tools-btn secondary" id="tsCopyUnix">Copy Unix number</button>
-            </div>
-            <div class="tools-status" id="tsStatus"></div>
-            <label class="tools-label" for="tsUnix">Unix timestamp (the number from logs / DB / JWT exp)</label>
-            <input id="tsUnix" class="tools-input" type="text" style="margin-bottom:0.85rem;">
-            <label class="tools-label" for="tsIso">ISO 8601 UTC (what APIs often return)</label>
-            <input id="tsIso" class="tools-input" type="text" style="margin-bottom:0.85rem;">
-            <label class="tools-label" for="tsLocal">Your computer’s local time</label>
-            <input id="tsLocal" class="tools-input" type="text" style="margin-bottom:0.85rem;" readonly>
-            <label class="tools-label" for="tsIst">India Standard Time (IST)</label>
-            <input id="tsIst" class="tools-input" type="text" readonly>
-        </div>
-    </section>
-
-    <section id="panel-uuid" class="tools-panel">
-        <div class="tools-card">
-            <div class="tools-blurb">
-                <strong>What UUID is for</strong>
-                <p>Generate unique ids for database rows, request ids, or file names — without a collision with someone else’s id.</p>
-            </div>
-            <label class="tools-label" for="uuidCount">How many</label>
-            <input id="uuidCount" class="tools-input" type="number" min="1" max="50" value="1" style="max-width:8rem;margin-bottom:0.85rem;">
-            <div class="tools-actions">
-                <button type="button" class="tools-btn" id="uuidGen">Generate</button>
-                <button type="button" class="tools-btn secondary" id="uuidCopy">Copy</button>
-            </div>
-            <textarea id="uuidOut" class="tools-textarea"></textarea>
-        </div>
-    </section>
-
-    <section id="panel-hash" class="tools-panel">
-        <div class="tools-card">
-            <div class="tools-blurb">
-                <strong>What hashing is for</strong>
-                <p>Get a fingerprint of text (checksum). Same input always gives the same hex; you cannot turn the hash back into the original.</p>
-            </div>
-            <label class="tools-label" for="hashAlgo">Algorithm</label>
-            <select id="hashAlgo" class="tools-input" style="max-width:12rem;margin-bottom:0.85rem;">
-                <option value="SHA-256">SHA-256</option>
-                <option value="SHA-1">SHA-1</option>
-                <option value="SHA-512">SHA-512</option>
-            </select>
-            <label class="tools-label" for="hashIn">Text</label>
-            <textarea id="hashIn" class="tools-textarea" placeholder="Paste text to hash"></textarea>
-            <div class="tools-actions">
-                <button type="button" class="tools-btn" id="hashRun">Hash</button>
-                <button type="button" class="tools-btn secondary" id="hashCopy">Copy hex</button>
-            </div>
-            <label class="tools-label" for="hashOut">Hex digest</label>
-            <textarea id="hashOut" class="tools-textarea" style="min-height:80px;"></textarea>
-        </div>
-    </section>
-
-    <section id="panel-regex" class="tools-panel">
-        <div class="tools-card">
-            <div class="tools-blurb">
-                <strong>What regex is for</strong>
-                <p>Test a pattern against sample text before you put it in Java, Python, or a log filter — see matches instantly.</p>
-            </div>
-            <label class="tools-label" for="rePattern">Pattern</label>
-            <input id="rePattern" class="tools-input" type="text" value="\b[A-Z][a-z]+" style="margin-bottom:0.5rem;" placeholder="e.g. \d{3}-\d{2}">
-            <div class="tools-flags">
-                <label><input type="checkbox" id="reG" checked> g (all matches)</label>
-                <label><input type="checkbox" id="reI"> i (ignore case)</label>
-                <label><input type="checkbox" id="reM"> m (multiline ^ $)</label>
-                <label><input type="checkbox" id="reS"> s (dot matches newline)</label>
-            </div>
-            <label class="tools-label" for="reText">Test string</label>
-            <textarea id="reText" class="tools-textarea" style="min-height:120px;">Binod Suman teaches System Design and AI in India.</textarea>
-            <div class="tools-actions">
-                <button type="button" class="tools-btn" id="reRun">Test</button>
-            </div>
-            <div class="tools-status" id="reStatus"></div>
-            <label class="tools-label">Highlighted matches</label>
-            <div class="tools-regex-out" id="reOut"></div>
-        </div>
-    </section>
-
-    <section id="panel-cron" class="tools-panel">
-        <div class="tools-card">
-            <div class="tools-blurb">
-                <strong>What cron is for</strong>
-                <p>Read a scheduler expression like <code>0 9 * * 1-5</code> in plain English — useful for Jenkins, Kubernetes CronJobs, and Linux crontab.</p>
-            </div>
-            <label class="tools-label" for="cronIn">Cron (5 fields: minute hour day-of-month month day-of-week)</label>
-            <input id="cronIn" class="tools-input" type="text" value="0 9 * * 1-5" style="margin-bottom:0.5rem;">
-            <p class="tools-example">Order is <code>min hour date month weekday</code>. Example: <code>*/15 * * * *</code> = every 15 minutes. <code>0 0 * * 0</code> = Sunday midnight.</p>
-            <div class="tools-actions">
-                <button type="button" class="tools-btn" id="cronRun">Explain</button>
-            </div>
-            <div class="tools-status" id="cronStatus"></div>
-            <pre class="tools-pre" id="cronOut"></pre>
-        </div>
-    </section>
-
-    <section id="panel-tokens" class="tools-panel">
-        <div class="tools-card">
-            <div class="tools-blurb">
-                <strong>What LLM tokens are for</strong>
-                <p>Estimate how large a prompt or RAG chunk is before you hit the model. Helps you stay under context limits and guess API cost. This is an estimate (≈ 4 characters per token for English), not the official tokenizer.</p>
-            </div>
-            <label class="tools-label" for="tokIn">Prompt, article, or code</label>
-            <textarea id="tokIn" class="tools-textarea" placeholder="Paste the text you would send to ChatGPT, Claude, or an API..."></textarea>
-            <div class="tools-actions">
-                <button type="button" class="tools-btn" id="tokRun">Estimate</button>
-                <select id="tokModel" class="tools-input" style="max-width:16rem;">
-                    <option value="gpt-4o">GPT-4o (approx pricing)</option>
-                    <option value="gpt-4o-mini">GPT-4o mini</option>
-                    <option value="claude-sonnet">Claude Sonnet</option>
-                </select>
-            </div>
-            <div class="tools-meta" id="tokMeta"></div>
-            <p class="tools-hint" id="tokHint"></p>
-        </div>
-    </section>
-
-    <section id="panel-diff" class="tools-panel">
-        <div class="tools-card">
-            <div class="tools-blurb">
-                <strong>What diff is for</strong>
-                <p>Compare two versions of a config, prompt, or code snippet line by line — like a tiny Git diff without creating a file.</p>
-            </div>
-            <div class="tools-split">
-                <div>
-                    <label class="tools-label" for="diffA">Original</label>
-                    <textarea id="diffA" class="tools-textarea">timeout: 30
-retries: 3</textarea>
+            <!-- Markdown -->
+            <div class="tools-panel" data-tool-panel="markdown">
+                <div class="tools-card tools-split">
+                    <div><label class="tools-label">Markdown</label><textarea id="mdIn" class="tools-textarea"></textarea></div>
+                    <div><label class="tools-label">Preview</label><div id="mdOut" class="tools-md-preview"></div></div>
                 </div>
-                <div>
-                    <label class="tools-label" for="diffB">Changed</label>
-                    <textarea id="diffB" class="tools-textarea">timeout: 60
-retries: 3
-region: ap-south-1</textarea>
+                <button type="button" class="tools-btn demo" data-demo="markdown">Try example</button>
+            </div>
+
+            <!-- SQL -->
+            <div class="tools-panel" data-tool-panel="sql">
+                <div class="tools-card">
+                    <textarea id="sqlIn" class="tools-textarea" placeholder="SELECT …"></textarea>
+                    <div class="tools-actions"><button type="button" class="tools-btn demo" data-demo="sql">Try example</button><button type="button" class="tools-btn" id="sqlFormat">Format</button><button type="button" class="tools-btn secondary" data-copy="sqlOut">Copy</button></div>
+                    <div class="tools-status" id="sqlStatus"></div>
+                    <textarea id="sqlOut" class="tools-textarea" readonly></textarea>
                 </div>
             </div>
-            <div class="tools-actions">
+
+            <!-- XML -->
+            <div class="tools-panel" data-tool-panel="xml">
+                <div class="tools-card">
+                    <textarea id="xmlIn" class="tools-textarea"></textarea>
+                    <div class="tools-actions"><button type="button" class="tools-btn demo" data-demo="xml">Try example</button><button type="button" class="tools-btn" id="xmlFormat">Format</button><button type="button" class="tools-btn secondary" data-copy="xmlOut">Copy</button></div>
+                    <div class="tools-status" id="xmlStatus"></div>
+                    <textarea id="xmlOut" class="tools-textarea" readonly></textarea>
+                </div>
+            </div>
+
+            <!-- YAML -->
+            <div class="tools-panel" data-tool-panel="yaml">
+                <div class="tools-card">
+                    <textarea id="yamlIn" class="tools-textarea"></textarea>
+                    <div class="tools-actions"><button type="button" class="tools-btn demo" data-demo="yaml">Try example</button><button type="button" class="tools-btn" id="yamlFormat">Format &amp; validate</button><button type="button" class="tools-btn secondary" data-copy="yamlOut">Copy</button></div>
+                    <div class="tools-status" id="yamlStatus"></div>
+                    <textarea id="yamlOut" class="tools-textarea" readonly></textarea>
+                </div>
+            </div>
+
+            <!-- CSV → JSON -->
+            <div class="tools-panel" data-tool-panel="csv2json">
+                <div class="tools-card">
+                    <textarea id="csv2jsonIn" class="tools-textarea" placeholder="name,role&#10;Binod,Architect"></textarea>
+                    <div class="tools-actions"><button type="button" class="tools-btn demo" data-demo="csv2json">Try example</button><button type="button" class="tools-btn" id="csv2jsonRun">Convert</button><button type="button" class="tools-btn secondary" data-copy="csv2jsonOut">Copy</button></div>
+                    <div class="tools-status" id="csv2jsonStatus"></div>
+                    <textarea id="csv2jsonOut" class="tools-textarea" readonly></textarea>
+                </div>
+            </div>
+
+            <!-- JSON → CSV -->
+            <div class="tools-panel" data-tool-panel="json2csv">
+                <div class="tools-card">
+                    <textarea id="json2csvIn" class="tools-textarea" placeholder='[{"name":"Binod"}]'></textarea>
+                    <div class="tools-actions"><button type="button" class="tools-btn demo" data-demo="json2csv">Try example</button><button type="button" class="tools-btn" id="json2csvRun">Convert</button><button type="button" class="tools-btn secondary" data-copy="json2csvOut">Copy</button></div>
+                    <div class="tools-status" id="json2csvStatus"></div>
+                    <textarea id="json2csvOut" class="tools-textarea" readonly></textarea>
+                </div>
+            </div>
+
+            <!-- JWT -->
+            <div class="tools-panel" data-tool-panel="jwt">
+                <div class="tools-card">
+                    <textarea id="jwtIn" class="tools-textarea" placeholder="eyJhbG…"></textarea>
+                    <div class="tools-actions"><button type="button" class="tools-btn demo" data-demo="jwt">Try example</button><button type="button" class="tools-btn" id="jwtDecode">Decode</button></div>
+                    <div class="tools-status" id="jwtStatus"></div>
+                    <div class="tools-split"><pre class="tools-pre" id="jwtHeader"></pre><pre class="tools-pre" id="jwtPayload"></pre></div>
+                </div>
+            </div>
+
+            <!-- Base64 -->
+            <div class="tools-panel" data-tool-panel="base64">
+                <div class="tools-card">
+                    <textarea id="b64In" class="tools-textarea"></textarea>
+                    <div class="tools-actions"><button type="button" class="tools-btn demo" data-demo="base64">Try example</button><button type="button" class="tools-btn" id="b64Encode">Encode</button><button type="button" class="tools-btn" id="b64Decode">Decode</button><button type="button" class="tools-btn secondary" data-copy="b64Out">Copy</button></div>
+                    <div class="tools-status" id="b64Status"></div>
+                    <textarea id="b64Out" class="tools-textarea" readonly></textarea>
+                </div>
+            </div>
+
+            <!-- URL -->
+            <div class="tools-panel" data-tool-panel="url">
+                <div class="tools-card">
+                    <textarea id="urlIn" class="tools-textarea"></textarea>
+                    <div class="tools-actions"><button type="button" class="tools-btn demo" data-demo="url">Try example</button><button type="button" class="tools-btn" id="urlEncode">Encode</button><button type="button" class="tools-btn" id="urlDecode">Decode</button><button type="button" class="tools-btn secondary" data-copy="urlOut">Copy</button></div>
+                    <textarea id="urlOut" class="tools-textarea" readonly></textarea>
+                </div>
+            </div>
+
+            <!-- UUID -->
+            <div class="tools-panel" data-tool-panel="uuid">
+                <div class="tools-card">
+                    <label class="tools-label">How many (max 100)</label>
+                    <input id="uuidCount" class="tools-input" type="number" min="1" max="100" value="5" style="max-width:8rem;margin-bottom:0.75rem;">
+                    <div class="tools-actions"><button type="button" class="tools-btn demo" data-demo="uuid">Try example</button><button type="button" class="tools-btn" id="uuidGen">Generate</button><button type="button" class="tools-btn secondary" data-copy="uuidOut">Copy</button></div>
+                    <textarea id="uuidOut" class="tools-textarea" readonly></textarea>
+                </div>
+            </div>
+
+            <!-- Password -->
+            <div class="tools-panel" data-tool-panel="password">
+                <div class="tools-card">
+                    <label class="tools-label">Length</label>
+                    <input id="pwLen" class="tools-input" type="number" min="8" max="128" value="20" style="max-width:8rem;margin-bottom:0.5rem;">
+                    <label class="tools-flags"><input type="checkbox" id="pwSym" checked> Include symbols</label>
+                    <div class="tools-actions"><button type="button" class="tools-btn demo" data-demo="password">Try example</button><button type="button" class="tools-btn" id="pwGen">Generate</button><button type="button" class="tools-btn secondary" data-copy="pwOut">Copy</button></div>
+                    <input id="pwOut" class="tools-input" readonly>
+                </div>
+            </div>
+
+            <!-- JSON Schema -->
+            <div class="tools-panel" data-tool-panel="json-schema">
+                <div class="tools-card">
+                    <textarea id="jsonSchemaIn" class="tools-textarea" placeholder="Sample JSON…"></textarea>
+                    <div class="tools-actions"><button type="button" class="tools-btn demo" data-demo="json-schema">Try example</button><button type="button" class="tools-btn" id="jsonSchemaRun">Generate schema</button><button type="button" class="tools-btn secondary" data-copy="jsonSchemaOut">Copy</button></div>
+                    <div class="tools-status" id="jsonSchemaStatus"></div>
+                    <textarea id="jsonSchemaOut" class="tools-textarea" readonly></textarea>
+                </div>
+            </div>
+
+            <!-- Hash -->
+            <div class="tools-panel" data-tool-panel="hash">
+                <div class="tools-card">
+                    <select id="hashAlgo" class="tools-input" style="max-width:12rem;margin-bottom:0.75rem;"><option value="SHA-256">SHA-256</option><option value="SHA-1">SHA-1</option><option value="SHA-512">SHA-512</option></select>
+                    <textarea id="hashIn" class="tools-textarea"></textarea>
+                    <div class="tools-actions"><button type="button" class="tools-btn demo" data-demo="hash">Try example</button><button type="button" class="tools-btn" id="hashRun">Hash</button><button type="button" class="tools-btn secondary" data-copy="hashOut">Copy</button></div>
+                    <textarea id="hashOut" class="tools-textarea" readonly style="min-height:80px;"></textarea>
+                </div>
+            </div>
+
+            <!-- HTTP Status -->
+            <div class="tools-panel" data-tool-panel="http-status">
+                <div class="tools-card">
+                    <input id="httpStatusSearch" class="tools-input" type="search" placeholder="Search 401, forbidden, rate limit…" style="margin-bottom:1rem;">
+                    <div class="http-status-grid" id="httpStatusGrid"></div>
+                </div>
+            </div>
+
+            <!-- API Builder -->
+            <div class="tools-panel" data-tool-panel="api-builder">
+                <div class="tools-card">
+                    <div class="tools-form-row">
+                        <select id="apiMethod" class="tools-input" style="max-width:7rem;"><option>GET</option><option>POST</option><option>PUT</option><option>PATCH</option><option>DELETE</option></select>
+                        <input id="apiUrl" class="tools-input" type="url" placeholder="https://api.example.com/endpoint">
+                    </div>
+                    <label class="tools-label">Headers (one per line: Name: value)</label>
+                    <textarea id="apiHeaders" class="tools-textarea" style="min-height:70px;">Content-Type: application/json</textarea>
+                    <label class="tools-label">Body (optional)</label>
+                    <textarea id="apiBody" class="tools-textarea" style="min-height:70px;"></textarea>
+                    <div class="tools-actions"><button type="button" class="tools-btn demo" data-demo="api-builder">Try example</button><button type="button" class="tools-btn" id="apiBuild">Build</button></div>
+                    <label class="tools-label">cURL</label>
+                    <textarea id="apiCurlOut" class="tools-textarea" readonly style="min-height:70px;"></textarea>
+                    <label class="tools-label">JavaScript fetch</label>
+                    <textarea id="apiFetchOut" class="tools-textarea" readonly style="min-height:100px;"></textarea>
+                </div>
+            </div>
+
+            <!-- cURL Postman -->
+            <div class="tools-panel" data-tool-panel="curl-postman">
+                <div class="tools-card">
+                    <label class="tools-label">Paste cURL command</label>
+                    <textarea id="curlPostmanIn" class="tools-textarea"></textarea>
+                    <div class="tools-actions"><button type="button" class="tools-btn demo" data-demo="curl-postman">Try example</button><button type="button" class="tools-btn" id="curlToPostman">→ Postman JSON</button><button type="button" class="tools-btn secondary" data-copy="curlPostmanOut">Copy</button></div>
+                    <div class="tools-status" id="curlPostmanStatus"></div>
+                    <textarea id="curlPostmanOut" class="tools-textarea" readonly></textarea>
+                </div>
+            </div>
+
+            <!-- K8s YAML -->
+            <div class="tools-panel" data-tool-panel="k8s-yaml">
+                <div class="tools-card">
+                    <div class="tools-form-grid">
+                        <div><label class="tools-label">App name</label><input id="k8sName" class="tools-input" value="my-app"></div>
+                        <div><label class="tools-label">Image</label><input id="k8sImage" class="tools-input" value="nginx:alpine"></div>
+                        <div><label class="tools-label">Replicas</label><input id="k8sReplicas" class="tools-input" value="2"></div>
+                        <div><label class="tools-label">Port</label><input id="k8sPort" class="tools-input" value="80"></div>
+                    </div>
+                    <div class="tools-actions"><button type="button" class="tools-btn demo" data-demo="k8s-yaml">Try example</button><button type="button" class="tools-btn" id="k8sGen">Generate YAML</button><button type="button" class="tools-btn secondary" data-copy="k8sOut">Copy</button></div>
+                    <textarea id="k8sOut" class="tools-textarea" readonly></textarea>
+                </div>
+            </div>
+
+            <!-- Timestamp -->
+            <div class="tools-panel" data-tool-panel="timestamp">
+                <div class="tools-card">
+                    <div class="tools-actions"><button type="button" class="tools-btn demo" data-demo="timestamp">Try example</button><button type="button" class="tools-btn" id="tsNow">Now</button><button type="button" class="tools-btn secondary" id="tsFromUnix">Unix → date</button></div>
+                    <label class="tools-label">Unix</label><input id="tsUnix" class="tools-input" style="margin-bottom:0.75rem;">
+                    <label class="tools-label">ISO UTC</label><input id="tsIso" class="tools-input" style="margin-bottom:0.75rem;" readonly>
+                    <label class="tools-label">IST</label><input id="tsIst" class="tools-input" readonly>
+                </div>
+            </div>
+
+            <!-- Cron -->
+            <div class="tools-panel" data-tool-panel="cron">
+                <div class="tools-card">
+                    <input id="cronIn" class="tools-input" value="0 9 * * 1-5">
+                    <div class="tools-actions"><button type="button" class="tools-btn demo" data-demo="cron">Try example</button><button type="button" class="tools-btn" id="cronRun">Explain</button></div>
+                    <div class="tools-status" id="cronStatus"></div>
+                    <pre class="tools-pre" id="cronOut"></pre>
+                </div>
+            </div>
+
+            <!-- Regex -->
+            <div class="tools-panel" data-tool-panel="regex">
+                <div class="tools-card">
+                    <input id="rePattern" class="tools-input" placeholder="Pattern">
+                    <textarea id="reText" class="tools-textarea" style="min-height:100px;"></textarea>
+                    <div class="tools-actions"><button type="button" class="tools-btn demo" data-demo="regex">Try example</button><button type="button" class="tools-btn" id="reRun">Test</button></div>
+                    <div class="tools-status" id="reStatus"></div>
+                    <div class="tools-regex-out" id="reOut"></div>
+                </div>
+            </div>
+
+            <!-- Diff -->
+            <div class="tools-panel" data-tool-panel="diff">
+                <div class="tools-card tools-split">
+                    <div><label class="tools-label">Original</label><textarea id="diffA" class="tools-textarea"></textarea></div>
+                    <div><label class="tools-label">Changed</label><textarea id="diffB" class="tools-textarea"></textarea></div>
+                </div>
+                <button type="button" class="tools-btn demo" data-demo="diff">Try example</button>
                 <button type="button" class="tools-btn" id="diffRun">Compare</button>
+                <div id="diffOut"></div>
             </div>
-            <div id="diffOut"></div>
-        </div>
-    </section>
 
-    <div class="tools-related">
-        <a href="/git-commands/">
-            <h3>Git command library</h3>
-            <p>Search, filter, and copy everyday Git commands — same card UI as Slash Prompts.</p>
-        </a>
-        <a href="/commands/">
-            <h3>500 Slash Prompts</h3>
-            <p>Ready-to-paste ChatGPT and Claude commands for coding, writing, and more.</p>
-        </a>
+            <!-- LLM Tokens -->
+            <div class="tools-panel" data-tool-panel="tokens">
+                <div class="tools-card">
+                    <textarea id="tokIn" class="tools-textarea" placeholder="Paste prompt…"></textarea>
+                    <div class="tools-actions"><button type="button" class="tools-btn demo" data-demo="tokens">Try example</button><button type="button" class="tools-btn" id="tokRun">Estimate</button></div>
+                    <p class="tools-meta" id="tokMeta"></p>
+                </div>
+            </div>
+
+            <!-- Command cheat sheets (embedded) -->
+            <div class="tools-panel" data-tool-panel="git-commands">
+                <div class="tools-cmd-panel">
+                    <div class="prompt-search-row"><div class="prompt-search-wrap"><i class="fas fa-search"></i><input type="text" id="gitSearch" placeholder="Search git commands…"></div><div class="prompt-count-badge"><span id="gitCount">0</span> commands</div></div>
+                    <div class="prompt-filter-tabs" id="gitTabs"></div>
+                    <div class="prompt-grid" id="gitGrid"></div>
+                </div>
+            </div>
+            <div class="tools-panel" data-tool-panel="unix-commands">
+                <div class="tools-cmd-panel">
+                    <div class="prompt-search-row"><div class="prompt-search-wrap"><i class="fas fa-search"></i><input type="text" id="unixSearch" placeholder="Search unix commands…"></div><div class="prompt-count-badge"><span id="unixCount">0</span> commands</div></div>
+                    <div class="prompt-filter-tabs" id="unixTabs"></div>
+                    <div class="prompt-grid" id="unixGrid"></div>
+                </div>
+            </div>
+            <div class="tools-panel" data-tool-panel="docker-commands">
+                <div class="tools-cmd-panel">
+                    <div class="prompt-search-row"><div class="prompt-search-wrap"><i class="fas fa-search"></i><input type="text" id="dockerSearch" placeholder="Search docker commands…"></div><div class="prompt-count-badge"><span id="dockerCount">0</span> commands</div></div>
+                    <div class="prompt-filter-tabs" id="dockerTabs"></div>
+                    <div class="prompt-grid" id="dockerGrid"></div>
+                </div>
+            </div>
+            <div class="tools-panel" data-tool-panel="kubernetes-commands">
+                <div class="tools-cmd-panel">
+                    <div class="prompt-search-row"><div class="prompt-search-wrap"><i class="fas fa-search"></i><input type="text" id="k8sSearch" placeholder="Search kubectl commands…"></div><div class="prompt-count-badge"><span id="k8sCount">0</span> commands</div></div>
+                    <div class="prompt-filter-tabs" id="k8sTabs"></div>
+                    <div class="prompt-grid" id="k8sGrid"></div>
+                </div>
+            </div>
+        </main>
     </div>
 
     <div class="tools-toast" id="toolsToast">Copied!</div>
     <script src="/js/site-nav.js"></script>
-    <script src="/js/tools.js"></script>
+    <script src="/git-commands/git-commands-data.js"></script>
+    <script src="/unix-commands/unix-commands-data.js"></script>
+    <script src="/docker-commands/docker-commands-data.js"></script>
+    <script src="/kubernetes-commands/kubernetes-commands-data.js"></script>
+    <script src="/js/tools-catalog.js"></script>
+    <script src="/js/tools-data.js"></script>
+    <script src="/js/escape-html.js"></script>
+    <script src="/js/tools-command-grid.js"></script>
+    <script src="/js/tools-app.js"></script>
 </body>
 </html>

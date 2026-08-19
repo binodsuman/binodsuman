@@ -340,8 +340,14 @@ body.home-page section {
 
 .quick-access-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(5, 1fr);
     gap: 1rem;
+}
+
+@media (max-width: 1100px) {
+    .quick-access-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
 }
 
 .quick-card {
@@ -362,6 +368,7 @@ body.home-page section {
 .quick-card:nth-child(2) { animation-delay: 0.18s; }
 .quick-card:nth-child(3) { animation-delay: 0.26s; }
 .quick-card:nth-child(4) { animation-delay: 0.34s; }
+.quick-card:nth-child(5) { animation-delay: 0.42s; }
 
 .quick-card::before {
     content: '';
