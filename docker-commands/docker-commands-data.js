@@ -1,0 +1,40 @@
+const DOCKER_CATEGORIES = [
+    { id: "container", name: "Containers", short: "Container" },
+    { id: "image", name: "Images", short: "Image" },
+    { id: "compose", name: "Compose", short: "Compose" },
+    { id: "volume", name: "Volumes & Network", short: "Volume" },
+    { id: "debug", name: "Debug", short: "Debug" }
+];
+
+const DOCKER_COMMANDS = [
+    { id: 1, cmd: "docker ps", desc: "List running containers", category: "container" },
+    { id: 2, cmd: "docker ps -a", desc: "List all containers including stopped", category: "container" },
+    { id: 3, cmd: "docker run -d -p 8080:80 nginx", desc: "Run nginx in background, map port 8080", category: "container" },
+    { id: 4, cmd: "docker run -it --rm ubuntu bash", desc: "Interactive shell, remove on exit", category: "container" },
+    { id: 5, cmd: "docker stop <container>", desc: "Gracefully stop a container", category: "container" },
+    { id: 6, cmd: "docker rm <container>", desc: "Remove stopped container", category: "container" },
+    { id: 7, cmd: "docker rm -f $(docker ps -aq)", desc: "Remove all containers (force)", category: "container" },
+    { id: 8, cmd: "docker exec -it <container> bash", desc: "Shell into running container", category: "container" },
+    { id: 9, cmd: "docker logs -f <container>", desc: "Follow container logs", category: "container" },
+    { id: 10, cmd: "docker stats", desc: "Live CPU/memory per container", category: "container" },
+    { id: 11, cmd: "docker images", desc: "List local images", category: "image" },
+    { id: 12, cmd: "docker pull nginx:alpine", desc: "Download image from registry", category: "image" },
+    { id: 13, cmd: "docker build -t myapp:1.0 .", desc: "Build image from Dockerfile in current dir", category: "image" },
+    { id: 14, cmd: "docker tag myapp:1.0 user/myapp:1.0", desc: "Tag image for registry push", category: "image" },
+    { id: 15, cmd: "docker push user/myapp:1.0", desc: "Push image to Docker Hub / registry", category: "image" },
+    { id: 16, cmd: "docker rmi <image>", desc: "Remove an image", category: "image" },
+    { id: 17, cmd: "docker image prune -a", desc: "Remove unused images", category: "image" },
+    { id: 18, cmd: "docker compose up -d", desc: "Start compose stack in background", category: "compose" },
+    { id: 19, cmd: "docker compose down", desc: "Stop and remove compose containers", category: "compose" },
+    { id: 20, cmd: "docker compose logs -f", desc: "Follow logs for all compose services", category: "compose" },
+    { id: 21, cmd: "docker compose ps", desc: "List compose service status", category: "compose" },
+    { id: 22, cmd: "docker compose build --no-cache", desc: "Rebuild images without cache", category: "compose" },
+    { id: 23, cmd: "docker volume ls", desc: "List volumes", category: "volume" },
+    { id: 24, cmd: "docker volume prune", desc: "Remove unused volumes", category: "volume" },
+    { id: 25, cmd: "docker network ls", desc: "List Docker networks", category: "volume" },
+    { id: 26, cmd: "docker network inspect bridge", desc: "Inspect network details", category: "volume" },
+    { id: 27, cmd: "docker inspect <container>", desc: "Full JSON config of container", category: "debug" },
+    { id: 28, cmd: "docker system df", desc: "Disk usage summary", category: "debug" },
+    { id: 29, cmd: "docker system prune -a", desc: "Clean unused data (careful in prod)", category: "debug" },
+    { id: 30, cmd: "docker run --env-file .env myapp", desc: "Run with environment from file", category: "container" }
+];

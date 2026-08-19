@@ -4,13 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-    <title>Git Commands Cheat Sheet — Search &amp; Copy | Binod Suman</title>
-    <meta name="description" content="100 Git commands with search and filters. Copy git status, rebase, stash, force-with-lease, and GitHub CLI in one tap.">
-    <link rel="canonical" href="https://binodsuman.com/tools/#git-commands">
-    <script>location.replace('/tools/#git-commands');</script>
-    <meta property="og:title" content="Git Commands Cheat Sheet | Binod Suman">
-    <meta property="og:description" content="Search, filter, and copy everyday Git commands.">
-    <meta property="og:url" content="https://binodsuman.com/git-commands/">
+    <title>Unix Commands Cheat Sheet | Binod Suman</title>
+    <meta name="description" content="40 essential Unix and Linux commands with search and filters. Copy ls, grep, find, chmod, curl, and more in one tap.">
+    <link rel="canonical" href="https://binodsuman.com/tools/#unix-commands">
+    <script>location.replace('/tools/#unix-commands');</script>
+    <meta property="og:title" content="Unix Commands Cheat Sheet | Binod Suman">
+    <meta property="og:description" content="Search, filter, and copy everyday Unix and Linux shell commands.">
+    <meta property="og:url" content="https://binodsuman.com/unix-commands/">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/css/site-nav.css">
@@ -18,8 +18,8 @@
 </head>
 <body class="prompt-page">
     <section style="max-width:1200px;margin:0 auto;padding:1.5rem 1.5rem 0;text-align:center;">
-        <span style="display:inline-block;background:rgba(37,99,235,0.1);color:#2563eb;font-size:0.8rem;font-weight:600;padding:0.35rem 0.85rem;border-radius:50px;margin-bottom:0.75rem;">100 GIT COMMANDS</span>
-        <h1 style="font-size:clamp(1.5rem,3vw,2.25rem);font-weight:700;margin-bottom:0.5rem;background:linear-gradient(135deg,#2563eb,#7c3aed);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">A Git command for every everyday task</h1>
+        <span style="display:inline-block;background:rgba(37,99,235,0.1);color:#2563eb;font-size:0.8rem;font-weight:600;padding:0.35rem 0.85rem;border-radius:50px;margin-bottom:0.75rem;">40 UNIX COMMANDS</span>
+        <h1 style="font-size:clamp(1.5rem,3vw,2.25rem);font-weight:700;margin-bottom:0.5rem;background:linear-gradient(135deg,#2563eb,#7c3aed);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">A Unix command for every shell task</h1>
         <p style="color:#64748b;max-width:640px;margin:0 auto 1rem;font-size:0.95rem;">Same workflow as Slash Prompts: search what you need, tap a card, paste in the terminal.</p>
     </section>
 
@@ -27,7 +27,7 @@
         <div class="prompt-search-row">
             <div class="prompt-search-wrap">
                 <i class="fas fa-search"></i>
-                <input type="text" id="searchInput" placeholder="Search git commands... (press /)" autocomplete="off">
+                <input type="text" id="searchInput" placeholder="Search unix commands... (press /)" autocomplete="off">
             </div>
             <div class="prompt-count-badge"><span id="visibleCount">0</span> commands</div>
         </div>
@@ -38,16 +38,16 @@
     <div class="prompt-toast" id="toast"><i class="fas fa-check-circle"></i> Command copied!</div>
 
     <script src="/js/site-nav.js"></script>
-    <script src="git-commands-data.js"></script>
+    <script src="unix-commands-data.js"></script>
     <script src="/js/escape-html.js"></script>
     <script>
-        const FAV_KEY = 'binodsuman_git_favorites';
+        const FAV_KEY = 'binodsuman_unix_favorites';
         let favorites = new Set(JSON.parse(localStorage.getItem(FAV_KEY) || '[]'));
         let activeFilter = 'all';
         let searchQuery = '';
 
         function getCategoryName(id) {
-            const cat = GIT_CATEGORIES.find(c => c.id === id);
+            const cat = UNIX_CATEGORIES.find(c => c.id === id);
             return cat ? cat.name : '';
         }
 
@@ -58,7 +58,7 @@
         }
 
         function getFiltered() {
-            return GIT_COMMANDS.filter(p => {
+            return UNIX_COMMANDS.filter(p => {
                 if (activeFilter === 'favorites' && !favorites.has(p.id)) return false;
                 if (activeFilter !== 'all' && activeFilter !== 'favorites' && p.category !== activeFilter) return false;
                 if (searchQuery) {
@@ -73,9 +73,9 @@
             document.querySelectorAll('.prompt-filter-btn').forEach(btn => {
                 const id = btn.dataset.filter;
                 let n;
-                if (id === 'all') n = GIT_COMMANDS.length;
+                if (id === 'all') n = UNIX_COMMANDS.length;
                 else if (id === 'favorites') n = favorites.size;
-                else n = GIT_COMMANDS.filter(p => p.category === id).length;
+                else n = UNIX_COMMANDS.filter(p => p.category === id).length;
                 const badge = btn.querySelector('.tab-count');
                 if (badge) badge.textContent = n;
             });
@@ -86,12 +86,12 @@
             const items = [
                 { id: 'all', name: 'All' },
                 { id: 'favorites', name: '★ Saved' },
-                ...GIT_CATEGORIES
+                ...UNIX_CATEGORIES
             ];
             tabs.innerHTML = items.map(c => {
-                const count = c.id === 'all' ? GIT_COMMANDS.length
+                const count = c.id === 'all' ? UNIX_COMMANDS.length
                     : c.id === 'favorites' ? favorites.size
-                    : GIT_COMMANDS.filter(p => p.category === c.id).length;
+                    : UNIX_COMMANDS.filter(p => p.category === c.id).length;
                 return `<button type="button" class="prompt-filter-btn ${activeFilter === c.id ? 'active' : ''}" data-filter="${c.id}">${c.name} <span class="tab-count">${count}</span></button>`;
             }).join('');
             tabs.querySelectorAll('.prompt-filter-btn').forEach(btn => {
@@ -130,7 +130,7 @@
 
             grid.querySelectorAll('.prompt-card').forEach(card => {
                 const id = parseInt(card.dataset.id, 10);
-                const p = GIT_COMMANDS.find(x => x.id === id);
+                const p = UNIX_COMMANDS.find(x => x.id === id);
 
                 card.addEventListener('click', (e) => {
                     if (e.target.closest('.prompt-star')) return;

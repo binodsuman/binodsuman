@@ -39,6 +39,81 @@
         return JSON.stringify(obj, null, 2);
     }
 
+    const EXAMPLES = {
+        json: '{"site":"binodsuman.com","creator":"Binod Suman","tools":["json","jwt","base64","regex"],"stats":{"videos":258,"subscribers":32000}}',
+        jwt: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c2VyXzk5OSIsIm5hbWUiOiJCaW5vZCBTdW1hbiIsImVtYWlsIjoiaGVsbG9AYmlub2RzdW1hbi5jb20iLCJyb2xlcyI6WyJkZXZlbG9wZXIiLCJ5b3V0dHViZXIiXSwiaWF0IjoxNzAwMDAwMDAwLCJleHAiOjE4NTAwMDAwMDB9.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c',
+        base64: 'Binod Suman — free dev tools on binodsuman.com',
+        url: 'https://binodsuman.com/tools/?q=system design interview',
+        urlEncoded: 'https%3A%2F%2Fbinodsuman.com%2Ftools%2F%3Fq%3Dsystem%20design%20interview',
+        unix: '1735689600',
+        hash: 'binodsuman.com',
+        regexPattern: '\\b(System Design|AI|JWT|JSON)\\b',
+        regexText: 'Binod Suman teaches System Design and AI on YouTube. Use JSON and JWT tools on binodsuman.com.',
+        cron: '0 9 * * 1-5',
+        tokens: 'You are a senior software architect. Explain how a URL shortener handles 10K writes/sec using consistent hashing, a cache layer, and a SQL database. Keep the answer under 300 words for an interview.',
+        diffA: 'timeout: 30\nretries: 3\nregion: us-east-1',
+        diffB: 'timeout: 60\nretries: 3\nregion: ap-south-1\nfeature_flags: true',
+    };
+
+    function loadDemo(id) {
+        switch (id) {
+            case 'json':
+                jsonIn.value = EXAMPLES.json;
+                formatJson(false);
+                break;
+            case 'jwt':
+                jwtIn.value = EXAMPLES.jwt;
+                decodeJwt();
+                break;
+            case 'base64':
+                b64In.value = EXAMPLES.base64;
+                b64Out.value = btoa(unescape(encodeURIComponent(EXAMPLES.base64)));
+                setStatus(b64Status, true, 'Demo: encoded “' + EXAMPLES.base64.slice(0, 24) + '…”');
+                break;
+            case 'url':
+                urlIn.value = EXAMPLES.url;
+                urlOut.value = encodeURIComponent(EXAMPLES.url);
+                break;
+            case 'timestamp':
+                tsUnix.value = EXAMPLES.unix;
+                renderDate(new Date(Number(EXAMPLES.unix) * 1000));
+                setStatus(tsStatus, true, 'Demo: Jan 1, 2025 UTC — typical log/DB timestamp.');
+                break;
+            case 'hash':
+                hashIn.value = EXAMPLES.hash;
+                hashText().catch((e) => { hashOut.value = e.message; });
+                break;
+            case 'regex':
+                document.getElementById('rePattern').value = EXAMPLES.regexPattern;
+                document.getElementById('reText').value = EXAMPLES.regexText;
+                runRegex();
+                break;
+            case 'cron':
+                document.getElementById('cronIn').value = EXAMPLES.cron;
+                explainCron();
+                break;
+            case 'tokens':
+                document.getElementById('tokIn').value = EXAMPLES.tokens;
+                estimateTokens();
+                break;
+            case 'diff':
+                document.getElementById('diffA').value = EXAMPLES.diffA;
+                document.getElementById('diffB').value = EXAMPLES.diffB;
+                runDiff();
+                break;
+            default:
+                break;
+        }
+    }
+
+    function initAllDemos() {
+        ['json', 'jwt', 'base64', 'url', 'timestamp', 'hash', 'regex', 'cron', 'tokens', 'diff'].forEach(loadDemo);
+    }
+
+    document.querySelectorAll('[data-demo]').forEach((btn) => {
+        btn.addEventListener('click', () => loadDemo(btn.dataset.demo));
+    });
+
     /* Tabs + hash routing */
     const tabs = document.querySelectorAll('.tools-tab');
     const panels = document.querySelectorAll('.tools-panel');
@@ -231,7 +306,6 @@
         setStatus(tsStatus, true, 'Converted the ISO date into a Unix number.');
     });
     document.getElementById('tsCopyUnix')?.addEventListener('click', () => copyText(tsUnix.value));
-    renderDate(new Date());
 
     /* UUID */
     const uuidOut = document.getElementById('uuidOut');
@@ -323,7 +397,6 @@
         document.getElementById(id)?.addEventListener('input', runRegex);
         document.getElementById(id)?.addEventListener('change', runRegex);
     });
-    runRegex();
 
     function describeCronField(value, name, min, max, labels) {
         if (value === '*') return name + ': every value (' + min + '–' + max + ')';
@@ -380,7 +453,6 @@
     document.getElementById('cronIn')?.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') explainCron();
     });
-    explainCron();
 
     const TOKEN_PRICES = {
         'gpt-4o': { in: 2.5, out: 10, ctx: 128000 },
@@ -419,7 +491,6 @@
     document.getElementById('tokRun')?.addEventListener('click', estimateTokens);
     document.getElementById('tokIn')?.addEventListener('input', estimateTokens);
     document.getElementById('tokModel')?.addEventListener('change', estimateTokens);
-    estimateTokens();
 
     function diffLines(aText, bText) {
         const a = aText.split('\n');
@@ -466,5 +537,5 @@
     }
 
     document.getElementById('diffRun')?.addEventListener('click', runDiff);
-    runDiff();
+    initAllDemos();
 })();
