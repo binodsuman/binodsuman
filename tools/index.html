@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <title>JSON Formatter, JWT, Regex, LLM Tokens &amp; Dev Tools | Binod Suman</title>
+    <meta name="description" content="Free in-browser tools for software engineers: JSON, JWT, Base64, URL encode, Unix time, UUID, hash, regex, cron, LLM token estimate, and text diff. Nothing is uploaded.">
+    <link rel="canonical" href="https://binodsuman.com/tools/">
+    <meta property="og:title" content="Free Dev Tools for Engineers | Binod Suman">
+    <meta property="og:description" content="JSON, JWT, regex, cron, LLM token estimate, and more — all in your browser.">
+    <meta property="og:url" content="https://binodsuman.com/tools/">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/site-nav.css">
+    <link rel="stylesheet" href="/css/tools.css">
+</head>
+<body class="tools-page">
+    <section class="tools-hero">
+        <span class="tools-hero-badge">FREE DEV TOOLS</span>
+        <h1>Everyday tools for software engineers</h1>
+        <p>JSON, JWT, regex, cron, LLM tokens, and converters — open a tab, paste, copy. Nothing leaves your browser.</p>
+        <div class="tools-privacy"><i class="fas fa-lock"></i> Runs in your browser. Nothing is sent to a server.</div>
+    </section>
+
+    <div class="tools-tabs" role="tablist">
+        <button type="button" class="tools-tab active" data-tool="json" role="tab">JSON</button>
+        <button type="button" class="tools-tab" data-tool="jwt" role="tab">JWT</button>
+        <button type="button" class="tools-tab" data-tool="base64" role="tab">Base64</button>
+        <button type="button" class="tools-tab" data-tool="url" role="tab">URL</button>
+        <button type="button" class="tools-tab" data-tool="timestamp" role="tab">Timestamp</button>
+        <button type="button" class="tools-tab" data-tool="uuid" role="tab">UUID</button>
+        <button type="button" class="tools-tab" data-tool="hash" role="tab">Hash</button>
+        <button type="button" class="tools-tab" data-tool="regex" role="tab">Regex</button>
+        <button type="button" class="tools-tab" data-tool="cron" role="tab">Cron</button>
+        <button type="button" class="tools-tab" data-tool="tokens" role="tab">LLM tokens</button>
+        <button type="button" class="tools-tab" data-tool="diff" role="tab">Diff</button>
+    </div>
+
+    <section id="panel-json" class="tools-panel active">
+        <div class="tools-card">
+            <div class="tools-blurb">
+                <strong>What JSON is for</strong>
+                <p>Pretty-print or minify API responses and config files, and catch a missing comma before you debug for an hour.</p>
+            </div>
+            <label class="tools-label" for="jsonIn">JSON input</label>
+            <textarea id="jsonIn" class="tools-textarea" placeholder='{"hello": "world"}'></textarea>
+            <div class="tools-actions">
+                <button type="button" class="tools-btn" id="jsonFormat">Format</button>
+                <button type="button" class="tools-btn secondary" id="jsonMinify">Minify</button>
+                <button type="button" class="tools-btn secondary" id="jsonValidate">Validate</button>
+                <button type="button" class="tools-btn secondary" id="jsonCopy">Copy output</button>
+                <button type="button" class="tools-btn secondary" id="jsonClear">Clear</button>
+            </div>
+            <div class="tools-status" id="jsonStatus"></div>
+            <label class="tools-label" for="jsonOut">Output</label>
+            <textarea id="jsonOut" class="tools-textarea" placeholder="Formatted JSON appears here"></textarea>
+        </div>
+    </section>
+
+    <section id="panel-jwt" class="tools-panel">
+        <div class="tools-card">
+            <div class="tools-blurb">
+                <strong>What JWT is for</strong>
+                <p>Decode a login/API token to see user id, expiry, and roles — without sending the token to a third-party website.</p>
+            </div>
+            <label class="tools-label" for="jwtIn">JWT</label>
+            <p class="tools-hint">Signature is not verified here. Use this to inspect claims, not to trust a token.</p>
+            <textarea id="jwtIn" class="tools-textarea" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."></textarea>
+            <div class="tools-actions">
+                <button type="button" class="tools-btn" id="jwtDecode">Decode</button>
+                <button type="button" class="tools-btn secondary" id="jwtCopy">Copy payload</button>
+            </div>
+            <div class="tools-status" id="jwtStatus"></div>
+            <div class="tools-meta" id="jwtMeta"></div>
+            <div class="tools-split">
+                <div class="tools-jwt-block">
+                    <h3>Header</h3>
+                    <pre class="tools-pre" id="jwtHeader"></pre>
+                </div>
+                <div class="tools-jwt-block">
+                    <h3>Payload</h3>
+                    <pre class="tools-pre" id="jwtPayload"></pre>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="panel-base64" class="tools-panel">
+        <div class="tools-card">
+            <div class="tools-blurb">
+                <strong>What Base64 is for</strong>
+                <p>Turn text (or small binary) into a safe ASCII string for JSON, emails, or Basic Auth — and decode it back.</p>
+            </div>
+            <label class="tools-label" for="b64In">Input</label>
+            <textarea id="b64In" class="tools-textarea" placeholder="Text to encode, or Base64 to decode"></textarea>
+            <div class="tools-actions">
+                <button type="button" class="tools-btn" id="b64Encode">Encode</button>
+                <button type="button" class="tools-btn" id="b64Decode">Decode</button>
+                <button type="button" class="tools-btn secondary" id="b64Swap">Swap</button>
+                <button type="button" class="tools-btn secondary" id="b64Copy">Copy output</button>
+            </div>
+            <div class="tools-status" id="b64Status"></div>
+            <label class="tools-label" for="b64Out">Output</label>
+            <textarea id="b64Out" class="tools-textarea"></textarea>
+        </div>
+    </section>
+
+    <section id="panel-url" class="tools-panel">
+        <div class="tools-card">
+            <div class="tools-blurb">
+                <strong>What URL encode is for</strong>
+                <p>A URL cannot contain spaces or most punctuation. Encoding turns <code>hello world</code> into <code>hello%20world</code> so you can safely put search text, names, or JSON into a query string or API path.</p>
+            </div>
+            <p class="tools-example"><strong>When you need it:</strong> building <code>?q=...</code>, <code>?redirect=https://...</code>, or copying a broken link from logs that looks like <code>%2Flearn%2Fdsa</code>. Encode before you send; decode to read it as a human.</p>
+            <label class="tools-label" for="urlIn">Text or URL piece</label>
+            <textarea id="urlIn" class="tools-textarea" placeholder="hello world  OR  https://binodsuman.com/?q=system design">hello world</textarea>
+            <div class="tools-actions">
+                <button type="button" class="tools-btn" id="urlEncode">Encode (make URL-safe)</button>
+                <button type="button" class="tools-btn" id="urlDecode">Decode (make readable)</button>
+                <button type="button" class="tools-btn secondary" id="urlCopy">Copy output</button>
+            </div>
+            <label class="tools-label" for="urlOut">Output</label>
+            <textarea id="urlOut" class="tools-textarea" placeholder="hello%20world"></textarea>
+        </div>
+    </section>
+
+    <section id="panel-timestamp" class="tools-panel">
+        <div class="tools-card">
+            <div class="tools-blurb">
+                <strong>What timestamps are for</strong>
+                <p>APIs and databases store time as a Unix number (seconds since 1 Jan 1970). This turns that number into a date you can read — and the other way around.</p>
+            </div>
+            <p class="tools-example"><strong>Unix → date:</strong> paste <code>1735689600</code> from a log, then click that button to see the calendar date.<br>
+            <strong>ISO → Unix:</strong> paste <code>2026-08-19T09:24:00Z</code> from an API, then click to get the number to put in a query or DB.</p>
+            <div class="tools-actions">
+                <button type="button" class="tools-btn" id="tsNow">Fill with now</button>
+                <button type="button" class="tools-btn secondary" id="tsFromUnix">Unix → date</button>
+                <button type="button" class="tools-btn secondary" id="tsFromIso">ISO → Unix</button>
+                <button type="button" class="tools-btn secondary" id="tsCopyUnix">Copy Unix number</button>
+            </div>
+            <div class="tools-status" id="tsStatus"></div>
+            <label class="tools-label" for="tsUnix">Unix timestamp (the number from logs / DB / JWT exp)</label>
+            <input id="tsUnix" class="tools-input" type="text" style="margin-bottom:0.85rem;">
+            <label class="tools-label" for="tsIso">ISO 8601 UTC (what APIs often return)</label>
+            <input id="tsIso" class="tools-input" type="text" style="margin-bottom:0.85rem;">
+            <label class="tools-label" for="tsLocal">Your computer’s local time</label>
+            <input id="tsLocal" class="tools-input" type="text" style="margin-bottom:0.85rem;" readonly>
+            <label class="tools-label" for="tsIst">India Standard Time (IST)</label>
+            <input id="tsIst" class="tools-input" type="text" readonly>
+        </div>
+    </section>
+
+    <section id="panel-uuid" class="tools-panel">
+        <div class="tools-card">
+            <div class="tools-blurb">
+                <strong>What UUID is for</strong>
+                <p>Generate unique ids for database rows, request ids, or file names — without a collision with someone else’s id.</p>
+            </div>
+            <label class="tools-label" for="uuidCount">How many</label>
+            <input id="uuidCount" class="tools-input" type="number" min="1" max="50" value="1" style="max-width:8rem;margin-bottom:0.85rem;">
+            <div class="tools-actions">
+                <button type="button" class="tools-btn" id="uuidGen">Generate</button>
+                <button type="button" class="tools-btn secondary" id="uuidCopy">Copy</button>
+            </div>
+            <textarea id="uuidOut" class="tools-textarea"></textarea>
+        </div>
+    </section>
+
+    <section id="panel-hash" class="tools-panel">
+        <div class="tools-card">
+            <div class="tools-blurb">
+                <strong>What hashing is for</strong>
+                <p>Get a fingerprint of text (checksum). Same input always gives the same hex; you cannot turn the hash back into the original.</p>
+            </div>
+            <label class="tools-label" for="hashAlgo">Algorithm</label>
+            <select id="hashAlgo" class="tools-input" style="max-width:12rem;margin-bottom:0.85rem;">
+                <option value="SHA-256">SHA-256</option>
+                <option value="SHA-1">SHA-1</option>
+                <option value="SHA-512">SHA-512</option>
+            </select>
+            <label class="tools-label" for="hashIn">Text</label>
+            <textarea id="hashIn" class="tools-textarea" placeholder="Paste text to hash"></textarea>
+            <div class="tools-actions">
+                <button type="button" class="tools-btn" id="hashRun">Hash</button>
+                <button type="button" class="tools-btn secondary" id="hashCopy">Copy hex</button>
+            </div>
+            <label class="tools-label" for="hashOut">Hex digest</label>
+            <textarea id="hashOut" class="tools-textarea" style="min-height:80px;"></textarea>
+        </div>
+    </section>
+
+    <section id="panel-regex" class="tools-panel">
+        <div class="tools-card">
+            <div class="tools-blurb">
+                <strong>What regex is for</strong>
+                <p>Test a pattern against sample text before you put it in Java, Python, or a log filter — see matches instantly.</p>
+            </div>
+            <label class="tools-label" for="rePattern">Pattern</label>
+            <input id="rePattern" class="tools-input" type="text" value="\b[A-Z][a-z]+" style="margin-bottom:0.5rem;" placeholder="e.g. \d{3}-\d{2}">
+            <div class="tools-flags">
+                <label><input type="checkbox" id="reG" checked> g (all matches)</label>
+                <label><input type="checkbox" id="reI"> i (ignore case)</label>
+                <label><input type="checkbox" id="reM"> m (multiline ^ $)</label>
+                <label><input type="checkbox" id="reS"> s (dot matches newline)</label>
+            </div>
+            <label class="tools-label" for="reText">Test string</label>
+            <textarea id="reText" class="tools-textarea" style="min-height:120px;">Binod Suman teaches System Design and AI in India.</textarea>
+            <div class="tools-actions">
+                <button type="button" class="tools-btn" id="reRun">Test</button>
+            </div>
+            <div class="tools-status" id="reStatus"></div>
+            <label class="tools-label">Highlighted matches</label>
+            <div class="tools-regex-out" id="reOut"></div>
+        </div>
+    </section>
+
+    <section id="panel-cron" class="tools-panel">
+        <div class="tools-card">
+            <div class="tools-blurb">
+                <strong>What cron is for</strong>
+                <p>Read a scheduler expression like <code>0 9 * * 1-5</code> in plain English — useful for Jenkins, Kubernetes CronJobs, and Linux crontab.</p>
+            </div>
+            <label class="tools-label" for="cronIn">Cron (5 fields: minute hour day-of-month month day-of-week)</label>
+            <input id="cronIn" class="tools-input" type="text" value="0 9 * * 1-5" style="margin-bottom:0.5rem;">
+            <p class="tools-example">Order is <code>min hour date month weekday</code>. Example: <code>*/15 * * * *</code> = every 15 minutes. <code>0 0 * * 0</code> = Sunday midnight.</p>
+            <div class="tools-actions">
+                <button type="button" class="tools-btn" id="cronRun">Explain</button>
+            </div>
+            <div class="tools-status" id="cronStatus"></div>
+            <pre class="tools-pre" id="cronOut"></pre>
+        </div>
+    </section>
+
+    <section id="panel-tokens" class="tools-panel">
+        <div class="tools-card">
+            <div class="tools-blurb">
+                <strong>What LLM tokens are for</strong>
+                <p>Estimate how large a prompt or RAG chunk is before you hit the model. Helps you stay under context limits and guess API cost. This is an estimate (≈ 4 characters per token for English), not the official tokenizer.</p>
+            </div>
+            <label class="tools-label" for="tokIn">Prompt, article, or code</label>
+            <textarea id="tokIn" class="tools-textarea" placeholder="Paste the text you would send to ChatGPT, Claude, or an API..."></textarea>
+            <div class="tools-actions">
+                <button type="button" class="tools-btn" id="tokRun">Estimate</button>
+                <select id="tokModel" class="tools-input" style="max-width:16rem;">
+                    <option value="gpt-4o">GPT-4o (approx pricing)</option>
+                    <option value="gpt-4o-mini">GPT-4o mini</option>
+                    <option value="claude-sonnet">Claude Sonnet</option>
+                </select>
+            </div>
+            <div class="tools-meta" id="tokMeta"></div>
+            <p class="tools-hint" id="tokHint"></p>
+        </div>
+    </section>
+
+    <section id="panel-diff" class="tools-panel">
+        <div class="tools-card">
+            <div class="tools-blurb">
+                <strong>What diff is for</strong>
+                <p>Compare two versions of a config, prompt, or code snippet line by line — like a tiny Git diff without creating a file.</p>
+            </div>
+            <div class="tools-split">
+                <div>
+                    <label class="tools-label" for="diffA">Original</label>
+                    <textarea id="diffA" class="tools-textarea">timeout: 30
+retries: 3</textarea>
+                </div>
+                <div>
+                    <label class="tools-label" for="diffB">Changed</label>
+                    <textarea id="diffB" class="tools-textarea">timeout: 60
+retries: 3
+region: ap-south-1</textarea>
+                </div>
+            </div>
+            <div class="tools-actions">
+                <button type="button" class="tools-btn" id="diffRun">Compare</button>
+            </div>
+            <div id="diffOut"></div>
+        </div>
+    </section>
+
+    <div class="tools-related">
+        <a href="/git-commands/">
+            <h3>Git command library</h3>
+            <p>Search, filter, and copy everyday Git commands — same card UI as Slash Prompts.</p>
+        </a>
+        <a href="/commands/">
+            <h3>500 Slash Prompts</h3>
+            <p>Ready-to-paste ChatGPT and Claude commands for coding, writing, and more.</p>
+        </a>
+    </div>
+
+    <div class="tools-toast" id="toolsToast">Copied!</div>
+    <script src="/js/site-nav.js"></script>
+    <script src="/js/tools.js"></script>
+</body>
+</html>

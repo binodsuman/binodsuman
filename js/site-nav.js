@@ -93,6 +93,15 @@
                         <li><a href="/commands" class="nav-link" data-nav="slash-prompt">Slash Prompt</a></li>
                     </ul>
                 </li>
+                <li class="nav-dropdown" data-dropdown="tools">
+                    <button type="button" class="nav-dropdown-toggle" aria-expanded="false">
+                        Tools <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <ul class="nav-dropdown-menu">
+                        <li><a href="/tools/" class="nav-link" data-nav="dev-tools">JSON · JWT · Base64</a></li>
+                        <li><a href="/git-commands/" class="nav-link" data-nav="git-commands">Git Commands</a></li>
+                    </ul>
+                </li>
             </ul>
         </div>
     </header>`;
@@ -193,6 +202,10 @@
             markChildActive('llm-prompt', 'image-prompts');
         } else if (path === '/commands' || path.endsWith('/commands')) {
             markChildActive('llm-prompt', 'slash-prompt');
+        } else if (path === '/tools' || path.endsWith('/tools')) {
+            markChildActive('tools', 'dev-tools');
+        } else if (path === '/git-commands' || path.endsWith('/git-commands')) {
+            markChildActive('tools', 'git-commands');
         } else if (path.startsWith('/cheat-sheets')) {
             const navId = CHEAT_SHEET_NAV_MAP[path];
             if (navId) {

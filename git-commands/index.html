@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <title>Git Commands Cheat Sheet — Search &amp; Copy | Binod Suman</title>
+    <meta name="description" content="100 Git commands with search and filters. Copy git status, rebase, stash, force-with-lease, and GitHub CLI in one tap.">
+    <link rel="canonical" href="https://binodsuman.com/git-commands/">
+    <meta property="og:title" content="Git Commands Cheat Sheet | Binod Suman">
+    <meta property="og:description" content="Search, filter, and copy everyday Git commands.">
+    <meta property="og:url" content="https://binodsuman.com/git-commands/">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/site-nav.css">
+    <link rel="stylesheet" href="/css/prompt-pages.css">
+</head>
+<body class="prompt-page">
+    <section style="max-width:1200px;margin:0 auto;padding:1.5rem 1.5rem 0;text-align:center;">
+        <span style="display:inline-block;background:rgba(37,99,235,0.1);color:#2563eb;font-size:0.8rem;font-weight:600;padding:0.35rem 0.85rem;border-radius:50px;margin-bottom:0.75rem;">100 GIT COMMANDS</span>
+        <h1 style="font-size:clamp(1.5rem,3vw,2.25rem);font-weight:700;margin-bottom:0.5rem;background:linear-gradient(135deg,#2563eb,#7c3aed);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">A Git command for every everyday task</h1>
+        <p style="color:#64748b;max-width:640px;margin:0 auto 1rem;font-size:0.95rem;">Same workflow as Slash Prompts: search what you need, tap a card, paste in the terminal.</p>
+    </section>
+
+    <div class="prompt-controls">
+        <div class="prompt-search-row">
+            <div class="prompt-search-wrap">
+                <i class="fas fa-search"></i>
+                <input type="text" id="searchInput" placeholder="Search git commands... (press /)" autocomplete="off">
+            </div>
+            <div class="prompt-count-badge"><span id="visibleCount">0</span> commands</div>
+        </div>
+        <div class="prompt-filter-tabs" id="filterTabs"></div>
+    </div>
+
+    <div class="prompt-grid" id="commandGrid"></div>
+    <div class="prompt-toast" id="toast"><i class="fas fa-check-circle"></i> Command copied!</div>
+
+    <script src="/js/site-nav.js"></script>
+    <script src="git-commands-data.js"></script>
+    <script>
+        const FAV_KEY = 'binodsuman_git_favorites';
+        let favorites = new Set(JSON.parse(localStorage.getItem(FAV_KEY) || '[]'));
+        let activeFilter = 'all';
+        let searchQuery = '';
+
+        function getCategoryName(id) {
+            const cat = GIT_CATEGORIES.find(c => c.id === id);
+            return cat ? cat.name : '';
+        }
+
+        function showToast() {
+            const toast = document.getElementById('toast');
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        }
+
+        function getFiltered() {
+            return GIT_COMMANDS.filter(p => {
+                if (activeFilter === 'favorites' && !favorites.has(p.id)) return false;
+                if (activeFilter !== 'all' && activeFilter !== 'favorites' && p.category !== activeFilter) return false;
+                if (searchQuery) {
+                    const q = searchQuery.toLowerCase();
+                    return p.cmd.toLowerCase().includes(q) || p.desc.toLowerCase().includes(q);
+                }
+                return true;
+            });
+        }
+
+        function updateFilterCounts() {
+            document.querySelectorAll('.prompt-filter-btn').forEach(btn => {
+                const id = btn.dataset.filter;
+                let n;
+                if (id === 'all') n = GIT_COMMANDS.length;
+                else if (id === 'favorites') n = favorites.size;
+                else n = GIT_COMMANDS.filter(p => p.category === id).length;
+                const badge = btn.querySelector('.tab-count');
+                if (badge) badge.textContent = n;
+            });
+        }
+
+        function renderFilters() {
+            const tabs = document.getElementById('filterTabs');
+            const items = [
+                { id: 'all', name: 'All' },
+                { id: 'favorites', name: '★ Saved' },
+                ...GIT_CATEGORIES
+            ];
+            tabs.innerHTML = items.map(c => {
+                const count = c.id === 'all' ? GIT_COMMANDS.length
+                    : c.id === 'favorites' ? favorites.size
+                    : GIT_COMMANDS.filter(p => p.category === c.id).length;
+                return `<button type="button" class="prompt-filter-btn ${activeFilter === c.id ? 'active' : ''}" data-filter="${c.id}">${c.name} <span class="tab-count">${count}</span></button>`;
+            }).join('');
+            tabs.querySelectorAll('.prompt-filter-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    activeFilter = btn.dataset.filter;
+                    renderFilters();
+                    render();
+                });
+            });
+        }
+
+        function render() {
+            const grid = document.getElementById('commandGrid');
+            const filtered = getFiltered();
+            document.getElementById('visibleCount').textContent = filtered.length;
+
+            if (!filtered.length) {
+                grid.innerHTML = '<div class="prompt-empty"><i class="fas fa-search"></i><p>No commands match your search.</p></div>';
+                return;
+            }
+
+            grid.innerHTML = filtered.map(p => {
+                const isFav = favorites.has(p.id);
+                return `
+                    <article class="prompt-card" data-id="${p.id}">
+                        <div class="prompt-card-top">
+                            <span class="prompt-cmd" style="font-size:0.78rem;word-break:break-word;">${p.cmd}</span>
+                            <button class="prompt-star ${isFav ? 'active' : ''}" aria-label="Favorite">${isFav ? '★' : '☆'}</button>
+                        </div>
+                        <p class="prompt-desc">${p.desc}</p>
+                        <div class="prompt-card-footer">
+                            <span class="prompt-cat-label">${getCategoryName(p.category)}</span>
+                        </div>
+                    </article>`;
+            }).join('');
+
+            grid.querySelectorAll('.prompt-card').forEach(card => {
+                const id = parseInt(card.dataset.id, 10);
+                const p = GIT_COMMANDS.find(x => x.id === id);
+
+                card.addEventListener('click', (e) => {
+                    if (e.target.closest('.prompt-star')) return;
+                    navigator.clipboard.writeText(p.cmd).then(() => {
+                        showToast();
+                        card.classList.add('copied');
+                        setTimeout(() => card.classList.remove('copied'), 1500);
+                    });
+                });
+
+                card.querySelector('.prompt-star').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const btn = e.target;
+                    if (favorites.has(id)) {
+                        favorites.delete(id);
+                        btn.classList.remove('active');
+                        btn.textContent = '☆';
+                    } else {
+                        favorites.add(id);
+                        btn.classList.add('active');
+                        btn.textContent = '★';
+                    }
+                    localStorage.setItem(FAV_KEY, JSON.stringify([...favorites]));
+                    updateFilterCounts();
+                    if (activeFilter === 'favorites') render();
+                });
+            });
+        }
+
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            searchQuery = e.target.value.trim();
+            render();
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === '/' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
+                e.preventDefault();
+                document.getElementById('searchInput').focus();
+            }
+        });
+
+        renderFilters();
+        render();
+    </script>
+</body>
+</html>
