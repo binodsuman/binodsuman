@@ -32,6 +32,7 @@
                         LLM Prompt <i class="fas fa-chevron-down"></i>
                     </button>
                     <ul class="nav-dropdown-menu">
+                        <li><a href="/ai-terminology/" class="nav-link" data-nav="ai-terminology">AI Terminology</a></li>
                         <li><a href="/image-prompts" class="nav-link" data-nav="image-prompts">Image Prompt</a></li>
                         <li><a href="/commands" class="nav-link" data-nav="slash-prompt">Slash Prompt</a></li>
                         <li><a href="/system-prompts/" class="nav-link" data-nav="system-prompts">System Prompt</a></li>
@@ -50,7 +51,9 @@
         const navMenu = document.getElementById('navMenu');
         const path = window.location.pathname.replace(/\/$/, '') || '/';
 
-        if (path === '/image-prompts' || path.endsWith('/image-prompts')) {
+        if (path === '/ai-terminology' || path.endsWith('/ai-terminology')) {
+            markChildActive('llm-prompt', 'ai-terminology');
+        } else if (path === '/image-prompts' || path.endsWith('/image-prompts')) {
             markChildActive('llm-prompt', 'image-prompts');
         } else if (path === '/commands' || path.endsWith('/commands')) {
             markChildActive('llm-prompt', 'slash-prompt');

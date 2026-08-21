@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <title>AI Terminology Slides | Binod Suman</title>
+    <meta name="description" content="25 slides covering core AI terminology — agents, LLMs, RAG, tools, memory, and agentic systems. Browse with next, back, and full-screen view.">
+    <link rel="canonical" href="https://binodsuman.com/ai-terminology/">
+    <meta property="og:title" content="AI Terminology Slides | Binod Suman">
+    <meta property="og:description" content="A 25-slide deck of essential AI terms — from LLMs and prompts to RAG, agents, and guardrails.">
+    <meta property="og:url" content="https://binodsuman.com/ai-terminology/">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/site-nav.css">
+    <link rel="stylesheet" href="/css/ai-terminology.css">
+</head>
+<body class="deck-page">
+    <main class="deck-wrap">
+        <header class="deck-hero">
+            <span class="deck-badge">25 SLIDES</span>
+            <h1>AI Terminology</h1>
+            <p>Core terms for LLMs, prompts, RAG, tools, and agentic systems — one slide at a time.</p>
+        </header>
+
+        <section class="deck-stage" aria-label="AI terminology slide deck">
+            <div class="deck-toolbar">
+                <div class="deck-toolbar-left">
+                    <button type="button" class="deck-btn" id="deckPrev" aria-label="Previous slide" title="Previous">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <button type="button" class="deck-btn" id="deckNext" aria-label="Next slide" title="Next">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+                <div class="deck-title" id="deckTitle">AI Terminology</div>
+                <div class="deck-toolbar-right">
+                    <span class="deck-counter" id="deckCounter">1 / 25</span>
+                    <button type="button" class="deck-btn" id="deckMax" aria-label="Maximize slide" aria-pressed="false" title="Maximize">
+                        <i class="fas fa-expand" id="deckMaxIcon"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="deck-frame">
+                <img id="deckImage" class="deck-slide" src="/image/ai-terminology/1_Agentic_AI_Revolution.jpg" alt="Agentic AI Revolution">
+                <button type="button" class="deck-nav-hit prev" id="deckPrevHit" aria-label="Previous slide"></button>
+                <button type="button" class="deck-nav-hit next" id="deckNextHit" aria-label="Next slide"></button>
+            </div>
+
+            <div class="deck-progress" aria-hidden="true"><span id="deckProgressBar"></span></div>
+            <div class="deck-thumbs" id="deckThumbs"></div>
+        </section>
+
+        <p class="deck-hint">Arrow keys to move · F to maximize · Esc to minimize · double-click the slide to toggle</p>
+    </main>
+
+    <script src="/js/site-nav.js"></script>
+    <script src="/js/ai-terminology-data.js"></script>
+    <script src="/js/ai-terminology.js"></script>
+</body>
+</html>

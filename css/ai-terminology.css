@@ -1,0 +1,309 @@
+/* AI Terminology slide deck */
+.deck-page {
+    font-family: 'Inter', sans-serif;
+    background-color: #fafbfc;
+    background-image: radial-gradient(circle, #d1d5db 1px, transparent 1px);
+    background-size: 20px 20px;
+    color: #1e293b;
+    min-height: 100vh;
+}
+
+.deck-wrap {
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 1.25rem 1.25rem 2.5rem;
+}
+
+.deck-hero {
+    text-align: center;
+    margin-bottom: 1.25rem;
+}
+
+.deck-badge {
+    display: inline-block;
+    background: rgba(37, 99, 235, 0.1);
+    color: #2563eb;
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    padding: 0.35rem 0.85rem;
+    border-radius: 50px;
+    margin-bottom: 0.65rem;
+}
+
+.deck-hero h1 {
+    font-size: clamp(1.45rem, 3vw, 2.1rem);
+    font-weight: 700;
+    margin: 0 0 0.4rem;
+    background: linear-gradient(135deg, #2563eb, #7c3aed);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.deck-hero p {
+    color: #64748b;
+    margin: 0 auto;
+    max-width: 640px;
+    font-size: 0.92rem;
+}
+
+.deck-stage {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    box-shadow: 0 12px 40px -16px rgba(15, 23, 42, 0.28);
+    overflow: hidden;
+}
+
+.deck-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.7rem 0.9rem;
+    border-bottom: 1px solid #e2e8f0;
+    background: #fff;
+}
+
+.deck-toolbar-left,
+.deck-toolbar-right {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    flex-shrink: 0;
+}
+
+.deck-title {
+    flex: 1;
+    min-width: 0;
+    text-align: center;
+    font-weight: 600;
+    font-size: 0.92rem;
+    color: #1e293b;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.deck-counter {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #2563eb;
+    background: rgba(37, 99, 235, 0.08);
+    padding: 0.28rem 0.65rem;
+    border-radius: 999px;
+    white-space: nowrap;
+}
+
+.deck-btn {
+    width: 40px;
+    height: 40px;
+    border: 1px solid #e2e8f0;
+    background: #fff;
+    color: #1e293b;
+    border-radius: 10px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: border-color 0.2s ease, background 0.2s ease, color 0.2s ease, opacity 0.2s ease;
+}
+
+.deck-btn:hover:not(:disabled) {
+    border-color: #2563eb;
+    color: #2563eb;
+    background: #eff6ff;
+}
+
+.deck-btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+}
+
+.deck-btn:focus-visible {
+    outline: 2px solid #2563eb;
+    outline-offset: 2px;
+}
+
+.deck-frame {
+    position: relative;
+    background: #0f172a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 280px;
+}
+
+.deck-slide {
+    display: block;
+    width: 100%;
+    max-height: calc(100vh - 280px);
+    height: auto;
+    object-fit: contain;
+    background: #0f172a;
+    user-select: none;
+}
+
+.deck-nav-hit {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 18%;
+    max-width: 120px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    color: transparent;
+}
+
+.deck-nav-hit.prev { left: 0; }
+.deck-nav-hit.next { right: 0; }
+
+.deck-nav-hit:hover {
+    background: linear-gradient(90deg, rgba(15, 23, 42, 0.22), transparent);
+}
+
+.deck-nav-hit.next:hover {
+    background: linear-gradient(270deg, rgba(15, 23, 42, 0.22), transparent);
+}
+
+.deck-nav-hit:disabled {
+    cursor: default;
+}
+
+.deck-nav-hit:disabled:hover {
+    background: transparent;
+}
+
+.deck-progress {
+    height: 3px;
+    background: #e2e8f0;
+}
+
+.deck-progress span {
+    display: block;
+    height: 100%;
+    background: linear-gradient(90deg, #2563eb, #7c3aed);
+    width: 0%;
+    transition: width 0.25s ease;
+}
+
+.deck-thumbs {
+    display: flex;
+    gap: 0.45rem;
+    overflow-x: auto;
+    padding: 0.75rem 0.85rem 0.9rem;
+    scrollbar-width: thin;
+}
+
+.deck-thumb {
+    flex: 0 0 auto;
+    width: 96px;
+    padding: 0;
+    border: 2px solid transparent;
+    border-radius: 8px;
+    background: #f1f5f9;
+    cursor: pointer;
+    overflow: hidden;
+}
+
+.deck-thumb img {
+    display: block;
+    width: 100%;
+    height: 54px;
+    object-fit: cover;
+}
+
+.deck-thumb.active {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+}
+
+.deck-hint {
+    text-align: center;
+    color: #94a3b8;
+    font-size: 0.78rem;
+    margin-top: 0.85rem;
+}
+
+/* Maximized: same controls, full viewport, prev/next still work */
+body.deck-maximized {
+    overflow: hidden;
+}
+
+body.deck-maximized .deck-hero,
+body.deck-maximized .deck-hint {
+    display: none;
+}
+
+body.deck-maximized .deck-wrap {
+    max-width: none;
+    padding: 0;
+}
+
+body.deck-maximized .deck-stage {
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+    border-radius: 0;
+    border: none;
+    display: flex;
+    flex-direction: column;
+    background: #0b1220;
+}
+
+body.deck-maximized .deck-toolbar {
+    background: #111827;
+    border-bottom-color: #1f2937;
+}
+
+body.deck-maximized .deck-title,
+body.deck-maximized .deck-counter {
+    color: #f8fafc;
+}
+
+body.deck-maximized .deck-counter {
+    background: rgba(37, 99, 235, 0.25);
+    color: #93c5fd;
+}
+
+body.deck-maximized .deck-btn {
+    background: #1f2937;
+    border-color: #374151;
+    color: #e5e7eb;
+}
+
+body.deck-maximized .deck-btn:hover:not(:disabled) {
+    background: #1e3a8a;
+    border-color: #3b82f6;
+    color: #fff;
+}
+
+body.deck-maximized .deck-frame {
+    flex: 1;
+    min-height: 0;
+}
+
+body.deck-maximized .deck-slide {
+    max-height: 100%;
+    width: auto;
+    max-width: 100%;
+    height: 100%;
+}
+
+body.deck-maximized .deck-progress {
+    background: #1f2937;
+}
+
+body.deck-maximized .deck-thumbs {
+    background: #111827;
+}
+
+@media (max-width: 640px) {
+    .deck-title { display: none; }
+    .deck-slide { max-height: calc(100vh - 320px); }
+    .deck-thumb { width: 78px; }
+    .deck-thumb img { height: 44px; }
+    .deck-hint { display: none; }
+}
