@@ -6,15 +6,6 @@
     const TITLE_MAX = 200;
     const COLLAPSED_DEFAULT = { week: true, later: true, done: true };
 
-    const CATALOG = [
-        { title: 'System Design hub', href: '/cheat-sheets/system-design/' },
-        { title: 'CAP theorem', href: '/cheat-sheets/system-design/core/cap-theorem/' },
-        { title: 'DSA patterns', href: '/cheat-sheets/dsa/patterns/' },
-        { title: 'AI study hub', href: '/cheat-sheets/ai/' },
-        { title: 'JSON formatter (Tools)', href: '/tools/' },
-        { title: 'Watch latest videos', href: '/#latest-videos' }
-    ];
-
     const SUGGEST = [
         { title: 'System Design Fundamentals', href: 'https://binodtech.com/learn/system-design/fundamentals' },
         { title: 'Design URL Shortener', href: 'https://binodtech.com/learn/system-design/url-shortener' },
@@ -40,7 +31,6 @@
     const form = document.getElementById('studyAddForm');
     const titleIn = document.getElementById('studyTitle');
     const dateIn = document.getElementById('studyDate');
-    const quick = document.getElementById('studyQuickAdd');
     const progressEl = document.getElementById('studyProgress');
     const revisionEl = document.getElementById('studyRevision');
     const suggestEl = document.getElementById('studySuggest');
@@ -134,15 +124,6 @@
     let state = seedIfNeeded(load());
     let filter = 'all';
     const collapsed = Object.assign({}, COLLAPSED_DEFAULT);
-
-    if (quick) {
-        CATALOG.forEach((c, i) => {
-            const opt = document.createElement('option');
-            opt.value = String(i);
-            opt.textContent = c.title;
-            quick.appendChild(opt);
-        });
-    }
 
     const dayIndex = Math.floor(Date.now() / 86400000) % SUGGEST.length;
     const todayTopic = SUGGEST[dayIndex];
@@ -327,20 +308,9 @@
     if (form && titleIn) {
         form.addEventListener('submit', (e) => {
             e.preventDefault();
-            let href = '';
-            if (quick && quick.value !== '') href = CATALOG[Number(quick.value)].href || '';
-            addItem(titleIn.value, dateIn && dateIn.value ? dateIn.value : null, href);
+            addItem(titleIn.value, dateIn && dateIn.value ? dateIn.value : null, '');
             titleIn.value = '';
             if (dateIn) dateIn.value = '';
-            if (quick) quick.value = '';
-        });
-    }
-
-    if (quick && titleIn) {
-        quick.addEventListener('change', () => {
-            if (quick.value === '') return;
-            const c = CATALOG[Number(quick.value)];
-            if (c && !titleIn.value.trim()) titleIn.value = c.title;
         });
     }
 

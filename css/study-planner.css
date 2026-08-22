@@ -78,14 +78,14 @@ body.study-planner-page {
 
 .study-add {
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
+    align-items: center;
     gap: 0.5rem;
     margin-bottom: 0.75rem;
 }
 
 .study-add input[type="text"],
-.study-add input[type="date"],
-.study-add select {
+.study-add input[type="date"] {
     background: var(--surface-2);
     border: 1px solid var(--border);
     color: var(--page-fg);
@@ -96,8 +96,12 @@ body.study-planner-page {
 }
 
 .study-add input[type="text"] {
-    flex: 1 1 12rem;
+    flex: 1 1 auto;
     min-width: 0;
+}
+
+.study-add input[type="date"] {
+    flex: 0 0 auto;
 }
 
 .study-btn {
@@ -110,6 +114,7 @@ body.study-planner-page {
     font-size: 0.9rem;
     font-weight: 600;
     cursor: pointer;
+    flex: 0 0 auto;
 }
 
 .study-btn:hover {
@@ -290,6 +295,10 @@ body.study-planner-page {
 }
 
 @media (max-width: 768px) {
+    .study-add {
+        flex-wrap: wrap;
+    }
+
     .study-planner-head {
         flex-direction: column;
     }
