@@ -40,11 +40,86 @@
                 </li>
                 <li><a href="/tools/" class="nav-link" data-nav="dev-tools">Tools</a></li>
             </ul>
+            <div class="appearance-wrap">
+                <button type="button" class="appearance-btn" id="appearanceBtn" aria-label="Appearance" aria-expanded="false" aria-haspopup="true" title="Appearance">
+                    <i class="fas fa-palette" aria-hidden="true"></i>
+                </button>
+                <div class="appearance-menu" id="appearanceMenu" role="menu" hidden>
+                    <p class="appearance-menu-label">Appearance</p>
+                    <button type="button" role="menuitem" class="appearance-option" data-theme="light"><span class="appearance-swatch appearance-swatch--light"></span> Light</button>
+                    <button type="button" role="menuitem" class="appearance-option" data-theme="dark"><span class="appearance-swatch appearance-swatch--dark"></span> Dark</button>
+                    <button type="button" role="menuitem" class="appearance-option" data-theme="midnight"><span class="appearance-swatch appearance-swatch--midnight"></span> Midnight</button>
+                    <button type="button" role="menuitem" class="appearance-option" data-theme="sepia"><span class="appearance-swatch appearance-swatch--sepia"></span> Sepia</button>
+                    <button type="button" role="menuitem" class="appearance-option" data-theme="ocean"><span class="appearance-swatch appearance-swatch--ocean"></span> Ocean</button>
+                    <button type="button" role="menuitem" class="appearance-option" data-theme="forest"><span class="appearance-swatch appearance-swatch--forest"></span> Forest</button>
+                </div>
+            </div>
         </div>
     </header>`;
 
     document.body.classList.add('has-site-nav');
     document.body.insertAdjacentHTML('afterbegin', NAV_HTML);
+
+    const THEMES = ['light', 'dark', 'midnight', 'sepia', 'ocean', 'forest'];
+
+    function getAppearance() {
+        try {
+            const t = localStorage.getItem('bs-appearance');
+            return THEMES.includes(t) ? t : 'dark';
+        } catch (e) {
+            return 'dark';
+        }
+    }
+
+    function applyAppearance(theme) {
+        if (!THEMES.includes(theme)) theme = 'dark';
+        document.documentElement.setAttribute('data-theme', theme);
+        try { localStorage.setItem('bs-appearance', theme); } catch (e) {}
+        document.querySelectorAll('.appearance-option').forEach((btn) => {
+            btn.classList.toggle('is-active', btn.getAttribute('data-theme') === theme);
+        });
+    }
+
+    function initAppearance() {
+        applyAppearance(getAppearance());
+        const btn = document.getElementById('appearanceBtn');
+        const menu = document.getElementById('appearanceMenu');
+        if (!btn || !menu) return;
+
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const open = menu.hasAttribute('hidden');
+            if (open) {
+                menu.removeAttribute('hidden');
+                btn.setAttribute('aria-expanded', 'true');
+            } else {
+                menu.setAttribute('hidden', '');
+                btn.setAttribute('aria-expanded', 'false');
+            }
+        });
+
+        menu.querySelectorAll('.appearance-option').forEach((opt) => {
+            opt.addEventListener('click', () => {
+                applyAppearance(opt.getAttribute('data-theme'));
+                menu.setAttribute('hidden', '');
+                btn.setAttribute('aria-expanded', 'false');
+            });
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.appearance-wrap')) {
+                menu.setAttribute('hidden', '');
+                btn.setAttribute('aria-expanded', 'false');
+            }
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                menu.setAttribute('hidden', '');
+                btn.setAttribute('aria-expanded', 'false');
+            }
+        });
+    }
 
     function initSiteNav() {
         const mobileMenuBtn = document.getElementById('mobileMenuBtn');
@@ -125,8 +200,12 @@
     }
 
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initSiteNav);
+        document.addEventListener('DOMContentLoaded', () => {
+            initSiteNav();
+            initAppearance();
+        });
     } else {
         initSiteNav();
+        initAppearance();
     }
 })();

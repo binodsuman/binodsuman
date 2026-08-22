@@ -1,10 +1,10 @@
 /* Shared styles for Image Prompt & Slash Prompt pages */
 .prompt-page {
     font-family: 'Inter', sans-serif;
-    background-color: #fafbfc;
-    background-image: radial-gradient(circle, #d1d5db 1px, transparent 1px);
+    background-color: var(--page-bg, #fafbfc);
+    background-image: radial-gradient(circle, color-mix(in srgb, var(--muted, #94a3b8) 28%, transparent) 1px, transparent 1px);
     background-size: 20px 20px;
-    color: #1e293b;
+    color: var(--page-fg, #1e293b);
     line-height: 1.5;
     min-height: 100vh;
 }
@@ -33,35 +33,36 @@
     left: 1rem;
     top: 50%;
     transform: translateY(-50%);
-    color: #64748b;
+    color: var(--muted);
 }
 
 .prompt-search-wrap input {
     width: 100%;
     padding: 0.75rem 1rem 0.75rem 2.5rem;
-    border: 1px solid #e2e8f0;
+    border: 1px solid var(--border);
     border-radius: 12px;
     font-family: inherit;
     font-size: 0.95rem;
-    background: white;
+    background: var(--surface);
+    color: var(--page-fg);
 }
 
 .prompt-search-wrap input:focus {
     outline: none;
-    border-color: #2563eb;
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 20%, transparent);
 }
 
 .prompt-count-badge {
     display: flex;
     align-items: center;
     padding: 0 1rem;
-    background: white;
-    border: 1px solid #e2e8f0;
+    background: var(--surface);
+    border: 1px solid var(--border);
     border-radius: 12px;
     font-weight: 600;
     font-size: 0.9rem;
-    color: #2563eb;
+    color: var(--primary);
     white-space: nowrap;
 }
 
@@ -73,10 +74,10 @@
 
 .prompt-filter-btn {
     padding: 0.45rem 0.85rem;
-    border: 1px solid #e2e8f0;
+    border: 1px solid var(--border);
     border-radius: 50px;
-    background: white;
-    color: #64748b;
+    background: var(--surface);
+    color: var(--muted);
     font-family: inherit;
     font-size: 0.8rem;
     font-weight: 500;
@@ -88,14 +89,14 @@
 }
 
 .prompt-filter-btn:hover {
-    border-color: #2563eb;
-    color: #2563eb;
+    border-color: var(--primary);
+    color: var(--primary);
 }
 
 .prompt-filter-btn.active {
-    background: #1e293b;
-    border-color: #1e293b;
-    color: white;
+    background: var(--primary);
+    border-color: var(--primary);
+    color: var(--page-bg);
 }
 
 .prompt-filter-btn .tab-count {
@@ -119,8 +120,8 @@
 }
 
 .prompt-card {
-    background: white;
-    border: 1px solid #d1d5db;
+    background: var(--surface);
+    border: 1px solid var(--border);
     border-radius: 10px;
     padding: 1rem 1.1rem;
     min-height: 130px;
@@ -152,7 +153,7 @@
 .prompt-cmd {
     font-size: 0.82rem;
     font-weight: 700;
-    color: #2563eb;
+    color: var(--primary);
     font-family: ui-monospace, 'Cascadia Code', monospace;
     flex: 1;
     min-width: 0;
@@ -187,7 +188,7 @@
 .prompt-desc {
     font-size: 0.9rem;
     font-weight: 600;
-    color: #1e293b;
+    color: var(--page-fg);
     line-height: 1.35;
     flex: 1;
 }
@@ -204,7 +205,7 @@
 .prompt-card-footer a {
     font-size: 0.75rem;
     font-weight: 600;
-    color: #2563eb;
+    color: var(--primary);
     text-decoration: none;
 }
 
@@ -245,7 +246,7 @@
 
 .prompt-cat-label {
     font-size: 0.7rem;
-    color: #94a3b8;
+    color: var(--muted);
     text-align: right;
     flex-shrink: 0;
 }
@@ -275,7 +276,7 @@
     grid-column: 1 / -1;
     text-align: center;
     padding: 3rem;
-    color: #64748b;
+    color: var(--muted);
 }
 
 @media (max-width: 1024px) {

@@ -1,15 +1,15 @@
 /* Architect-inspired home page — Binod Suman */
 
 body.home-page {
-    --arch-bg: #0c0f14;
-    --arch-surface: #141a22;
-    --arch-surface-2: #1c2430;
-    --arch-border: rgba(255, 255, 255, 0.08);
-    --arch-text: #f1f5f9;
-    --arch-muted: #94a3b8;
-    --arch-accent: #f59e0b;
-    --arch-accent-2: #38bdf8;
-    --arch-gradient: linear-gradient(135deg, #38bdf8 0%, #6366f1 50%, #a855f7 100%);
+    --arch-bg: var(--page-bg);
+    --arch-surface: var(--surface);
+    --arch-surface-2: var(--surface-2);
+    --arch-border: var(--border);
+    --arch-text: var(--page-fg);
+    --arch-muted: var(--muted);
+    --arch-accent: var(--accent);
+    --arch-accent-2: var(--primary);
+    --arch-gradient: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 50%, var(--accent) 100%);
     background: var(--arch-bg);
     color: var(--arch-text);
 }
@@ -791,23 +791,23 @@ body.home-page .typewriter::after {
 
 /* Nav on dark hero — subtle glass */
 body.home-page .site-header {
-    background: rgba(12, 15, 20, 0.85);
+    background: var(--header-bg);
     border-bottom: 1px solid var(--arch-border);
     box-shadow: none;
 }
 
 body.home-page .site-header .logo {
-    color: #7dd3fc;
+    color: var(--primary);
 }
 
 body.home-page .site-header .nav-link,
 body.home-page .site-header .nav-dropdown-toggle {
-    color: #e2e8f0;
+    color: var(--header-fg);
 }
 
 body.home-page .site-header .nav-link:hover,
 body.home-page .site-header .nav-dropdown-toggle:hover {
-    color: #7dd3fc;
+    color: var(--primary);
 }
 
 body.home-page .site-header .nav-dropdown-menu {
@@ -816,11 +816,11 @@ body.home-page .site-header .nav-dropdown-menu {
 }
 
 body.home-page .site-header .nav-dropdown-menu .nav-link {
-    color: #cbd5e1;
+    color: var(--arch-muted);
 }
 
 body.home-page .site-header .mobile-menu-btn {
-    color: #e2e8f0;
+    color: var(--header-fg);
 }
 
 @media (max-width: 768px) {
