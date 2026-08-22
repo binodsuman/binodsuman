@@ -39,6 +39,7 @@
                     </ul>
                 </li>
                 <li><a href="/tools/" class="nav-link" data-nav="dev-tools">Tools</a></li>
+                <li><a href="/study-planner/" class="nav-link" data-nav="study-planner">Study Planner</a></li>
             </ul>
             <div class="appearance-wrap">
                 <button type="button" class="appearance-btn" id="appearanceBtn" aria-label="Appearance" aria-expanded="false" aria-haspopup="true" title="Appearance">
@@ -136,6 +137,8 @@
             markChildActive('llm-prompt', 'system-prompts');
         } else if (path === '/tools' || path.endsWith('/tools')) {
             document.querySelector('[data-nav="dev-tools"]')?.classList.add('active-child');
+        } else if (path === '/study-planner' || path.endsWith('/study-planner')) {
+            document.querySelector('[data-nav="study-planner"]')?.classList.add('active-child');
         } else if (path === '/git-commands' || path.endsWith('/git-commands') ||
                    path === '/unix-commands' || path.endsWith('/unix-commands') ||
                    path === '/docker-commands' || path.endsWith('/docker-commands') ||
