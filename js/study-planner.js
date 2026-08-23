@@ -5,6 +5,12 @@
     const KEY = 'bs-study-planner';
     const TITLE_MAX = 200;
     const COLLAPSED_DEFAULT = { week: true, later: true, done: true };
+    const QUAD_LABELS = {
+        ui: 'Urgent & important',
+        ni: 'Not urgent & important',
+        uu: 'Urgent & unimportant',
+        nu: 'Not urgent & unimportant'
+    };
 
     const SUGGEST = [
         { title: 'System Design Fundamentals', href: 'https://binodtech.com/learn/system-design/fundamentals' },
@@ -32,7 +38,6 @@
     const titleIn = document.getElementById('studyTitle');
     const dateIn = document.getElementById('studyDate');
     const progressEl = document.getElementById('studyProgress');
-    const revisionEl = document.getElementById('studyRevision');
     const suggestEl = document.getElementById('studySuggest');
     const importInput = document.getElementById('studyImport');
 
@@ -66,13 +71,43 @@
         return dt.getFullYear() + '-' + mm + '-' + dd;
     }
 
+    function normalizeDate(value) {
+        if (!value) return null;
+        const s = String(value).trim();
+        const m = s.match(/^(\d{4}-\d{2}-\d{2})/);
+        return m ? m[1] : null;
+    }
+
+    function formatDate(iso) {
+        if (!iso) return '';
+        const [y, m, d] = iso.split('-').map(Number);
+        if (!y || !m || !d) return iso;
+        const dt = new Date(y, m - 1, d);
+        return dt.toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
+    }
+
+    function normalizeItem(it) {
+        const quad = it.quad && QUAD_LABELS[it.quad] ? it.quad : null;
+        return {
+            id: it.id || newId(),
+            title: String(it.title || '').slice(0, TITLE_MAX),
+            date: normalizeDate(it.date),
+            note: String(it.note || ''),
+            href: String(it.href || ''),
+            quad: quad,
+            done: !!it.done,
+            doneAt: it.doneAt || null,
+            createdAt: it.createdAt || Date.now()
+        };
+    }
+
     function load() {
         try {
             const raw = localStorage.getItem(KEY);
             if (!raw) return { v: 1, seeded: false, items: [] };
             const data = JSON.parse(raw);
             if (!data || !Array.isArray(data.items)) return { v: 1, seeded: false, items: [] };
-            return { v: 1, seeded: !!data.seeded, items: data.items };
+            return { v: 1, seeded: !!data.seeded, items: data.items.map(normalizeItem).filter((it) => it.title) };
         } catch (e) {
             return { v: 1, seeded: false, items: [] };
         }
@@ -93,6 +128,7 @@
             date: s.date,
             note: '',
             href: s.href,
+            quad: null,
             done: false,
             doneAt: null,
             createdAt: now
@@ -102,8 +138,13 @@
         return state;
     }
 
+    function isMatrixOpen(item) {
+        return !item.done && !!item.quad;
+    }
+
     function bucket(item, today, weekStart, weekEnd) {
         if (item.done) return 'done';
+        if (item.quad) return 'matrix';
         if (!item.date) return 'nodate';
         if (item.date <= today) return 'today';
         if (item.date >= weekStart && item.date <= weekEnd) return 'week';
@@ -111,6 +152,7 @@
     }
 
     function matchesFilter(item, filter, today, weekStart, weekEnd) {
+        if (isMatrixOpen(item)) return false;
         if (filter === 'all') return true;
         if (filter === 'done') return item.done;
         if (filter === 'nodate') return !item.done && !item.date;
@@ -126,25 +168,51 @@
     const collapsed = Object.assign({}, COLLAPSED_DEFAULT);
 
     const dayIndex = Math.floor(Date.now() / 86400000) % SUGGEST.length;
-    const todayTopic = SUGGEST[dayIndex];
-    if (revisionEl) {
-        revisionEl.innerHTML = 'Today’s revision: <a href="' + todayTopic.href + '" target="_blank" rel="noopener noreferrer">' + todayTopic.title + '</a>';
+
+    function showAfterAdd(item) {
+        filter = 'all';
+        root.querySelectorAll('.study-filter').forEach((b) => {
+            b.classList.toggle('is-active', b.getAttribute('data-filter') === 'all');
+        });
+        const today = todayStr();
+        const weekStart = startOfWeek(today);
+        const weekEnd = addDays(weekStart, 6);
+        const key = bucket(item, today, weekStart, weekEnd);
+        if (key !== 'matrix') collapsed[key] = false;
     }
 
-    function addItem(title, date, href) {
+    function addItem(title, date, href, quad) {
         const t = String(title || '').trim().slice(0, TITLE_MAX);
-        if (!t) return;
-        state.items.push({
+        if (!t) return null;
+        const item = {
             id: newId(),
             title: t,
-            date: date || null,
+            date: quad ? null : normalizeDate(date),
             note: '',
             href: href || '',
+            quad: quad && QUAD_LABELS[quad] ? quad : null,
             done: false,
             doneAt: null,
             createdAt: Date.now()
-        });
+        };
+        state.items.push(item);
         save(state);
+        showAfterAdd(item);
+        render();
+        return item;
+    }
+
+    function completeItem(it, done) {
+        it.done = done;
+        if (done) {
+            it.doneAt = Date.now();
+            if (!it.date) it.date = todayStr();
+        } else {
+            it.doneAt = null;
+            if (it.quad) it.date = null;
+        }
+        save(state);
+        if (done) collapsed.done = false;
         render();
     }
 
@@ -164,20 +232,42 @@
             btn.type = 'button';
             btn.className = 'study-btn-ghost';
             btn.textContent = 'Add';
-            btn.addEventListener('click', () => addItem(s.title, todayStr(), s.href));
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                addItem(s.title, todayStr(), s.href, null);
+            });
             row.appendChild(a);
             row.appendChild(btn);
             suggestEl.appendChild(row);
         });
     }
 
+    function renderMatrix() {
+        Object.keys(QUAD_LABELS).forEach((quad) => {
+            const el = document.querySelector('[data-quad-list="' + quad + '"]');
+            if (!el) return;
+            el.innerHTML = '';
+            const list = state.items.filter((it) => !it.done && it.quad === quad);
+            if (!list.length) {
+                const p = document.createElement('p');
+                p.className = 'eisenhower-empty';
+                p.textContent = 'Nothing here yet.';
+                el.appendChild(p);
+                return;
+            }
+            list.forEach((it) => el.appendChild(rowEl(it, true)));
+        });
+    }
+
     function render() {
+        renderMatrix();
         if (!groupsEl) return;
         const today = todayStr();
         const weekStart = startOfWeek(today);
         const weekEnd = addDays(weekStart, 6);
 
-        const weekItems = state.items.filter((it) => it.date && it.date >= weekStart && it.date <= weekEnd);
+        const weekItems = state.items.filter((it) => !it.quad && it.date && it.date >= weekStart && it.date <= weekEnd);
         const weekDone = weekItems.filter((it) => it.done).length;
         if (progressEl) {
             progressEl.textContent = weekItems.length
@@ -190,14 +280,16 @@
             week: 'This week',
             later: 'Later',
             nodate: 'No date',
-            done: 'Done'
+            done: 'Completed'
         };
         const order = ['today', 'week', 'later', 'nodate', 'done'];
         const buckets = { today: [], week: [], later: [], nodate: [], done: [] };
 
         state.items.forEach((it) => {
             if (!matchesFilter(it, filter, today, weekStart, weekEnd)) return;
-            buckets[bucket(it, today, weekStart, weekEnd)].push(it);
+            const b = bucket(it, today, weekStart, weekEnd);
+            if (b === 'matrix') return;
+            buckets[b].push(it);
         });
 
         groupsEl.innerHTML = '';
@@ -220,19 +312,19 @@
             });
             group.appendChild(btn);
             if (open) {
-                list.forEach((it) => group.appendChild(rowEl(it)));
+                list.forEach((it) => group.appendChild(rowEl(it, false)));
             }
             groupsEl.appendChild(group);
         });
         if (!any) {
             const p = document.createElement('p');
             p.className = 'study-empty';
-            p.textContent = 'Nothing here. Add what you want to study — with a date or as a backlog.';
+            p.textContent = 'Nothing here. Add a dated item, or complete a matrix task.';
             groupsEl.appendChild(p);
         }
     }
 
-    function rowEl(it) {
+    function rowEl(it, inMatrix) {
         const row = document.createElement('div');
         row.className = 'study-item' + (it.done ? ' is-done' : '');
 
@@ -240,12 +332,7 @@
         cb.type = 'checkbox';
         cb.checked = !!it.done;
         cb.setAttribute('aria-label', 'Mark done');
-        cb.addEventListener('change', () => {
-            it.done = cb.checked;
-            it.doneAt = it.done ? Date.now() : null;
-            save(state);
-            render();
-        });
+        cb.addEventListener('change', () => completeItem(it, cb.checked));
 
         const title = document.createElement('input');
         title.type = 'text';
@@ -262,17 +349,6 @@
             save(state);
         });
 
-        const date = document.createElement('input');
-        date.type = 'date';
-        date.className = 'study-item-date';
-        date.value = it.date || '';
-        date.setAttribute('aria-label', 'Date');
-        date.addEventListener('change', () => {
-            it.date = date.value || null;
-            save(state);
-            render();
-        });
-
         const del = document.createElement('button');
         del.type = 'button';
         del.className = 'study-item-del';
@@ -287,7 +363,31 @@
 
         row.appendChild(cb);
         row.appendChild(title);
-        row.appendChild(date);
+
+        if (inMatrix) {
+            row.appendChild(del);
+            return row;
+        }
+
+        if (it.done && it.quad) {
+            const meta = document.createElement('span');
+            meta.className = 'study-item-meta';
+            meta.textContent = QUAD_LABELS[it.quad] + (it.date ? ' · ' + formatDate(it.date) : '');
+            row.appendChild(meta);
+        } else {
+            const date = document.createElement('input');
+            date.type = 'date';
+            date.className = 'study-item-date';
+            date.value = it.date || '';
+            date.setAttribute('aria-label', 'Date');
+            date.addEventListener('change', () => {
+                it.date = normalizeDate(date.value);
+                save(state);
+                render();
+            });
+            row.appendChild(date);
+        }
+
         if (it.href) {
             const a = document.createElement('a');
             a.className = 'study-item-link';
@@ -308,11 +408,23 @@
     if (form && titleIn) {
         form.addEventListener('submit', (e) => {
             e.preventDefault();
-            addItem(titleIn.value, dateIn && dateIn.value ? dateIn.value : null, '');
-            titleIn.value = '';
-            if (dateIn) dateIn.value = '';
+            const added = addItem(titleIn.value, dateIn && dateIn.value ? dateIn.value : null, '', null);
+            if (added) {
+                titleIn.value = '';
+                if (dateIn) dateIn.value = '';
+            }
         });
     }
+
+    document.querySelectorAll('.eisenhower-add').forEach((qform) => {
+        qform.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const input = qform.querySelector('input[type="text"]');
+            if (!input) return;
+            const added = addItem(input.value, null, '', qform.getAttribute('data-quad'));
+            if (added) input.value = '';
+        });
+    });
 
     root.querySelectorAll('.study-filter').forEach((btn) => {
         btn.addEventListener('click', () => {
@@ -361,16 +473,7 @@
                     state = {
                         v: 1,
                         seeded: true,
-                        items: data.items.map((it) => ({
-                            id: it.id || newId(),
-                            title: String(it.title || '').slice(0, TITLE_MAX),
-                            date: it.date || null,
-                            note: String(it.note || ''),
-                            href: String(it.href || ''),
-                            done: !!it.done,
-                            doneAt: it.doneAt || null,
-                            createdAt: it.createdAt || Date.now()
-                        })).filter((it) => it.title)
+                        items: data.items.map(normalizeItem).filter((it) => it.title)
                     };
                     save(state);
                     render();

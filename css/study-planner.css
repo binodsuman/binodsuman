@@ -8,7 +8,7 @@ body.study-planner-page {
 }
 
 .study-page {
-    max-width: 960px;
+    max-width: 1100px;
     margin: 0 auto;
     padding: 5.5rem 1.5rem 3rem;
 }
@@ -29,9 +29,96 @@ body.study-planner-page {
     font-size: 0.92rem;
 }
 
+.eisenhower-wrap {
+    margin-top: 1.5rem;
+}
+
+.eisenhower-wrap h2 {
+    margin: 0 0 0.3rem;
+    font-size: 1.15rem;
+}
+
+.eisenhower-lead {
+    margin: 0 0 0.85rem;
+    font-size: 0.88rem;
+    color: var(--muted);
+}
+
+.eisenhower-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+}
+
+.eisenhower-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.85rem 0.9rem 0.7rem;
+    min-height: 10rem;
+    border-top-width: 3px;
+}
+
+.eisenhower-box h3 {
+    margin: 0 0 0.55rem;
+    font-size: 0.82rem;
+    font-weight: 650;
+    letter-spacing: 0.01em;
+}
+
+.eisenhower-ui { border-top-color: #e24b4b; }
+.eisenhower-ni { border-top-color: #3d8bfd; }
+.eisenhower-uu { border-top-color: #d9a441; }
+.eisenhower-nu { border-top-color: #6b7a90; }
+
+.eisenhower-add {
+    display: flex;
+    gap: 0.4rem;
+    margin-bottom: 0.45rem;
+}
+
+.eisenhower-add input[type="text"] {
+    flex: 1 1 auto;
+    min-width: 0;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    color: var(--page-fg);
+    border-radius: 6px;
+    padding: 0.4rem 0.5rem;
+    font: inherit;
+    font-size: 0.85rem;
+}
+
+.eisenhower-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.eisenhower-list .study-item {
+    grid-template-columns: auto 1fr auto;
+}
+
+.eisenhower-empty {
+    margin: 0.35rem 0 0;
+    font-size: 0.78rem;
+    color: var(--muted);
+}
+
+.study-item-meta {
+    font-size: 0.72rem;
+    color: var(--muted);
+    white-space: nowrap;
+}
+
 .study-layout {
     display: grid;
     gap: 1.25rem;
+}
+
+@media (max-width: 720px) {
+    .eisenhower-grid {
+        grid-template-columns: 1fr;
+    }
 }
 
 @media (min-width: 880px) {
@@ -307,12 +394,13 @@ body.study-planner-page {
         grid-template-columns: auto 1fr auto;
         grid-template-areas:
             "check title del"
-            "check date link";
+            "check extra extra";
     }
 
     .study-item input[type="checkbox"] { grid-area: check; }
     .study-item-title { grid-area: title; }
     .study-item-del { grid-area: del; }
-    .study-item-date { grid-area: date; }
-    .study-item-link { grid-area: link; }
+    .study-item-date,
+    .study-item-meta,
+    .study-item-link { grid-area: extra; }
 }
