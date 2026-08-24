@@ -781,3 +781,166 @@ html[data-theme="forest"] .tools-nav-item.active { background: #4ade80; color: #
 html[data-theme="forest"] .tools-sidebar-search input {
     background: #052e16; color: #ecfdf5; -webkit-text-fill-color: #ecfdf5; border-color: rgba(74, 222, 128, 0.3);
 }
+
+/* Unix Timestamp converter */
+.ts-page {
+    background: var(--surface, #fff);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem 1.75rem 2rem;
+}
+
+.ts-hero-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1.5rem;
+    padding-bottom: 1.75rem;
+    margin-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.ts-hero-title {
+    font-size: 1.35rem;
+    font-weight: 700;
+    margin: 0;
+    color: var(--page-fg);
+}
+
+.ts-live {
+    text-align: right;
+    min-width: 220px;
+}
+
+.ts-live-num {
+    font-size: clamp(1.75rem, 4vw, 2.6rem);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+    font-variant-numeric: tabular-nums;
+}
+
+.ts-live-sub {
+    margin-top: 0.35rem;
+    font-size: 0.7rem;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+    font-weight: 600;
+}
+
+.ts-live-clock {
+    margin-top: 0.15rem;
+    font-size: 0.95rem;
+    color: var(--page-fg);
+}
+
+.ts-copy-btn {
+    margin-top: 0.5rem;
+    padding: 0.2rem 0.7rem;
+    font-size: 0.8rem;
+    font-family: inherit;
+    background: var(--surface);
+    color: var(--page-fg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.ts-copy-btn:hover { background: var(--surface-2); }
+
+.ts-block {
+    padding: 1.5rem 0 0.5rem;
+}
+
+.ts-label {
+    display: block;
+    font-weight: 700;
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.ts-input {
+    width: 100%;
+    max-width: 420px;
+    padding: 0.55rem 0.75rem;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    font-size: 0.95rem;
+    font-family: inherit;
+    background: #fff;
+    color: #0f172a;
+}
+
+.ts-help {
+    margin: 0.4rem 0 0.85rem;
+    font-size: 0.85rem;
+    color: var(--muted);
+}
+
+.ts-convert {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.45rem 1.15rem;
+    border: none;
+    border-radius: 6px;
+    background: #2563eb;
+    color: #fff;
+    font-weight: 600;
+    font-size: 0.9rem;
+    font-family: inherit;
+    cursor: pointer;
+}
+
+.ts-convert:hover { background: #1d4ed8; }
+
+.ts-table {
+    width: 100%;
+    max-width: 720px;
+    margin-top: 1rem;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+}
+
+.ts-table th,
+.ts-table td {
+    border: 1px solid #e2e8f0;
+    padding: 0.55rem 0.75rem;
+    text-align: left;
+    vertical-align: top;
+}
+
+.ts-table th {
+    width: 160px;
+    font-weight: 600;
+    background: #f8fafc;
+    color: #0f172a;
+}
+
+.ts-dt-grid {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 0.65rem;
+    max-width: 720px;
+    margin-bottom: 0.9rem;
+}
+
+.ts-dt-grid label {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+
+.ts-dt-grid .ts-input {
+    max-width: none;
+}
+
+@media (max-width: 800px) {
+    .ts-hero-row { flex-direction: column; }
+    .ts-live { text-align: left; }
+    .ts-dt-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+@media (max-width: 520px) {
+    .ts-dt-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}

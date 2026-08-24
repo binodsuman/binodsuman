@@ -43,7 +43,7 @@ const TOOL_CATALOG = [
     { id: 'kubernetes-commands', cat: 'commands', label: 'Kubernetes (kubectl)', blurb: 'Pods, deploy, logs, scale, debug.' },
 
     /* Utilities */
-    { id: 'timestamp', cat: 'utilities', label: 'Unix Timestamp', blurb: 'Epoch seconds ↔ readable date (IST too).' },
+    { id: 'timestamp', cat: 'utilities', label: 'Unix Timestamp', blurb: 'Live epoch clock, timestamp ↔ date, GMT and local time.' },
     { id: 'cron', cat: 'utilities', label: 'Cron Explainer', blurb: 'Crontab expressions in plain English.' },
     { id: 'regex', cat: 'utilities', label: 'Regex Tester', blurb: 'Test patterns before putting them in code.' },
     { id: 'diff', cat: 'utilities', label: 'Text Diff', blurb: 'Compare two configs line by line.' },

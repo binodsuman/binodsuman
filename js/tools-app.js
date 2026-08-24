@@ -281,14 +281,108 @@
     $('hashRun')?.addEventListener('click', () => hashText().catch((e) => { $('hashOut').value = e.message; }));
 
     /* ── Timestamp ── */
-    function renderDate(d) {
-        if (Number.isNaN(d.getTime())) return;
-        $('tsUnix').value = String(Math.floor(d.getTime() / 1000));
-        $('tsIso').value = d.toISOString();
-        $('tsIst').value = d.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }) + ' IST';
+    const TS_DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const TS_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+    function tsPad(n) { return String(n).padStart(2, '0'); }
+
+    function parseUnixToDate(raw) {
+        const n = Number(String(raw).trim());
+        if (!Number.isFinite(n)) return null;
+        let ms;
+        let format;
+        const abs = Math.abs(n);
+        if (abs >= 1e18) { ms = n / 1e6; format = 'Nanoseconds'; }
+        else if (abs >= 1e15) { ms = n / 1e3; format = 'Microseconds'; }
+        else if (abs >= 1e12) { ms = n; format = 'Milliseconds'; }
+        else { ms = n * 1000; format = 'Seconds'; }
+        const d = new Date(ms);
+        if (Number.isNaN(d.getTime())) return null;
+        return { date: d, format };
     }
-    $('tsFromUnix')?.addEventListener('click', () => renderDate(new Date(Number($('tsUnix').value) * 1000)));
-    $('tsNow')?.addEventListener('click', () => renderDate(new Date()));
+
+    function formatGmt(d) {
+        return `${TS_DAYS[d.getUTCDay()]} ${TS_MONTHS[d.getUTCMonth()]} ${tsPad(d.getUTCDate())} ${d.getUTCFullYear()} ${tsPad(d.getUTCHours())}:${tsPad(d.getUTCMinutes())}:${tsPad(d.getUTCSeconds())} GMT+0000`;
+    }
+
+    function relativeTime(d) {
+        const diff = Date.now() - d.getTime();
+        const future = diff < 0;
+        const sec = Math.round(Math.abs(diff) / 1000);
+        let phrase;
+        if (sec < 45) phrase = 'a few seconds';
+        else if (sec < 90) phrase = 'a minute';
+        else if (sec < 45 * 60) phrase = `${Math.round(sec / 60)} minutes`;
+        else if (sec < 90 * 60) phrase = 'an hour';
+        else if (sec < 22 * 3600) phrase = `${Math.round(sec / 3600)} hours`;
+        else if (sec < 36 * 3600) phrase = 'a day';
+        else if (sec < 26 * 86400) phrase = `${Math.round(sec / 86400)} days`;
+        else if (sec < 45 * 86400) phrase = 'a month';
+        else if (sec < 320 * 86400) phrase = `${Math.round(sec / (30 * 86400))} months`;
+        else if (sec < 548 * 86400) phrase = 'a year';
+        else phrase = `${Math.round(sec / (365 * 86400))} years`;
+        return future ? `in ${phrase}` : `${phrase} ago`;
+    }
+
+    function fillDateFields(d) {
+        $('tsYear').value = String(d.getFullYear());
+        $('tsMonth').value = tsPad(d.getMonth() + 1);
+        $('tsDay').value = tsPad(d.getDate());
+        $('tsHour').value = tsPad(d.getHours());
+        $('tsMin').value = tsPad(d.getMinutes());
+        $('tsSec').value = tsPad(d.getSeconds());
+    }
+
+    function tickLiveEpoch() {
+        const now = new Date();
+        const unix = Math.floor(now.getTime() / 1000);
+        if ($('tsLiveUnix')) $('tsLiveUnix').textContent = String(unix);
+        if ($('tsLiveClock')) {
+            $('tsLiveClock').textContent = now.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit', second: '2-digit' });
+        }
+    }
+
+    function convertFromUnix() {
+        const parsed = parseUnixToDate($('tsUnix').value);
+        const table = $('tsFromUnixTable');
+        if (!parsed) {
+            table.hidden = true;
+            return;
+        }
+        $('tsFmt').textContent = parsed.format;
+        $('tsGmt').textContent = formatGmt(parsed.date);
+        $('tsLocal').textContent = parsed.date.toString();
+        $('tsRel').textContent = relativeTime(parsed.date);
+        table.hidden = false;
+    }
+
+    function convertFromDate() {
+        const y = Number($('tsYear').value);
+        const m = Number($('tsMonth').value);
+        const d = Number($('tsDay').value);
+        const h = Number($('tsHour').value);
+        const min = Number($('tsMin').value);
+        const s = Number($('tsSec').value);
+        const date = new Date(y, m - 1, d, h, min, s);
+        const table = $('tsFromDateTable');
+        if (Number.isNaN(date.getTime()) || m < 1 || m > 12) {
+            table.hidden = true;
+            return;
+        }
+        $('tsDateUnix').textContent = String(Math.floor(date.getTime() / 1000));
+        $('tsDateGmt').textContent = formatGmt(date);
+        $('tsDateLocal').textContent = date.toString();
+        $('tsDateRel').textContent = relativeTime(date);
+        table.hidden = false;
+    }
+
+    tickLiveEpoch();
+    setInterval(tickLiveEpoch, 1000);
+    fillDateFields(new Date());
+    $('tsCopyLive')?.addEventListener('click', () => copyText($('tsLiveUnix').textContent));
+    $('tsFromUnix')?.addEventListener('click', convertFromUnix);
+    $('tsFromDate')?.addEventListener('click', convertFromDate);
+    $('tsUnix')?.addEventListener('keydown', (e) => { if (e.key === 'Enter') convertFromUnix(); });
 
     /* ── HTTP Status ── */
     function renderHttpStatus(q) {
@@ -451,7 +545,7 @@ spec:
             hash: () => { $('hashIn').value = ex.hash; hashText(); },
             'api-builder': () => { $('apiUrl').value = ex.apiUrl; buildApiRequest(); },
             'curl-postman': () => { $('curlPostmanIn').value = ex.curl; $('curlToPostman').click(); },
-            timestamp: () => { $('tsUnix').value = ex.unix; renderDate(new Date(Number(ex.unix) * 1000)); },
+            timestamp: () => { $('tsUnix').value = ex.unix; convertFromUnix(); },
             cron: () => { $('cronIn').value = ex.cron; explainCron(); },
             regex: () => { $('rePattern').value = ex.regexPattern; $('reText').value = ex.regexText; runRegex(); },
             diff: () => { $('diffA').value = ex.diffA; $('diffB').value = ex.diffB; runDiff(); },

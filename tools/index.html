@@ -238,11 +238,52 @@
 
             <!-- Timestamp -->
             <div class="tools-panel" data-tool-panel="timestamp">
-                <div class="tools-card">
-                    <div class="tools-actions"><button type="button" class="tools-btn demo" data-demo="timestamp">Try example</button><button type="button" class="tools-btn" id="tsNow">Now</button><button type="button" class="tools-btn secondary" id="tsFromUnix">Unix → date</button></div>
-                    <label class="tools-label">Unix</label><input id="tsUnix" class="tools-input" style="margin-bottom:0.75rem;">
-                    <label class="tools-label">ISO UTC</label><input id="tsIso" class="tools-input" style="margin-bottom:0.75rem;" readonly>
-                    <label class="tools-label">IST</label><input id="tsIst" class="tools-input" readonly>
+                <div class="ts-page">
+                    <section class="ts-hero-row">
+                        <h3 class="ts-hero-title">The Current Epoch Unix Timestamp</h3>
+                        <div class="ts-live">
+                            <div class="ts-live-num" id="tsLiveUnix">—</div>
+                            <div class="ts-live-sub">SECONDS SINCE JAN 01 1970. (UTC)</div>
+                            <div class="ts-live-clock" id="tsLiveClock"></div>
+                            <button type="button" class="ts-copy-btn" id="tsCopyLive">Copy</button>
+                        </div>
+                    </section>
+
+                    <section class="ts-block">
+                        <label class="ts-label" for="tsUnix">Enter a Timestamp</label>
+                        <input id="tsUnix" class="ts-input" inputmode="numeric" autocomplete="off" placeholder="1735689600">
+                        <p class="ts-help">Supports Unix timestamps in seconds, milliseconds, microseconds and nanoseconds.</p>
+                        <button type="button" class="ts-convert" id="tsFromUnix">Convert →</button>
+                        <table class="ts-table" id="tsFromUnixTable" hidden>
+                            <tbody>
+                                <tr><th>Format</th><td id="tsFmt">—</td></tr>
+                                <tr><th>GMT</th><td id="tsGmt">—</td></tr>
+                                <tr><th>Your Time Zone</th><td id="tsLocal">—</td></tr>
+                                <tr><th>Relative</th><td id="tsRel">—</td></tr>
+                            </tbody>
+                        </table>
+                    </section>
+
+                    <section class="ts-block">
+                        <p class="ts-label">Enter a Date &amp; Time</p>
+                        <div class="ts-dt-grid">
+                            <div><label for="tsYear">Year</label><input id="tsYear" class="ts-input" inputmode="numeric"></div>
+                            <div><label for="tsMonth">Month</label><input id="tsMonth" class="ts-input" inputmode="numeric"></div>
+                            <div><label for="tsDay">Day</label><input id="tsDay" class="ts-input" inputmode="numeric"></div>
+                            <div><label for="tsHour">Hour (24 hour)</label><input id="tsHour" class="ts-input" inputmode="numeric"></div>
+                            <div><label for="tsMin">Minutes</label><input id="tsMin" class="ts-input" inputmode="numeric"></div>
+                            <div><label for="tsSec">Seconds</label><input id="tsSec" class="ts-input" inputmode="numeric"></div>
+                        </div>
+                        <button type="button" class="ts-convert" id="tsFromDate">Convert →</button>
+                        <table class="ts-table" id="tsFromDateTable" hidden>
+                            <tbody>
+                                <tr><th>Unix Timestamp</th><td id="tsDateUnix">—</td></tr>
+                                <tr><th>GMT</th><td id="tsDateGmt">—</td></tr>
+                                <tr><th>Your Time Zone</th><td id="tsDateLocal">—</td></tr>
+                                <tr><th>Relative</th><td id="tsDateRel">—</td></tr>
+                            </tbody>
+                        </table>
+                    </section>
                 </div>
             </div>
 
