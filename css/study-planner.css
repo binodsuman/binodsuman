@@ -586,6 +586,20 @@ body.study-planner-page {
     color: var(--muted);
 }
 
+.study-tip {
+    position: fixed;
+    z-index: 40;
+    max-width: 18rem;
+    padding: 0.4rem 0.55rem;
+    background: var(--page-fg);
+    color: var(--page-bg);
+    border-radius: 6px;
+    font-size: 0.75rem;
+    line-height: 1.35;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+    pointer-events: none;
+}
+
 @media (max-width: 768px) {
     .study-add {
         flex-wrap: wrap;

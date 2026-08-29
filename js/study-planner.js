@@ -111,6 +111,12 @@
         else item.doneDates.push(iso);
     }
 
+    function setTip(el, text) {
+        if (!el || !text) return;
+        el.setAttribute('data-tip', text);
+        el.removeAttribute('title');
+    }
+
     function normalizeDate(value) {
         if (!value) return null;
         const s = String(value).trim();
@@ -306,10 +312,12 @@
             a.target = '_blank';
             a.rel = 'noopener noreferrer';
             a.textContent = s.title;
+            setTip(a, 'Open this topic');
             const btn = document.createElement('button');
             btn.type = 'button';
             btn.className = 'study-btn-ghost';
             btn.textContent = 'Add';
+            setTip(btn, 'Add this topic to today');
             btn.addEventListener('click', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -413,7 +421,11 @@
         if (calToggle) {
             calToggle.classList.toggle('is-open', calOpen);
             calToggle.setAttribute('aria-expanded', calOpen ? 'true' : 'false');
-            calToggle.setAttribute('aria-label', calOpen ? 'Hide calendar' : 'Show calendar');
+            const calHint = calOpen
+                ? 'Hide the month calendar'
+                : 'Show the month calendar. Click a day to list tasks for that date.';
+            setTip(calToggle, calHint);
+            calToggle.setAttribute('aria-label', calOpen ? 'Hide month calendar' : 'Show month calendar');
         }
         calEl.hidden = !calOpen;
         if (!calOpen) return;
@@ -432,6 +444,7 @@
         prev.type = 'button';
         prev.className = 'study-cal-nav';
         prev.setAttribute('aria-label', 'Previous month');
+        setTip(prev, 'Previous month');
         prev.textContent = '‹';
         prev.addEventListener('click', () => {
             calMonth = addMonths(calMonth, -1);
@@ -441,6 +454,7 @@
         next.type = 'button';
         next.className = 'study-cal-nav';
         next.setAttribute('aria-label', 'Next month');
+        setTip(next, 'Next month');
         next.textContent = '›';
         next.addEventListener('click', () => {
             calMonth = addMonths(calMonth, 1);
@@ -489,7 +503,10 @@
                 dot.className = 'study-cal-dot';
                 btn.appendChild(dot);
             }
-            btn.setAttribute('aria-label', formatDate(cell.iso));
+            btn.setAttribute('aria-label', 'Show tasks for ' + formatDate(cell.iso));
+            setTip(btn, marked[cell.iso]
+                ? 'Show tasks for ' + formatDate(cell.iso) + ' (has dated tasks)'
+                : 'Show tasks for ' + formatDate(cell.iso));
             btn.addEventListener('click', () => {
                 selectedDay = cell.iso;
                 filter = 'day';
@@ -520,7 +537,7 @@
 
         const weekBtn = root.querySelector('[data-filter="week"]');
         if (weekBtn) {
-            weekBtn.title = 'Monday ' + formatShort(weekStart) + ' to Sunday ' + formatShort(weekEnd) + ', including today.';
+            setTip(weekBtn, 'Dated tasks from Monday ' + formatShort(weekStart) + ' through Sunday ' + formatShort(weekEnd) + ', including today.');
             weekBtn.textContent = 'This week';
         }
 
@@ -579,6 +596,7 @@
             btn.className = 'study-group-toggle';
             const open = filter !== 'all' || !collapsed[key];
             btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+            setTip(btn, open ? 'Collapse this section' : 'Expand this section');
             btn.innerHTML = '<span>' + labels[key] + '</span><i class="fas fa-chevron-' + (open ? 'up' : 'down') + '"></i>';
             btn.addEventListener('click', () => {
                 collapsed[key] = !collapsed[key];
@@ -609,7 +627,15 @@
         const cb = document.createElement('input');
         cb.type = 'checkbox';
         cb.checked = isDaily(it) ? dailyChecked : !!it.done;
-        cb.setAttribute('aria-label', 'Mark done');
+        const cbHint = isDaily(it)
+            ? (dailyChecked
+                ? 'Uncheck to mark this daily task not done for this day'
+                : 'Mark this daily task done for this day')
+            : (it.done
+                ? 'Uncheck to move this task back to open'
+                : 'Mark done — moves this task to Completed');
+        setTip(cb, cbHint);
+        cb.setAttribute('aria-label', cbHint);
         cb.addEventListener('change', () => completeItem(it, cb.checked, day));
 
         const title = document.createElement('input');
@@ -617,6 +643,8 @@
         title.className = 'study-item-title';
         title.value = it.title;
         title.maxLength = TITLE_MAX;
+        setTip(title, 'Edit task name');
+        title.setAttribute('aria-label', 'Task name');
         title.addEventListener('change', () => {
             const t = title.value.trim().slice(0, TITLE_MAX);
             if (!t) {
@@ -630,7 +658,8 @@
         const del = document.createElement('button');
         del.type = 'button';
         del.className = 'study-item-del';
-        del.setAttribute('aria-label', 'Delete');
+        del.setAttribute('aria-label', 'Delete this task');
+        setTip(del, 'Delete this task');
         del.innerHTML = '<i class="fas fa-trash-alt"></i>';
         del.addEventListener('click', () => {
             if (it.title && !confirm('Delete this item?')) return;
@@ -643,7 +672,7 @@
             row.dataset.id = it.id;
             const handle = document.createElement('span');
             handle.className = 'study-item-drag';
-            handle.title = 'Drag to another box';
+            setTip(handle, 'Drag to move this task to another quadrant');
             handle.setAttribute('aria-hidden', 'true');
             handle.innerHTML = '<i class="fas fa-grip-vertical"></i>';
             row.appendChild(handle);
@@ -682,6 +711,7 @@
             const meta = document.createElement('span');
             meta.className = 'study-item-meta';
             meta.textContent = 'Daily';
+            setTip(meta, 'Repeats every day');
             row.appendChild(meta);
         } else {
             const cal = document.createElement('span');
@@ -702,8 +732,11 @@
             const calBtn = document.createElement('button');
             calBtn.type = 'button';
             calBtn.className = 'study-item-cal-btn';
-            calBtn.title = it.date ? 'Reschedule (' + formatDate(it.date) + ')' : 'Set a date';
-            calBtn.setAttribute('aria-label', it.date ? 'Change date' : 'Set a date');
+            const calHint = it.date
+                ? 'Change the date of this task (now ' + formatDate(it.date) + ')'
+                : 'Give this task a date';
+            setTip(calBtn, calHint);
+            calBtn.setAttribute('aria-label', calHint);
             calBtn.innerHTML = '<i class="fas fa-calendar-alt" aria-hidden="true"></i>';
             calBtn.addEventListener('click', () => {
                 if (typeof date.showPicker === 'function') {
@@ -818,6 +851,46 @@
             render();
         });
     }
+
+    (function bindHoverTips() {
+        const tip = document.createElement('div');
+        tip.className = 'study-tip';
+        tip.setAttribute('role', 'tooltip');
+        tip.hidden = true;
+        document.body.appendChild(tip);
+        function hide() {
+            tip.hidden = true;
+        }
+        function show(el) {
+            const text = el.getAttribute('data-tip');
+            if (!text) return;
+            tip.textContent = text;
+            tip.hidden = false;
+            const r = el.getBoundingClientRect();
+            const tw = tip.offsetWidth;
+            const th = tip.offsetHeight;
+            let left = r.left + r.width / 2 - tw / 2;
+            let top = r.bottom + 8;
+            if (left < 8) left = 8;
+            if (left + tw > window.innerWidth - 8) left = Math.max(8, window.innerWidth - tw - 8);
+            if (top + th > window.innerHeight - 8) top = Math.max(8, r.top - th - 8);
+            tip.style.left = left + 'px';
+            tip.style.top = top + 'px';
+        }
+        document.addEventListener('mouseover', (e) => {
+            const el = e.target.closest('[data-tip]');
+            if (!el || !root.contains(el)) return;
+            show(el);
+        });
+        document.addEventListener('mouseout', (e) => {
+            const el = e.target.closest('[data-tip]');
+            if (!el) return;
+            const next = e.relatedTarget;
+            if (next && (el.contains(next) || (next.closest && next.closest('[data-tip]') === el))) return;
+            hide();
+        });
+        document.addEventListener('scroll', hide, true);
+    })();
 
     renderSuggest();
     render();

@@ -11,7 +11,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/css/site-nav.css">
     <script src="/js/theme-boot.js"></script>
-    <link rel="stylesheet" href="/css/study-planner.css">
+    <link rel="stylesheet" href="/css/study-planner.css?v=tips1">
 </head>
 <body class="study-planner-page">
     <main class="study-page" id="study-list">
@@ -30,30 +30,30 @@
                     <p class="study-planner-progress" id="studyProgress"></p>
                 </header>
                 <form class="study-add" id="studyAddForm" novalidate>
-                    <input type="text" id="studyTitle" maxlength="200" placeholder="What to study…" autocomplete="off" aria-label="Study item">
-                    <input type="date" id="studyDate" aria-label="Date">
-                    <button type="button" class="study-cal-toggle" id="studyCalToggle" aria-label="Show calendar" aria-expanded="false" aria-controls="studyCal">
+                    <input type="text" id="studyTitle" maxlength="200" placeholder="What to study…" autocomplete="off" aria-label="Study item" data-tip="Type the task name">
+                    <input type="date" id="studyDate" aria-label="Date for this task" data-tip="Pick a date for this task. Ignored if Daily is checked.">
+                    <button type="button" class="study-cal-toggle" id="studyCalToggle" data-tip="Show the month calendar. Click a day to list tasks for that date." aria-label="Show month calendar" aria-expanded="false" aria-controls="studyCal">
                         <i class="fas fa-calendar-alt" aria-hidden="true"></i>
                     </button>
-                    <label class="study-daily-check">
-                        <input type="checkbox" id="studyDaily"> Daily
+                    <label class="study-daily-check" data-tip="Repeats every day. No single due date.">
+                        <input type="checkbox" id="studyDaily" aria-label="Daily task"> Daily
                     </label>
-                    <button type="submit" class="study-btn">Add</button>
+                    <button type="submit" class="study-btn" data-tip="Add this task to the dated list">Add</button>
                 </form>
                 <div class="study-cal" id="studyCal" hidden></div>
                 <div class="study-toolbar">
                     <div class="study-filters" role="group" aria-label="Filter list">
-                        <button type="button" class="study-filter is-active" data-filter="all">All</button>
-                        <button type="button" class="study-filter" data-filter="today">Today</button>
-                        <button type="button" class="study-filter" data-filter="week">This week</button>
-                        <button type="button" class="study-filter" data-filter="daily">Daily</button>
-                        <button type="button" class="study-filter" data-filter="nodate">No date</button>
-                        <button type="button" class="study-filter" data-filter="done">Done</button>
+                        <button type="button" class="study-filter is-active" data-filter="all" data-tip="Show every open and completed task">All</button>
+                        <button type="button" class="study-filter" data-filter="today" data-tip="Tasks due today or overdue, plus Daily">Today</button>
+                        <button type="button" class="study-filter" data-filter="week" data-tip="Dated tasks from Monday through Sunday this week">This week</button>
+                        <button type="button" class="study-filter" data-filter="daily" data-tip="Tasks that repeat every day">Daily</button>
+                        <button type="button" class="study-filter" data-filter="nodate" data-tip="Open tasks with no date">No date</button>
+                        <button type="button" class="study-filter" data-filter="done" data-tip="Completed tasks">Done</button>
                     </div>
                     <div class="study-toolbar-actions">
-                        <button type="button" class="study-btn-ghost" id="studyClearDone">Clear done</button>
-                        <button type="button" class="study-btn-ghost" id="studyExport">Export</button>
-                        <button type="button" class="study-btn-ghost" id="studyImportBtn">Import</button>
+                        <button type="button" class="study-btn-ghost" id="studyClearDone" data-tip="Permanently remove completed tasks from this browser">Clear done</button>
+                        <button type="button" class="study-btn-ghost" id="studyExport" data-tip="Download your list as a JSON file">Export</button>
+                        <button type="button" class="study-btn-ghost" id="studyImportBtn" data-tip="Replace this list from a previously exported JSON file">Import</button>
                         <input type="file" id="studyImport" accept="application/json,.json" hidden>
                     </div>
                 </div>
@@ -73,32 +73,32 @@
                 <div class="eisenhower-box eisenhower-ui">
                     <h3>Urgent &amp; important</h3>
                     <form class="eisenhower-add" data-quad="ui">
-                        <input type="text" maxlength="200" placeholder="Add a task…" autocomplete="off" aria-label="Urgent and important">
-                        <button type="submit" class="study-btn">Add</button>
+                        <input type="text" maxlength="200" placeholder="Add a task…" autocomplete="off" aria-label="Urgent and important" data-tip="Task for Urgent and important">
+                        <button type="submit" class="study-btn" data-tip="Add to Urgent and important">Add</button>
                     </form>
                     <div class="eisenhower-list" data-quad-list="ui"></div>
                 </div>
                 <div class="eisenhower-box eisenhower-ni">
                     <h3>Not urgent &amp; important</h3>
                     <form class="eisenhower-add" data-quad="ni">
-                        <input type="text" maxlength="200" placeholder="Add a task…" autocomplete="off" aria-label="Not urgent and important">
-                        <button type="submit" class="study-btn">Add</button>
+                        <input type="text" maxlength="200" placeholder="Add a task…" autocomplete="off" aria-label="Not urgent and important" data-tip="Task for Not urgent and important">
+                        <button type="submit" class="study-btn" data-tip="Add to Not urgent and important">Add</button>
                     </form>
                     <div class="eisenhower-list" data-quad-list="ni"></div>
                 </div>
                 <div class="eisenhower-box eisenhower-uu">
                     <h3>Urgent &amp; unimportant</h3>
                     <form class="eisenhower-add" data-quad="uu">
-                        <input type="text" maxlength="200" placeholder="Add a task…" autocomplete="off" aria-label="Urgent and unimportant">
-                        <button type="submit" class="study-btn">Add</button>
+                        <input type="text" maxlength="200" placeholder="Add a task…" autocomplete="off" aria-label="Urgent and unimportant" data-tip="Task for Urgent and unimportant">
+                        <button type="submit" class="study-btn" data-tip="Add to Urgent and unimportant">Add</button>
                     </form>
                     <div class="eisenhower-list" data-quad-list="uu"></div>
                 </div>
                 <div class="eisenhower-box eisenhower-nu">
                     <h3>Not urgent &amp; unimportant</h3>
                     <form class="eisenhower-add" data-quad="nu">
-                        <input type="text" maxlength="200" placeholder="Add a task…" autocomplete="off" aria-label="Not urgent and unimportant">
-                        <button type="submit" class="study-btn">Add</button>
+                        <input type="text" maxlength="200" placeholder="Add a task…" autocomplete="off" aria-label="Not urgent and unimportant" data-tip="Task for Not urgent and unimportant">
+                        <button type="submit" class="study-btn" data-tip="Add to Not urgent and unimportant">Add</button>
                     </form>
                     <div class="eisenhower-list" data-quad-list="nu"></div>
                 </div>
@@ -106,6 +106,6 @@
         </section>
     </main>
     <script src="/js/site-nav.js"></script>
-    <script src="/js/study-planner.js"></script>
+    <script src="/js/study-planner.js?v=tips1"></script>
 </body>
 </html>
