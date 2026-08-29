@@ -441,7 +441,7 @@ body.study-planner-page {
 
 .study-item {
     display: grid;
-    grid-template-columns: auto 1fr auto auto auto;
+    grid-template-columns: auto 1fr auto auto;
     align-items: center;
     gap: 0.5rem 0.55rem;
     padding: 0.4rem 0;
@@ -476,15 +476,42 @@ body.study-planner-page {
     white-space: nowrap;
 }
 
+.study-item-cal {
+    position: relative;
+    flex: 0 0 auto;
+    width: 1.85rem;
+    height: 1.85rem;
+}
+
 .study-item-date {
-    background: var(--surface-2);
+    position: absolute;
+    width: 0;
+    height: 0;
+    opacity: 0;
+    pointer-events: none;
+    border: 0;
+    padding: 0;
+    margin: 0;
+}
+
+.study-item-cal-btn {
+    width: 1.85rem;
+    height: 1.85rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
     border: 1px solid var(--border);
-    color: var(--page-fg);
+    color: var(--muted);
     border-radius: 6px;
-    font: inherit;
-    font-size: 0.75rem;
-    padding: 0.15rem 0.3rem;
-    max-width: 9.5rem;
+    cursor: pointer;
+    font-size: 0.8rem;
+    padding: 0;
+}
+
+.study-item-cal-btn:hover {
+    color: var(--page-fg);
+    border-color: var(--primary);
 }
 
 .study-item-del {
@@ -555,7 +582,6 @@ body.study-planner-page {
     .study-item input[type="checkbox"] { grid-area: check; }
     .study-item-title { grid-area: title; }
     .study-item-del { grid-area: del; }
-    .study-item-date,
-    .study-item-meta,
-    .study-item-link { grid-area: extra; }
+    .study-item-cal,
+    .study-item-meta { grid-area: extra; }
 }

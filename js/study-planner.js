@@ -118,6 +118,13 @@
         return m ? m[1] : null;
     }
 
+    function formatShort(iso) {
+        if (!iso) return '';
+        const [y, m, d] = iso.split('-').map(Number);
+        if (!y || !m || !d) return iso;
+        return new Date(y, m - 1, d).toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
+    }
+
     function formatDate(iso) {
         if (!iso) return '';
         const [y, m, d] = iso.split('-').map(Number);
@@ -208,7 +215,7 @@
             return !item.done && item.date && item.date <= today;
         }
         if (filter === 'week') {
-            return !item.done && !isDaily(item) && item.date && item.date > today && item.date <= weekEnd;
+            return !item.done && !isDaily(item) && item.date && item.date >= weekStart && item.date <= weekEnd;
         }
         return true;
     }
@@ -225,6 +232,9 @@
     function setFilter(next) {
         filter = next;
         if (next !== 'day') selectedDay = null;
+        if (next && next !== 'all' && next !== 'day') {
+            Object.keys(collapsed).forEach((k) => { collapsed[k] = false; });
+        }
         root.querySelectorAll('.study-filter').forEach((b) => {
             b.classList.toggle('is-active', b.getAttribute('data-filter') === next);
         });
@@ -452,6 +462,12 @@
                 : 'No dated items this week';
         }
 
+        const weekBtn = root.querySelector('[data-filter="week"]');
+        if (weekBtn) {
+            weekBtn.title = 'Monday ' + formatShort(weekStart) + ' to Sunday ' + formatShort(weekEnd) + ', including today.';
+            weekBtn.textContent = 'This week';
+        }
+
         groupsEl.innerHTML = '';
 
         if (filter === 'day' && selectedDay) {
@@ -478,7 +494,7 @@
 
         const labels = {
             today: 'Today',
-            week: 'This week',
+            week: 'This week · ' + formatShort(weekStart) + '–' + formatShort(weekEnd),
             later: 'Later',
             daily: 'Daily',
             nodate: 'No date',
@@ -489,8 +505,9 @@
 
         state.items.forEach((it) => {
             if (!matchesFilter(it, filter, today, weekStart, weekEnd)) return;
-            const b = bucket(it, today, weekStart, weekEnd);
+            let b = bucket(it, today, weekStart, weekEnd);
             if (b === 'matrix') return;
+            if (filter === 'week' && b === 'today' && it.date >= weekStart) b = 'week';
             buckets[b].push(it);
         });
 
@@ -504,7 +521,7 @@
             const btn = document.createElement('button');
             btn.type = 'button';
             btn.className = 'study-group-toggle';
-            const open = !collapsed[key];
+            const open = filter !== 'all' || !collapsed[key];
             btn.setAttribute('aria-expanded', open ? 'true' : 'false');
             btn.innerHTML = '<span>' + labels[key] + '</span><i class="fas fa-chevron-' + (open ? 'up' : 'down') + '"></i>';
             btn.addEventListener('click', () => {
@@ -520,7 +537,9 @@
         if (!any) {
             const p = document.createElement('p');
             p.className = 'study-empty';
-            p.textContent = 'Nothing here. Add a dated item, a daily task, or complete a matrix task.';
+            p.textContent = filter === 'done'
+                ? 'No completed items yet. Check a task off to move it here.'
+                : 'Nothing here. Add a dated item, a daily task, or complete a matrix task.';
             groupsEl.appendChild(p);
         }
     }
@@ -572,43 +591,46 @@
             return row;
         }
 
-        if (it.done && it.quad) {
-            const meta = document.createElement('span');
-            meta.className = 'study-item-meta';
-            meta.textContent = QUAD_LABELS[it.quad] + (it.date ? ' · ' + formatDate(it.date) : '');
-            row.appendChild(meta);
-        } else if (isDaily(it)) {
+        if (isDaily(it)) {
             const meta = document.createElement('span');
             meta.className = 'study-item-meta';
             meta.textContent = 'Daily';
             row.appendChild(meta);
         } else {
+            const cal = document.createElement('span');
+            cal.className = 'study-item-cal';
             const date = document.createElement('input');
             date.type = 'date';
             date.className = 'study-item-date';
             date.value = it.date || '';
-            date.setAttribute('aria-label', 'Date');
+            date.setAttribute('tabindex', '-1');
+            date.setAttribute('aria-hidden', 'true');
             date.addEventListener('change', () => {
-                it.date = normalizeDate(date.value);
-                it.daily = false;
+                const next = normalizeDate(date.value);
+                it.date = next;
                 save(state);
+                if (!it.done) showAfterAdd(it);
                 render();
             });
-            row.appendChild(date);
-        }
-
-        if (it.href) {
-            const a = document.createElement('a');
-            a.className = 'study-item-link';
-            a.href = it.href;
-            a.textContent = 'Open';
-            if (/^https?:\/\//i.test(it.href)) {
-                a.target = '_blank';
-                a.rel = 'noopener noreferrer';
-            }
-            row.appendChild(a);
-        } else {
-            row.appendChild(document.createElement('span'));
+            const calBtn = document.createElement('button');
+            calBtn.type = 'button';
+            calBtn.className = 'study-item-cal-btn';
+            calBtn.title = it.date ? 'Reschedule (' + formatDate(it.date) + ')' : 'Set a date';
+            calBtn.setAttribute('aria-label', it.date ? 'Change date' : 'Set a date');
+            calBtn.innerHTML = '<i class="fas fa-calendar-alt" aria-hidden="true"></i>';
+            calBtn.addEventListener('click', () => {
+                if (typeof date.showPicker === 'function') {
+                    try {
+                        date.showPicker();
+                        return;
+                    } catch (err) { /* fall through */ }
+                }
+                date.focus();
+                date.click();
+            });
+            cal.appendChild(date);
+            cal.appendChild(calBtn);
+            row.appendChild(cal);
         }
         row.appendChild(del);
         return row;
