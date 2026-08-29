@@ -5,6 +5,7 @@
     const KEY = 'bs-study-planner';
     const TITLE_MAX = 200;
     const COLLAPSED_DEFAULT = { week: true, later: true, done: true };
+    const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
     const QUAD_LABELS = {
         ui: 'Urgent & important',
         ni: 'Not urgent & important',
@@ -37,6 +38,9 @@
     const form = document.getElementById('studyAddForm');
     const titleIn = document.getElementById('studyTitle');
     const dateIn = document.getElementById('studyDate');
+    const dailyIn = document.getElementById('studyDaily');
+    const calEl = document.getElementById('studyCal');
+    const calToggle = document.getElementById('studyCalToggle');
     const progressEl = document.getElementById('studyProgress');
     const suggestEl = document.getElementById('studySuggest');
     const importInput = document.getElementById('studyImport');
@@ -71,6 +75,42 @@
         return dt.getFullYear() + '-' + mm + '-' + dd;
     }
 
+    function monthStart(iso) {
+        const [y, m] = iso.split('-').map(Number);
+        return y + '-' + String(m).padStart(2, '0') + '-01';
+    }
+
+    function addMonths(iso, n) {
+        const [y, m] = iso.split('-').map(Number);
+        const dt = new Date(y, m - 1 + n, 1);
+        return dt.getFullYear() + '-' + String(dt.getMonth() + 1).padStart(2, '0') + '-01';
+    }
+
+    function daysInMonth(iso) {
+        const [y, m] = iso.split('-').map(Number);
+        return new Date(y, m, 0).getDate();
+    }
+
+    function formatMonth(iso) {
+        const [y, m] = iso.split('-').map(Number);
+        return new Date(y, m - 1, 1).toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
+    }
+
+    function isDaily(item) {
+        return !!item.daily && !item.quad;
+    }
+
+    function dailyDoneOn(item, iso) {
+        return Array.isArray(item.doneDates) && item.doneDates.indexOf(iso) !== -1;
+    }
+
+    function toggleDailyDone(item, iso) {
+        if (!Array.isArray(item.doneDates)) item.doneDates = [];
+        const i = item.doneDates.indexOf(iso);
+        if (i >= 0) item.doneDates.splice(i, 1);
+        else item.doneDates.push(iso);
+    }
+
     function normalizeDate(value) {
         if (!value) return null;
         const s = String(value).trim();
@@ -88,15 +128,18 @@
 
     function normalizeItem(it) {
         const quad = it.quad && QUAD_LABELS[it.quad] ? it.quad : null;
+        const daily = !quad && !!it.daily;
         return {
             id: it.id || newId(),
             title: String(it.title || '').slice(0, TITLE_MAX),
-            date: normalizeDate(it.date),
+            date: daily ? null : normalizeDate(it.date),
+            daily: daily,
+            doneDates: daily && Array.isArray(it.doneDates) ? it.doneDates.map(normalizeDate).filter(Boolean) : [],
             note: String(it.note || ''),
             href: String(it.href || ''),
             quad: quad,
-            done: !!it.done,
-            doneAt: it.doneAt || null,
+            done: daily ? false : !!it.done,
+            doneAt: daily ? null : (it.doneAt || null),
             createdAt: it.createdAt || Date.now()
         };
     }
@@ -126,6 +169,8 @@
             id: newId(),
             title: s.title,
             date: s.date,
+            daily: false,
+            doneDates: [],
             note: '',
             href: s.href,
             quad: null,
@@ -145,6 +190,7 @@
     function bucket(item, today, weekStart, weekEnd) {
         if (item.done) return 'done';
         if (item.quad) return 'matrix';
+        if (isDaily(item)) return 'daily';
         if (!item.date) return 'nodate';
         if (item.date <= today) return 'today';
         if (item.date >= weekStart && item.date <= weekEnd) return 'week';
@@ -155,39 +201,54 @@
         if (isMatrixOpen(item)) return false;
         if (filter === 'all') return true;
         if (filter === 'done') return item.done;
-        if (filter === 'nodate') return !item.done && !item.date;
-        if (filter === 'today') return !item.done && item.date && item.date <= today;
+        if (filter === 'daily') return !item.done && isDaily(item);
+        if (filter === 'nodate') return !item.done && !item.date && !isDaily(item);
+        if (filter === 'today') {
+            if (isDaily(item)) return true;
+            return !item.done && item.date && item.date <= today;
+        }
         if (filter === 'week') {
-            return !item.done && item.date && item.date >= weekStart && item.date <= weekEnd;
+            return !item.done && !isDaily(item) && item.date && item.date > today && item.date <= weekEnd;
         }
         return true;
     }
 
     let state = seedIfNeeded(load());
     let filter = 'all';
+    let selectedDay = null;
+    let calOpen = false;
+    let calMonth = monthStart(todayStr());
     const collapsed = Object.assign({}, COLLAPSED_DEFAULT);
 
     const dayIndex = Math.floor(Date.now() / 86400000) % SUGGEST.length;
 
-    function showAfterAdd(item) {
-        filter = 'all';
+    function setFilter(next) {
+        filter = next;
+        if (next !== 'day') selectedDay = null;
         root.querySelectorAll('.study-filter').forEach((b) => {
-            b.classList.toggle('is-active', b.getAttribute('data-filter') === 'all');
+            b.classList.toggle('is-active', b.getAttribute('data-filter') === next);
         });
+    }
+
+    function showAfterAdd(item) {
         const today = todayStr();
         const weekStart = startOfWeek(today);
         const weekEnd = addDays(weekStart, 6);
         const key = bucket(item, today, weekStart, weekEnd);
+        setFilter('all');
         if (key !== 'matrix') collapsed[key] = false;
     }
 
-    function addItem(title, date, href, quad) {
+    function addItem(title, date, href, quad, daily) {
         const t = String(title || '').trim().slice(0, TITLE_MAX);
         if (!t) return null;
+        const isDailyItem = !quad && !!daily;
         const item = {
             id: newId(),
             title: t,
-            date: quad ? null : normalizeDate(date),
+            date: quad || isDailyItem ? null : normalizeDate(date),
+            daily: isDailyItem,
+            doneDates: [],
             note: '',
             href: href || '',
             quad: quad && QUAD_LABELS[quad] ? quad : null,
@@ -202,7 +263,13 @@
         return item;
     }
 
-    function completeItem(it, done) {
+    function completeItem(it, done, viewDate) {
+        if (isDaily(it)) {
+            toggleDailyDone(it, viewDate || todayStr());
+            save(state);
+            render();
+            return;
+        }
         it.done = done;
         if (done) {
             it.doneAt = Date.now();
@@ -260,14 +327,124 @@
         });
     }
 
+    function datesWithTasks() {
+        const set = {};
+        state.items.forEach((it) => {
+            if (it.quad || it.done || isDaily(it) || !it.date) return;
+            set[it.date] = true;
+        });
+        return set;
+    }
+
+    function itemsForDay(iso) {
+        const dated = state.items.filter((it) => !it.quad && !isDaily(it) && it.date === iso);
+        const daily = state.items.filter((it) => !it.quad && isDaily(it));
+        return dated.concat(daily);
+    }
+
+    function renderCalendar() {
+        if (!calEl) return;
+        if (calToggle) {
+            calToggle.classList.toggle('is-open', calOpen);
+            calToggle.setAttribute('aria-expanded', calOpen ? 'true' : 'false');
+            calToggle.setAttribute('aria-label', calOpen ? 'Hide calendar' : 'Show calendar');
+        }
+        calEl.hidden = !calOpen;
+        if (!calOpen) return;
+        const today = todayStr();
+        const marked = datesWithTasks();
+        const [y, m] = calMonth.split('-').map(Number);
+        const first = y + '-' + String(m).padStart(2, '0') + '-01';
+        const lead = (new Date(y, m - 1, 1).getDay() + 6) % 7;
+        const count = daysInMonth(first);
+        const prevCount = daysInMonth(addMonths(first, -1));
+
+        calEl.innerHTML = '';
+        const head = document.createElement('div');
+        head.className = 'study-cal-head';
+        const prev = document.createElement('button');
+        prev.type = 'button';
+        prev.className = 'study-cal-nav';
+        prev.setAttribute('aria-label', 'Previous month');
+        prev.textContent = '‹';
+        prev.addEventListener('click', () => {
+            calMonth = addMonths(calMonth, -1);
+            render();
+        });
+        const next = document.createElement('button');
+        next.type = 'button';
+        next.className = 'study-cal-nav';
+        next.setAttribute('aria-label', 'Next month');
+        next.textContent = '›';
+        next.addEventListener('click', () => {
+            calMonth = addMonths(calMonth, 1);
+            render();
+        });
+        const title = document.createElement('strong');
+        title.textContent = formatMonth(calMonth);
+        head.appendChild(prev);
+        head.appendChild(title);
+        head.appendChild(next);
+        calEl.appendChild(head);
+
+        const wd = document.createElement('div');
+        wd.className = 'study-cal-weekdays';
+        WEEKDAYS.forEach((name) => {
+            const s = document.createElement('span');
+            s.textContent = name;
+            wd.appendChild(s);
+        });
+        calEl.appendChild(wd);
+
+        const grid = document.createElement('div');
+        grid.className = 'study-cal-grid';
+        const cells = [];
+        for (let i = lead; i > 0; i--) {
+            cells.push({ d: prevCount - i + 1, iso: addDays(first, -i), muted: true });
+        }
+        for (let d = 1; d <= count; d++) {
+            const iso = y + '-' + String(m).padStart(2, '0') + '-' + String(d).padStart(2, '0');
+            cells.push({ d: d, iso: iso, muted: false });
+        }
+        while (cells.length % 7) {
+            const extra = cells.length - lead - count + 1;
+            cells.push({ d: extra, iso: addDays(first, count + extra - 1), muted: true });
+        }
+        cells.forEach((cell) => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'study-cal-cell';
+            if (cell.muted) btn.classList.add('is-muted');
+            if (cell.iso === today) btn.classList.add('is-today');
+            if (selectedDay === cell.iso) btn.classList.add('is-selected');
+            btn.textContent = String(cell.d);
+            if (marked[cell.iso]) {
+                const dot = document.createElement('span');
+                dot.className = 'study-cal-dot';
+                btn.appendChild(dot);
+            }
+            btn.setAttribute('aria-label', formatDate(cell.iso));
+            btn.addEventListener('click', () => {
+                selectedDay = cell.iso;
+                filter = 'day';
+                calMonth = monthStart(cell.iso);
+                root.querySelectorAll('.study-filter').forEach((b) => b.classList.remove('is-active'));
+                render();
+            });
+            grid.appendChild(btn);
+        });
+        calEl.appendChild(grid);
+    }
+
     function render() {
         renderMatrix();
+        renderCalendar();
         if (!groupsEl) return;
         const today = todayStr();
         const weekStart = startOfWeek(today);
         const weekEnd = addDays(weekStart, 6);
 
-        const weekItems = state.items.filter((it) => !it.quad && it.date && it.date >= weekStart && it.date <= weekEnd);
+        const weekItems = state.items.filter((it) => !it.quad && !isDaily(it) && it.date && it.date >= weekStart && it.date <= weekEnd);
         const weekDone = weekItems.filter((it) => it.done).length;
         if (progressEl) {
             progressEl.textContent = weekItems.length
@@ -275,15 +452,40 @@
                 : 'No dated items this week';
         }
 
+        groupsEl.innerHTML = '';
+
+        if (filter === 'day' && selectedDay) {
+            const head = document.createElement('div');
+            head.className = 'study-day-head';
+            const strong = document.createElement('strong');
+            strong.textContent = formatDate(selectedDay);
+            const hint = document.createElement('span');
+            hint.textContent = 'Dated tasks plus Daily';
+            head.appendChild(strong);
+            head.appendChild(hint);
+            groupsEl.appendChild(head);
+            const list = itemsForDay(selectedDay);
+            if (!list.length) {
+                const p = document.createElement('p');
+                p.className = 'study-empty';
+                p.textContent = 'No tasks on this date. Daily items appear here when you add them.';
+                groupsEl.appendChild(p);
+            } else {
+                list.forEach((it) => groupsEl.appendChild(rowEl(it, false, selectedDay)));
+            }
+            return;
+        }
+
         const labels = {
             today: 'Today',
             week: 'This week',
             later: 'Later',
+            daily: 'Daily',
             nodate: 'No date',
             done: 'Completed'
         };
-        const order = ['today', 'week', 'later', 'nodate', 'done'];
-        const buckets = { today: [], week: [], later: [], nodate: [], done: [] };
+        const order = ['today', 'week', 'later', 'daily', 'nodate', 'done'];
+        const buckets = { today: [], week: [], later: [], daily: [], nodate: [], done: [] };
 
         state.items.forEach((it) => {
             if (!matchesFilter(it, filter, today, weekStart, weekEnd)) return;
@@ -292,7 +494,6 @@
             buckets[b].push(it);
         });
 
-        groupsEl.innerHTML = '';
         let any = false;
         order.forEach((key) => {
             const list = buckets[key];
@@ -312,27 +513,29 @@
             });
             group.appendChild(btn);
             if (open) {
-                list.forEach((it) => group.appendChild(rowEl(it, false)));
+                list.forEach((it) => group.appendChild(rowEl(it, false, today)));
             }
             groupsEl.appendChild(group);
         });
         if (!any) {
             const p = document.createElement('p');
             p.className = 'study-empty';
-            p.textContent = 'Nothing here. Add a dated item, or complete a matrix task.';
+            p.textContent = 'Nothing here. Add a dated item, a daily task, or complete a matrix task.';
             groupsEl.appendChild(p);
         }
     }
 
-    function rowEl(it, inMatrix) {
+    function rowEl(it, inMatrix, viewDate) {
+        const day = viewDate || todayStr();
         const row = document.createElement('div');
-        row.className = 'study-item' + (it.done ? ' is-done' : '');
+        const dailyChecked = isDaily(it) && dailyDoneOn(it, day);
+        row.className = 'study-item' + (it.done || dailyChecked ? ' is-done' : '');
 
         const cb = document.createElement('input');
         cb.type = 'checkbox';
-        cb.checked = !!it.done;
+        cb.checked = isDaily(it) ? dailyChecked : !!it.done;
         cb.setAttribute('aria-label', 'Mark done');
-        cb.addEventListener('change', () => completeItem(it, cb.checked));
+        cb.addEventListener('change', () => completeItem(it, cb.checked, day));
 
         const title = document.createElement('input');
         title.type = 'text';
@@ -374,6 +577,11 @@
             meta.className = 'study-item-meta';
             meta.textContent = QUAD_LABELS[it.quad] + (it.date ? ' · ' + formatDate(it.date) : '');
             row.appendChild(meta);
+        } else if (isDaily(it)) {
+            const meta = document.createElement('span');
+            meta.className = 'study-item-meta';
+            meta.textContent = 'Daily';
+            row.appendChild(meta);
         } else {
             const date = document.createElement('input');
             date.type = 'date';
@@ -382,6 +590,7 @@
             date.setAttribute('aria-label', 'Date');
             date.addEventListener('change', () => {
                 it.date = normalizeDate(date.value);
+                it.daily = false;
                 save(state);
                 render();
             });
@@ -406,12 +615,23 @@
     }
 
     if (form && titleIn) {
+        if (dateIn && !dateIn.value) dateIn.value = todayStr();
+        function syncDailyUi() {
+            if (!dateIn || !dailyIn) return;
+            dateIn.disabled = !!dailyIn.checked;
+        }
+        if (dailyIn) dailyIn.addEventListener('change', syncDailyUi);
+        syncDailyUi();
         form.addEventListener('submit', (e) => {
             e.preventDefault();
-            const added = addItem(titleIn.value, dateIn && dateIn.value ? dateIn.value : null, '', null);
+            const daily = !!(dailyIn && dailyIn.checked);
+            const dateVal = daily ? null : ((dateIn && dateIn.value) ? dateIn.value : todayStr());
+            const added = addItem(titleIn.value, dateVal, '', null, daily);
             if (added) {
                 titleIn.value = '';
-                if (dateIn) dateIn.value = '';
+                if (dailyIn) dailyIn.checked = false;
+                syncDailyUi();
+                if (dateIn && !dateIn.value) dateIn.value = todayStr();
             }
         });
     }
@@ -428,8 +648,7 @@
 
     root.querySelectorAll('.study-filter').forEach((btn) => {
         btn.addEventListener('click', () => {
-            filter = btn.getAttribute('data-filter');
-            root.querySelectorAll('.study-filter').forEach((b) => b.classList.toggle('is-active', b === btn));
+            setFilter(btn.getAttribute('data-filter'));
             render();
         });
     });
@@ -480,6 +699,14 @@
                 } catch (err) { /* ignore bad file */ }
             };
             reader.readAsText(file);
+        });
+    }
+
+    if (calToggle) {
+        calToggle.addEventListener('click', () => {
+            calOpen = !calOpen;
+            if (calOpen) calMonth = monthStart(selectedDay || todayStr());
+            render();
         });
     }
 
