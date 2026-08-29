@@ -225,6 +225,7 @@
     let selectedDay = null;
     let calOpen = false;
     let calMonth = monthStart(todayStr());
+    let dragItemId = null;
     const collapsed = Object.assign({}, COLLAPSED_DEFAULT);
 
     const dayIndex = Math.floor(Date.now() / 86400000) % SUGGEST.length;
@@ -320,7 +321,62 @@
         });
     }
 
+    function moveToQuad(id, quad, beforeId) {
+        if (!id || !QUAD_LABELS[quad]) return;
+        const from = state.items.findIndex((x) => x.id === id);
+        if (from < 0) return;
+        const it = state.items[from];
+        if (it.done || (it.quad === quad && (!beforeId || beforeId === id))) return;
+        state.items.splice(from, 1);
+        it.quad = quad;
+        it.date = null;
+        it.daily = false;
+        let insertAt = state.items.length;
+        if (beforeId && beforeId !== id) {
+            const b = state.items.findIndex((x) => x.id === beforeId);
+            if (b >= 0) insertAt = b;
+        } else {
+            let last = -1;
+            state.items.forEach((x, i) => {
+                if (!x.done && x.quad === quad) last = i;
+            });
+            insertAt = last >= 0 ? last + 1 : state.items.length;
+        }
+        state.items.splice(insertAt, 0, it);
+        save(state);
+        render();
+    }
+
+    function bindMatrixDnd() {
+        document.querySelectorAll('.eisenhower-box').forEach((box) => {
+            if (box.dataset.dndBound) return;
+            box.dataset.dndBound = '1';
+            box.addEventListener('dragover', (e) => {
+                if (!dragItemId) return;
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+                box.classList.add('is-drop-target');
+            });
+            box.addEventListener('dragleave', (e) => {
+                if (e.relatedTarget && box.contains(e.relatedTarget)) return;
+                box.classList.remove('is-drop-target');
+            });
+            box.addEventListener('drop', (e) => {
+                e.preventDefault();
+                box.classList.remove('is-drop-target');
+                const form = box.querySelector('.eisenhower-add');
+                const quad = form && form.getAttribute('data-quad');
+                const over = e.target.closest('.study-item');
+                const beforeId = over && box.contains(over) ? over.getAttribute('data-id') : null;
+                const id = e.dataTransfer.getData('text/plain') || dragItemId;
+                dragItemId = null;
+                moveToQuad(id, quad, beforeId);
+            });
+        });
+    }
+
     function renderMatrix() {
+        bindMatrixDnd();
         Object.keys(QUAD_LABELS).forEach((quad) => {
             const el = document.querySelector('[data-quad-list="' + quad + '"]');
             if (!el) return;
@@ -329,7 +385,7 @@
             if (!list.length) {
                 const p = document.createElement('p');
                 p.className = 'eisenhower-empty';
-                p.textContent = 'Nothing here yet.';
+                p.textContent = 'Drop a task here, or add one.';
                 el.appendChild(p);
                 return;
             }
@@ -582,6 +638,37 @@
             save(state);
             render();
         });
+
+        if (inMatrix) {
+            row.dataset.id = it.id;
+            const handle = document.createElement('span');
+            handle.className = 'study-item-drag';
+            handle.title = 'Drag to another box';
+            handle.setAttribute('aria-hidden', 'true');
+            handle.innerHTML = '<i class="fas fa-grip-vertical"></i>';
+            row.appendChild(handle);
+            row.addEventListener('mousedown', (e) => {
+                row.draggable = !e.target.closest('input, button, a');
+            });
+            row.addEventListener('dragstart', (e) => {
+                if (!row.draggable) {
+                    e.preventDefault();
+                    return;
+                }
+                dragItemId = it.id;
+                e.dataTransfer.effectAllowed = 'move';
+                e.dataTransfer.setData('text/plain', it.id);
+                row.classList.add('is-dragging');
+            });
+            row.addEventListener('dragend', () => {
+                row.draggable = false;
+                row.classList.remove('is-dragging');
+                dragItemId = null;
+                document.querySelectorAll('.eisenhower-box.is-drop-target').forEach((b) => {
+                    b.classList.remove('is-drop-target');
+                });
+            });
+        }
 
         row.appendChild(cb);
         row.appendChild(title);

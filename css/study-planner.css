@@ -57,6 +57,12 @@ body.study-planner-page {
     padding: 0.85rem 0.9rem 0.7rem;
     min-height: 10rem;
     border-top-width: 3px;
+    transition: background 0.12s ease, box-shadow 0.12s ease;
+}
+
+.eisenhower-box.is-drop-target {
+    box-shadow: inset 0 0 0 2px var(--primary);
+    background: var(--surface-2);
 }
 
 .eisenhower-box h3 {
@@ -95,7 +101,24 @@ body.study-planner-page {
 }
 
 .eisenhower-list .study-item {
-    grid-template-columns: auto 1fr auto;
+    grid-template-columns: auto auto 1fr auto;
+}
+
+.study-item-drag {
+    color: var(--muted);
+    cursor: grab;
+    padding: 0.15rem 0.1rem;
+    font-size: 0.8rem;
+    line-height: 1;
+    user-select: none;
+}
+
+.study-item-drag:active {
+    cursor: grabbing;
+}
+
+.eisenhower-list .study-item.is-dragging {
+    opacity: 0.4;
 }
 
 .eisenhower-empty {
@@ -584,4 +607,15 @@ body.study-planner-page {
     .study-item-del { grid-area: del; }
     .study-item-cal,
     .study-item-meta { grid-area: extra; }
+
+    .eisenhower-list .study-item {
+        grid-template-columns: auto auto 1fr auto;
+        grid-template-areas: none;
+    }
+
+    .eisenhower-list .study-item input[type="checkbox"],
+    .eisenhower-list .study-item-title,
+    .eisenhower-list .study-item-del {
+        grid-area: auto;
+    }
 }
