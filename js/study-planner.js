@@ -39,6 +39,7 @@
     const titleIn = document.getElementById('studyTitle');
     const dateIn = document.getElementById('studyDate');
     const dailyIn = document.getElementById('studyDaily');
+    const noDateBtn = document.getElementById('studyNoDateBtn');
     const calEl = document.getElementById('studyCal');
     const calToggle = document.getElementById('studyCalToggle');
     const progressEl = document.getElementById('studyProgress');
@@ -275,6 +276,7 @@
         };
         state.items.push(item);
         save(state);
+        calOpen = false;
         showAfterAdd(item);
         render();
         return item;
@@ -764,18 +766,27 @@
         }
         if (dailyIn) dailyIn.addEventListener('change', syncDailyUi);
         syncDailyUi();
+        function resetAddForm() {
+            titleIn.value = '';
+            if (dailyIn) dailyIn.checked = false;
+            syncDailyUi();
+            if (dateIn && !dateIn.value) dateIn.value = todayStr();
+        }
         form.addEventListener('submit', (e) => {
             e.preventDefault();
             const daily = !!(dailyIn && dailyIn.checked);
             const dateVal = daily ? null : ((dateIn && dateIn.value) ? dateIn.value : todayStr());
             const added = addItem(titleIn.value, dateVal, '', null, daily);
-            if (added) {
-                titleIn.value = '';
+            if (added) resetAddForm();
+        });
+        if (noDateBtn) {
+            noDateBtn.addEventListener('click', () => {
                 if (dailyIn) dailyIn.checked = false;
                 syncDailyUi();
-                if (dateIn && !dateIn.value) dateIn.value = todayStr();
-            }
-        });
+                const added = addItem(titleIn.value, null, '', null, false);
+                if (added) resetAddForm();
+            });
+        }
     }
 
     document.querySelectorAll('.eisenhower-add').forEach((qform) => {

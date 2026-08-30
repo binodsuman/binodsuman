@@ -218,6 +218,26 @@ body.study-planner-page {
     opacity: 0.45;
 }
 
+.study-nodate-btn {
+    flex: 0 0 auto;
+    width: 2.15rem;
+    height: 2.15rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.95rem;
+}
+
+.study-nodate-btn:hover {
+    color: var(--page-fg);
+    border-color: var(--primary);
+}
+
 .study-cal-toggle {
     flex: 0 0 auto;
     width: 2.15rem;
@@ -237,6 +257,12 @@ body.study-planner-page {
 .study-cal-toggle.is-open {
     color: var(--page-fg);
     border-color: var(--primary);
+}
+
+.study-filters .study-cal-toggle {
+    width: 1.9rem;
+    height: 1.9rem;
+    font-size: 0.8rem;
 }
 
 .study-daily-check {
