@@ -513,6 +513,7 @@
                 selectedDay = cell.iso;
                 filter = 'day';
                 calMonth = monthStart(cell.iso);
+                calOpen = false;
                 root.querySelectorAll('.study-filter').forEach((b) => b.classList.remove('is-active'));
                 render();
             });
@@ -540,7 +541,7 @@
         const weekBtn = root.querySelector('[data-filter="week"]');
         if (weekBtn) {
             setTip(weekBtn, 'Dated tasks from Monday ' + formatShort(weekStart) + ' through Sunday ' + formatShort(weekEnd) + ', including today.');
-            weekBtn.textContent = 'This week';
+            weekBtn.textContent = 'This week · ' + formatShort(weekStart) + '–' + formatShort(weekEnd);
         }
 
         groupsEl.innerHTML = '';
@@ -562,7 +563,7 @@
                 p.textContent = 'No tasks on this date. Daily items appear here when you add them.';
                 groupsEl.appendChild(p);
             } else {
-                list.forEach((it) => groupsEl.appendChild(rowEl(it, false, selectedDay)));
+            list.forEach((it) => groupsEl.appendChild(rowEl(it, false, selectedDay, isDaily(it) ? 'daily' : 'today')));
             }
             return;
         }
@@ -589,7 +590,8 @@
         let any = false;
         order.forEach((key) => {
             const list = buckets[key];
-            if (!list.length) return;
+            const forceEmptyWeek = filter === 'week' && key === 'week' && !list.length;
+            if (!list.length && !forceEmptyWeek) return;
             any = true;
             const group = document.createElement('div');
             group.className = 'study-group';
@@ -606,7 +608,14 @@
             });
             group.appendChild(btn);
             if (open) {
-                list.forEach((it) => group.appendChild(rowEl(it, false, today)));
+                if (!list.length) {
+                    const p = document.createElement('p');
+                    p.className = 'study-empty';
+                    p.textContent = 'No dated tasks this week.';
+                    group.appendChild(p);
+                } else {
+                    list.forEach((it) => group.appendChild(rowEl(it, false, today, key)));
+                }
             }
             groupsEl.appendChild(group);
         });
@@ -620,7 +629,7 @@
         }
     }
 
-    function rowEl(it, inMatrix, viewDate) {
+    function rowEl(it, inMatrix, viewDate, groupKey) {
         const day = viewDate || todayStr();
         const row = document.createElement('div');
         const dailyChecked = isDaily(it) && dailyDoneOn(it, day);
@@ -715,44 +724,60 @@
             meta.textContent = 'Daily';
             setTip(meta, 'Repeats every day');
             row.appendChild(meta);
-        } else {
-            const cal = document.createElement('span');
-            cal.className = 'study-item-cal';
-            const date = document.createElement('input');
-            date.type = 'date';
-            date.className = 'study-item-date';
-            date.value = it.date || '';
-            date.setAttribute('tabindex', '-1');
-            date.setAttribute('aria-hidden', 'true');
-            date.addEventListener('change', () => {
-                const next = normalizeDate(date.value);
-                it.date = next;
-                save(state);
-                if (!it.done) showAfterAdd(it);
-                render();
-            });
-            const calBtn = document.createElement('button');
-            calBtn.type = 'button';
-            calBtn.className = 'study-item-cal-btn';
-            const calHint = it.date
-                ? 'Change the date of this task (now ' + formatDate(it.date) + ')'
-                : 'Give this task a date';
-            setTip(calBtn, calHint);
-            calBtn.setAttribute('aria-label', calHint);
-            calBtn.innerHTML = '<i class="fas fa-calendar-alt" aria-hidden="true"></i>';
-            calBtn.addEventListener('click', () => {
-                if (typeof date.showPicker === 'function') {
-                    try {
-                        date.showPicker();
-                        return;
-                    } catch (err) { /* fall through */ }
-                }
-                date.focus();
-                date.click();
-            });
-            cal.appendChild(date);
-            cal.appendChild(calBtn);
-            row.appendChild(cal);
+        } else if (groupKey !== 'today') {
+            const readonly = !!it.done || groupKey === 'done';
+            if (readonly) {
+                const meta = document.createElement('span');
+                meta.className = 'study-item-meta';
+                meta.textContent = it.date ? formatDate(it.date) : 'No date';
+                setTip(meta, 'Completed — date cannot be changed');
+                row.appendChild(meta);
+            } else {
+                const wrap = document.createElement('span');
+                wrap.className = 'study-item-datewrap';
+                const shown = document.createElement('span');
+                shown.className = 'study-item-meta';
+                shown.textContent = it.date ? formatShort(it.date) : 'No date';
+                const cal = document.createElement('span');
+                cal.className = 'study-item-cal';
+                const date = document.createElement('input');
+                date.type = 'date';
+                date.className = 'study-item-date';
+                date.value = it.date || '';
+                date.setAttribute('tabindex', '-1');
+                date.setAttribute('aria-hidden', 'true');
+                date.addEventListener('change', () => {
+                    const next = normalizeDate(date.value);
+                    it.date = next;
+                    save(state);
+                    if (!it.done) showAfterAdd(it);
+                    render();
+                });
+                const calBtn = document.createElement('button');
+                calBtn.type = 'button';
+                calBtn.className = 'study-item-cal-btn';
+                const calHint = it.date
+                    ? 'Change the date of this task (now ' + formatDate(it.date) + ')'
+                    : 'Give this task a date';
+                setTip(calBtn, calHint);
+                calBtn.setAttribute('aria-label', calHint);
+                calBtn.innerHTML = '<i class="fas fa-calendar-alt" aria-hidden="true"></i>';
+                calBtn.addEventListener('click', () => {
+                    if (typeof date.showPicker === 'function') {
+                        try {
+                            date.showPicker();
+                            return;
+                        } catch (err) { /* fall through */ }
+                    }
+                    date.focus();
+                    date.click();
+                });
+                cal.appendChild(date);
+                cal.appendChild(calBtn);
+                wrap.appendChild(shown);
+                wrap.appendChild(cal);
+                row.appendChild(wrap);
+            }
         }
         row.appendChild(del);
         return row;
