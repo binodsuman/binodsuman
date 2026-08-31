@@ -547,6 +547,21 @@ body.study-planner-page {
     color: var(--muted);
 }
 
+.study-item.is-late .study-item-title {
+    color: #e24b4b;
+}
+
+.study-item-late {
+    font-size: 0.72rem;
+    font-weight: 650;
+    color: #e24b4b;
+    white-space: nowrap;
+}
+
+.study-item.is-late .study-item-cal-btn {
+    color: #e24b4b;
+}
+
 .study-item-title {
     background: transparent;
     border: 1px solid transparent;
@@ -700,6 +715,7 @@ body.study-planner-page {
     .study-item-del { grid-area: del; }
     .study-item-cal,
     .study-item-datewrap,
+    .study-item-late,
     .study-item-meta { grid-area: extra; }
 
     .eisenhower-list .study-item {

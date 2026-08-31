@@ -140,6 +140,21 @@
         return dt.toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
     }
 
+    function daysBetween(fromIso, toIso) {
+        const a = fromIso.split('-').map(Number);
+        const b = toIso.split('-').map(Number);
+        if (a.length < 3 || b.length < 3) return 0;
+        const ua = Date.UTC(a[0], a[1] - 1, a[2]);
+        const ub = Date.UTC(b[0], b[1] - 1, b[2]);
+        return Math.round((ub - ua) / 86400000);
+    }
+
+    function daysLate(item, iso) {
+        if (!item || item.done || isDaily(item) || item.quad || !item.date) return 0;
+        const n = daysBetween(item.date, iso);
+        return n > 0 ? n : 0;
+    }
+
     function normalizeItem(it) {
         const quad = it.quad && QUAD_LABELS[it.quad] ? it.quad : null;
         const daily = !quad && !!it.daily;
@@ -633,7 +648,8 @@
         const day = viewDate || todayStr();
         const row = document.createElement('div');
         const dailyChecked = isDaily(it) && dailyDoneOn(it, day);
-        row.className = 'study-item' + (it.done || dailyChecked ? ' is-done' : '');
+        const late = daysLate(it, todayStr());
+        row.className = 'study-item' + (it.done || dailyChecked ? ' is-done' : '') + (late ? ' is-late' : '');
 
         const cb = document.createElement('input');
         cb.type = 'checkbox';
@@ -775,6 +791,13 @@
                 cal.appendChild(date);
                 cal.appendChild(calBtn);
                 if (groupKey !== 'today') wrap.appendChild(shown);
+                if (late) {
+                    const lateEl = document.createElement('span');
+                    lateEl.className = 'study-item-late';
+                    lateEl.textContent = late === 1 ? '1 day late' : late + ' days late';
+                    setTip(lateEl, 'Due ' + formatDate(it.date) + ' — not finished yet');
+                    wrap.appendChild(lateEl);
+                }
                 wrap.appendChild(cal);
                 row.appendChild(wrap);
             }
