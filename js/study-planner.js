@@ -724,7 +724,7 @@
             meta.textContent = 'Daily';
             setTip(meta, 'Repeats every day');
             row.appendChild(meta);
-        } else if (groupKey !== 'today') {
+        } else {
             const readonly = !!it.done || groupKey === 'done';
             if (readonly) {
                 const meta = document.createElement('span');
@@ -774,7 +774,7 @@
                 });
                 cal.appendChild(date);
                 cal.appendChild(calBtn);
-                wrap.appendChild(shown);
+                if (groupKey !== 'today') wrap.appendChild(shown);
                 wrap.appendChild(cal);
                 row.appendChild(wrap);
             }
