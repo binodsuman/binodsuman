@@ -739,3 +739,71 @@ html[data-theme] .cs-card {
     border-color: var(--border);
     color: var(--page-fg);
 }
+
+.bs-study-toast {
+    position: fixed;
+    z-index: 1200;
+    right: 1rem;
+    bottom: 1rem;
+    max-width: 22rem;
+    background: var(--surface);
+    color: var(--page-fg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    box-shadow: var(--shadow);
+    padding: 0.75rem 0.9rem;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    font-family: Inter, system-ui, sans-serif;
+    font-size: 0.85rem;
+}
+
+.bs-study-toast[hidden] {
+    display: none;
+}
+
+.bs-study-toast strong {
+    font-size: 0.9rem;
+}
+
+.bs-study-perm {
+    position: fixed;
+    z-index: 1190;
+    right: 1rem;
+    bottom: 1rem;
+    max-width: 22rem;
+    background: var(--surface);
+    color: var(--page-fg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    box-shadow: var(--shadow);
+    padding: 0.75rem 0.9rem;
+    font-family: Inter, system-ui, sans-serif;
+    font-size: 0.82rem;
+}
+
+.bs-study-perm[hidden] {
+    display: none;
+}
+
+.bs-study-perm p {
+    margin: 0 0 0.55rem;
+}
+
+.bs-study-perm button {
+    margin-right: 0.4rem;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--primary);
+    color: #fff;
+    padding: 0.28rem 0.6rem;
+    font: inherit;
+    cursor: pointer;
+}
+
+.bs-study-perm .bs-study-perm-later {
+    background: transparent;
+    color: var(--page-fg);
+}

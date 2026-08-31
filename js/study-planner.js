@@ -888,6 +888,44 @@
         });
     }
 
+    (function bindReminders() {
+        const form = document.getElementById('studyRemindForm');
+        if (!form) return;
+        function attach() {
+            const api = window.bsStudyReminders;
+            if (!api || form.getAttribute('data-bound')) return;
+            form.setAttribute('data-bound', '1');
+            const onIn = document.getElementById('studyRemindOn');
+            const soundIn = document.getElementById('studyRemindSound');
+            const todayH = document.getElementById('studyRemindTodayH');
+            const dailyH = document.getElementById('studyRemindDailyH');
+            function fill() {
+                const s = api.loadSettings();
+                if (onIn) onIn.checked = s.enabled;
+                if (soundIn) soundIn.checked = s.sound;
+                if (todayH) todayH.value = String(s.todayHours);
+                if (dailyH) dailyH.value = String(s.dailyHours);
+            }
+            fill();
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+                api.saveSettings({
+                    enabled: !!(onIn && onIn.checked),
+                    sound: !!(soundIn && soundIn.checked),
+                    todayHours: todayH ? todayH.value : 3,
+                    dailyHours: dailyH ? dailyH.value : 1
+                });
+                fill();
+            });
+            const testToday = document.getElementById('studyRemindTestToday');
+            const testDaily = document.getElementById('studyRemindTestDaily');
+            if (testToday) testToday.addEventListener('click', () => api.test('today'));
+            if (testDaily) testDaily.addEventListener('click', () => api.test('daily'));
+        }
+        if (window.bsStudyReminders) attach();
+        else window.addEventListener('bs-study-reminders-ready', attach);
+    })();
+
     (function bindHoverTips() {
         const tip = document.createElement('div');
         tip.className = 'study-tip';

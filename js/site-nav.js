@@ -202,13 +202,24 @@
         document.querySelector(`[data-nav="${childNav}"]`)?.classList.add('active-child');
     }
 
+    function loadStudyReminders() {
+        if (document.querySelector('script[data-bs-study-reminders]')) return;
+        const s = document.createElement('script');
+        s.src = '/js/study-reminders.js?v=1';
+        s.defer = true;
+        s.setAttribute('data-bs-study-reminders', '1');
+        (document.head || document.documentElement).appendChild(s);
+    }
+
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', () => {
             initSiteNav();
             initAppearance();
+            loadStudyReminders();
         });
     } else {
         initSiteNav();
         initAppearance();
+        loadStudyReminders();
     }
 })();

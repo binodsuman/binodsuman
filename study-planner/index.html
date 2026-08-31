@@ -11,7 +11,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/css/site-nav.css">
     <script src="/js/theme-boot.js"></script>
-    <link rel="stylesheet" href="/css/study-planner.css?v=cal3">
+    <link rel="stylesheet" href="/css/study-planner.css?v=rem1">
 </head>
 <body class="study-planner-page">
     <main class="study-page" id="study-list">
@@ -60,6 +60,27 @@
                     </div>
                 </div>
                 <div class="study-cal" id="studyCal" hidden></div>
+                <details class="study-remind" id="studyRemind">
+                    <summary data-tip="Reminders run on any binodsuman.com tab in this browser">Reminders</summary>
+                    <form class="study-remind-form" id="studyRemindForm">
+                        <label class="study-daily-check">
+                            <input type="checkbox" id="studyRemindOn" checked> Alerts on
+                        </label>
+                        <label class="study-daily-check">
+                            <input type="checkbox" id="studyRemindSound" checked> Sound
+                        </label>
+                        <label class="study-remind-hours">Today every
+                            <input type="number" id="studyRemindTodayH" min="0.25" max="24" step="0.25" value="3"> hours
+                        </label>
+                        <label class="study-remind-hours">Daily every
+                            <input type="number" id="studyRemindDailyH" min="0.25" max="24" step="0.25" value="1"> hours
+                        </label>
+                        <button type="submit" class="study-btn">Save</button>
+                        <button type="button" class="study-btn-ghost" id="studyRemindTestToday">Test today</button>
+                        <button type="button" class="study-btn-ghost" id="studyRemindTestDaily">Test daily</button>
+                    </form>
+                    <p class="study-remind-note">On by default until you turn them off. Works while any tab on this site is open. Click once on the page so the browser can allow sound and laptop notifications.</p>
+                </details>
                 <div id="studyGroups" class="study-groups"></div>
             </div>
             <aside class="study-suggest-card">
@@ -109,6 +130,7 @@
         </section>
     </main>
     <script src="/js/site-nav.js"></script>
-    <script src="/js/study-planner.js?v=cal3"></script>
+    <script src="/js/study-reminders.js?v=1" data-bs-study-reminders="1"></script>
+    <script src="/js/study-planner.js?v=rem1"></script>
 </body>
 </html>

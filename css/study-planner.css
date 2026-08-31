@@ -436,6 +436,52 @@ body.study-planner-page {
     margin-bottom: 0.75rem;
 }
 
+.study-remind {
+    margin: 0 0 0.85rem;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.45rem 0.7rem 0.55rem;
+    background: var(--surface-2);
+}
+
+.study-remind summary {
+    cursor: pointer;
+    font-size: 0.82rem;
+    font-weight: 600;
+}
+
+.study-remind-form {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.55rem 0.85rem;
+    margin-top: 0.55rem;
+}
+
+.study-remind-hours {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.78rem;
+    color: var(--muted);
+}
+
+.study-remind-hours input {
+    width: 4.2rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--surface);
+    color: var(--page-fg);
+    padding: 0.22rem 0.35rem;
+    font: inherit;
+}
+
+.study-remind-note {
+    margin: 0.45rem 0 0;
+    font-size: 0.75rem;
+    color: var(--muted);
+}
+
 .study-filters,
 .study-toolbar-actions {
     display: flex;
