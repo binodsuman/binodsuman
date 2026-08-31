@@ -525,6 +525,13 @@ body.study-planner-page {
     white-space: nowrap;
 }
 
+.study-item-datewrap {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    flex: 0 0 auto;
+}
+
 .study-item-cal {
     position: relative;
     flex: 0 0 auto;
@@ -646,6 +653,7 @@ body.study-planner-page {
     .study-item-title { grid-area: title; }
     .study-item-del { grid-area: del; }
     .study-item-cal,
+    .study-item-datewrap,
     .study-item-meta { grid-area: extra; }
 
     .eisenhower-list .study-item {
