@@ -205,7 +205,7 @@
     function loadStudyReminders() {
         if (document.querySelector('script[data-bs-study-reminders]')) return;
         const s = document.createElement('script');
-        s.src = '/js/study-reminders.js?v=1';
+        s.src = '/js/study-reminders.js?v=3';
         s.defer = true;
         s.setAttribute('data-bs-study-reminders', '1');
         (document.head || document.documentElement).appendChild(s);

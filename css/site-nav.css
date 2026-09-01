@@ -744,18 +744,18 @@ html[data-theme] .cs-card {
     position: fixed;
     z-index: 1200;
     right: 1rem;
-    bottom: 1rem;
-    max-width: 22rem;
+    top: 4.6rem;
+    max-width: 24rem;
     background: var(--surface);
     color: var(--page-fg);
-    border: 1px solid var(--border);
+    border: 2px solid var(--primary);
     border-radius: 10px;
     box-shadow: var(--shadow);
-    padding: 0.75rem 0.9rem;
+    padding: 0.85rem 0.95rem;
     cursor: pointer;
     display: flex;
     flex-direction: column;
-    gap: 0.25rem;
+    gap: 0.28rem;
     font-family: Inter, system-ui, sans-serif;
     font-size: 0.85rem;
 }
@@ -764,8 +764,43 @@ html[data-theme] .cs-card {
     display: none;
 }
 
+.bs-study-toast-kicker {
+    margin: 0;
+    font-size: 0.7rem;
+    font-weight: 650;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--primary);
+}
+
 .bs-study-toast strong {
-    font-size: 0.9rem;
+    font-size: 1rem;
+}
+
+.bs-study-toast-actions {
+    display: flex;
+    gap: 0.4rem;
+    margin-top: 0.45rem;
+}
+
+.bs-study-toast-actions button {
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    padding: 0.28rem 0.6rem;
+    font: inherit;
+    font-size: 0.78rem;
+    cursor: pointer;
+}
+
+.bs-study-toast-open {
+    background: var(--primary);
+    color: #fff;
+    border-color: transparent;
+}
+
+.bs-study-toast-dismiss {
+    background: transparent;
+    color: var(--page-fg);
 }
 
 .bs-study-perm {

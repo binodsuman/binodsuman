@@ -140,25 +140,75 @@
             el = document.createElement('div');
             el.id = 'bs-study-toast';
             el.className = 'bs-study-toast';
-            el.setAttribute('role', 'status');
+            el.setAttribute('role', 'alert');
             document.body.appendChild(el);
         }
-        el.innerHTML = '<strong>' + escapeHtml(title) + '</strong><span>' + escapeHtml(body) + '</span>';
         el.hidden = false;
-        clearTimeout(showToast._t);
-        showToast._t = setTimeout(function () { el.hidden = true; }, 12000);
+        el.innerHTML =
+            '<p class="bs-study-toast-kicker">Study Planner</p>' +
+            '<strong>' + escapeHtml(title) + '</strong>' +
+            '<span>' + escapeHtml(body) + '</span>' +
+            '<div class="bs-study-toast-actions">' +
+            '<button type="button" class="bs-study-toast-open">Open planner</button>' +
+            '<button type="button" class="bs-study-toast-dismiss">Dismiss</button>' +
+            '</div>';
+        const openBtn = el.querySelector('.bs-study-toast-open');
+        const dismissBtn = el.querySelector('.bs-study-toast-dismiss');
+        if (openBtn) {
+            openBtn.onclick = function (e) {
+                e.stopPropagation();
+                el.hidden = true;
+                window.location.href = '/study-planner/';
+            };
+        }
+        if (dismissBtn) {
+            dismissBtn.onclick = function (e) {
+                e.stopPropagation();
+                el.hidden = true;
+            };
+        }
         el.onclick = function () {
             el.hidden = true;
             window.location.href = '/study-planner/';
         };
+        clearTimeout(showToast._t);
+        showToast._t = setTimeout(function () { el.hidden = true; }, 20000);
     }
 
-    function escapeHtml(s) {
-        return String(s)
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;');
+    function osNotify(title, body, kind) {
+        if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return;
+        var opts = {
+            body: body,
+            tag: 'bs-study-' + kind,
+            requireInteraction: true,
+            icon: '/image/binod_suman.png',
+            badge: '/image/binod_suman.png'
+        };
+        function pageNote() {
+            try {
+                var note = new Notification(title, opts);
+                note.onclick = function () {
+                    window.focus();
+                    window.location.href = '/study-planner/';
+                    note.close();
+                };
+            } catch (e) { /* on-page card still shows */ }
+        }
+        if (!('serviceWorker' in navigator)) {
+            pageNote();
+            return;
+        }
+        navigator.serviceWorker.ready.then(function (reg) {
+            if (reg && typeof reg.showNotification === 'function') {
+                return reg.showNotification(title, opts);
+            }
+            pageNote();
+        }).catch(pageNote);
+    }
+
+    function registerReminderSw() {
+        if (!('serviceWorker' in navigator)) return;
+        navigator.serviceWorker.register('/study-reminders-sw.js').catch(function () { /* ignore */ });
     }
 
     function notify(kind, list) {
@@ -168,26 +218,18 @@
         const extra = n > TITLE_MAX ? ' (+' + (n - TITLE_MAX) + ' more)' : '';
         const title = label + ' study reminder';
         const body = titles(list).join(' · ') + extra;
-        if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
-            try {
-                const note = new Notification(title, {
-                    body: body,
-                    tag: 'bs-study-' + kind,
-                    requireInteraction: false
-                });
-                note.onclick = function () {
-                    window.focus();
-                    window.location.href = '/study-planner/';
-                    note.close();
-                };
-            } catch (e) {
-                showToast(title, body);
-            }
-        } else {
-            showToast(title, body);
-        }
+        showToast(title, body);
+        osNotify(title, body, kind);
         const s = loadSettings();
         if (s.sound) playAlarm();
+    }
+
+    function escapeHtml(s) {
+        return String(s)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
     }
 
     function maybeAskPermission() {
@@ -278,6 +320,7 @@
     });
 
     maybeAskPermission();
+    registerReminderSw();
     tick();
 
     window.bsStudyReminders = {
