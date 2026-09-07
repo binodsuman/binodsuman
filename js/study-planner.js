@@ -760,8 +760,10 @@
                 date.type = 'date';
                 date.className = 'study-item-date';
                 date.value = it.date || '';
-                date.setAttribute('tabindex', '-1');
-                date.setAttribute('aria-hidden', 'true');
+                const calHint = it.date
+                    ? 'Change the date of this task (now ' + formatDate(it.date) + ')'
+                    : 'Give this task a date';
+                date.setAttribute('aria-label', calHint);
                 date.addEventListener('change', () => {
                     const next = normalizeDate(date.value);
                     it.date = next;
@@ -772,22 +774,10 @@
                 const calBtn = document.createElement('button');
                 calBtn.type = 'button';
                 calBtn.className = 'study-item-cal-btn';
-                const calHint = it.date
-                    ? 'Change the date of this task (now ' + formatDate(it.date) + ')'
-                    : 'Give this task a date';
-                setTip(calBtn, calHint);
-                calBtn.setAttribute('aria-label', calHint);
+                calBtn.tabIndex = -1;
+                calBtn.setAttribute('aria-hidden', 'true');
+                setTip(cal, calHint);
                 calBtn.innerHTML = '<i class="fas fa-calendar-alt" aria-hidden="true"></i>';
-                calBtn.addEventListener('click', () => {
-                    if (typeof date.showPicker === 'function') {
-                        try {
-                            date.showPicker();
-                            return;
-                        } catch (err) { /* fall through */ }
-                    }
-                    date.focus();
-                    date.click();
-                });
                 cal.appendChild(date);
                 cal.appendChild(calBtn);
                 if (groupKey !== 'today') wrap.appendChild(shown);
@@ -818,7 +808,7 @@
             titleIn.value = '';
             if (dailyIn) dailyIn.checked = false;
             syncDailyUi();
-            if (dateIn && !dateIn.value) dateIn.value = todayStr();
+            if (dateIn) dateIn.value = todayStr();
         }
         form.addEventListener('submit', (e) => {
             e.preventDefault();
