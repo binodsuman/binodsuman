@@ -632,6 +632,21 @@ body.home-page .connect-avatar-icon {
     border: none;
 }
 
+body.home-page .connect-avatar-x {
+    background: #000;
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    color: #fff;
+}
+
+body.home-page .connect-avatar-x svg,
+body.home-page .connect-avatar-x path {
+    width: 26px;
+    height: 26px;
+    display: block;
+    flex-shrink: 0;
+    fill: #fff !important;
+}
+
 body.home-page .connect-info {
     flex: 1;
     min-width: 0;

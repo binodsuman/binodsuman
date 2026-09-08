@@ -547,6 +547,13 @@ footer {
     transform: translateY(-3px);
 }
 
+.social-link-footer svg {
+    width: 18px;
+    height: 18px;
+    display: block;
+    fill: currentColor;
+}
+
 .copyright {
     color: var(--gray);
     font-size: 0.9rem;
@@ -620,7 +627,7 @@ footer {
 .social-card .fa-linkedin { color: #0A66C2; }
 .social-card .fa-code { color: #FFA116; }
 .social-card .fa-kaggle { color: #20BEFF; }
-.social-card .fa-twitter { color: #1DA1F2; }
+.social-card .social-icon svg { width: 1.5rem; height: 1.5rem; fill: currentColor; }
 
 @media (max-width: 768px) {
     .mobile-menu-btn {
