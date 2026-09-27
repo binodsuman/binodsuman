@@ -72,20 +72,34 @@
         $('toolsPanelTitle').textContent = meta.label;
         $('toolsPanelBlurb').textContent = meta.blurb;
         const demoBtn = $('toolsDemoBtn');
-        const cmdPanels = ['git-commands', 'unix-commands', 'docker-commands', 'kubernetes-commands'];
+        const noDemo = ['git-commands', 'unix-commands', 'docker-commands', 'kubernetes-commands', 'timezone'];
         if (demoBtn) {
-            demoBtn.hidden = cmdPanels.includes(id);
-            if (!cmdPanels.includes(id)) demoBtn.dataset.demo = id;
+            demoBtn.hidden = noDemo.includes(id);
+            if (!noDemo.includes(id)) demoBtn.dataset.demo = id;
         }
-        if (history.replaceState) history.replaceState(null, '', '#' + id);
+        if (history.replaceState) {
+            const raw = (location.hash || '').replace(/^#/, '');
+            if (id === 'timezone' && typeof window.syncTimeConverterHash === 'function') {
+                window.syncTimeConverterHash();
+            } else if (id === 'timezone' && raw.startsWith('timezone')) {
+                /* Time Converter keeps the saved zone list in the hash. */
+            } else {
+                history.replaceState(null, '', '#' + id);
+            }
+        }
         runDemo(id);
+    }
+
+    function toolIdFromLocation() {
+        const raw = (location.hash || '#json').replace(/^#/, '');
+        const id = raw.split('&')[0];
+        return TOOL_CATALOG.some((t) => t.id === id) ? id : 'json';
     }
 
     toolSearch?.addEventListener('input', (e) => buildSidebar(e.target.value.trim()));
 
-    const hash = (location.hash || '#json').replace('#', '');
     buildSidebar();
-    openTool(TOOL_CATALOG.some((t) => t.id === hash) ? hash : 'json');
+    openTool(toolIdFromLocation());
 
     /* ── JSON ── */
     function formatJson(minify) {

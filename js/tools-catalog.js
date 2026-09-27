@@ -18,6 +18,7 @@ const TOOL_CATALOG = [
     { id: 'yaml', cat: 'formatters', label: 'YAML Formatter', blurb: 'Format and validate Kubernetes, Docker Compose, and CI YAML.' },
 
     /* Converters */
+    { id: 'timezone', cat: 'converters', label: 'Time Converter', blurb: 'Convert any timezone to any other. CDT to IST by default, with a live world clock.' },
     { id: 'csv2json', cat: 'converters', label: 'CSV → JSON', blurb: 'Turn spreadsheet exports into JSON arrays.' },
     { id: 'json2csv', cat: 'converters', label: 'JSON → CSV', blurb: 'Flatten a JSON array into CSV for Excel.' },
     { id: 'base64', cat: 'converters', label: 'Base64', blurb: 'Encode or decode text for JSON and Basic Auth.' },

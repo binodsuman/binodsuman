@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="/favicon.svg" type="image/svg+xml">
     <title>Free Dev Tools — JSON, Markdown, JWT, SQL, API &amp; More | Binod Suman</title>
-    <meta name="description" content="30+ free in-browser tools for engineers: JSON, SQL, XML, YAML, Markdown, JWT, CSV, cURL, HTTP status codes, K8s YAML, passwords, and LLM token estimate. Nothing uploaded.">
+    <meta name="description" content="30+ free in-browser tools for engineers: JSON, SQL, time zones, XML, YAML, Markdown, JWT, CSV, cURL, HTTP status codes, K8s YAML, passwords, and LLM token estimate. Nothing uploaded.">
     <link rel="canonical" href="https://binodsuman.com/tools/">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -236,6 +236,68 @@
                 </div>
             </div>
 
+            <!-- Time Converter -->
+            <div class="tools-panel" data-tool-panel="timezone">
+                <div class="tc-page">
+                    <section class="tc-card" aria-label="Convert a time">
+                        <h3 class="tc-h3">Convert a time</h3>
+                        <p class="tc-hint">Date and time are read in the From zone. CDT → IST is the default.</p>
+                        <div class="tc-convert-row">
+                            <label class="tc-field">From
+                                <select id="tcFrom"></select>
+                            </label>
+                            <button type="button" class="tc-swap" id="tcSwap" aria-label="Swap timezones"><i class="fas fa-right-left"></i></button>
+                            <label class="tc-field">To
+                                <select id="tcTo"></select>
+                            </label>
+                        </div>
+                        <div class="tc-when">
+                            <label class="tc-field">Date
+                                <input type="date" id="tcDate">
+                            </label>
+                            <label class="tc-field">Time
+                                <input type="time" id="tcTime">
+                            </label>
+                            <button type="button" class="tc-live is-on" id="tcLive" aria-pressed="true">Live</button>
+                            <button type="button" class="tools-btn secondary" id="tcUseNow">Use current time</button>
+                            <button type="button" class="tools-btn secondary" id="tcCopyResult">Copy</button>
+                        </div>
+                        <div id="tcResult" class="tc-result"></div>
+                        <div id="tcWork" class="tc-work"></div>
+                    </section>
+
+                    <section class="tc-card" aria-label="World clock">
+                        <h3 class="tc-h3">World clock</h3>
+                        <p class="tc-hint">Type a city, abbreviation, or timezone. Its current time shows here and is converted to IST.</p>
+                        <div class="tc-toolbar">
+                            <div class="tc-search">
+                                <i class="fas fa-search"></i>
+                                <input id="tcSearch" type="text" placeholder="Place or timezone" autocomplete="off" autocorrect="off" spellcheck="false" aria-label="Place or timezone" role="combobox" aria-expanded="false" aria-autocomplete="list">
+                                <div id="tcSuggest" class="tc-suggest" hidden></div>
+                            </div>
+                            <div class="tc-dates-wrap">
+                                <button type="button" class="tc-daynav" id="tcPrevDay" aria-label="Previous day">‹</button>
+                                <div id="tcDates" class="tc-dates"></div>
+                                <button type="button" class="tc-daynav" id="tcNextDay" aria-label="Next day">›</button>
+                            </div>
+                            <input type="date" id="tcViewDate" class="tc-viewdate" aria-label="Timeline date">
+                            <button type="button" class="tc-textbtn" id="tcToday" hidden>Today</button>
+                            <button type="button" class="tc-link" id="tcLink">Link to this view</button>
+                        </div>
+                        <div id="tcLookup" class="tc-lookup" hidden></div>
+                        <div id="tcChips" class="tc-chips"></div>
+                        <p id="tcViewNote" class="tc-viewnote" hidden>Times on the left stay live. The bars show the day you picked.</p>
+                        <div class="tc-scroll" id="tcScroll">
+                            <div class="tc-board" id="tcBoard">
+                                <div id="tcRows"></div>
+                            </div>
+                        </div>
+                        <p class="tc-legend">Offsets are versus IST. The outline is the current minute. Green marks 9:00–18:00 local, so you can see when workdays overlap. A blue line marks a time you picked when it is not “now”.</p>
+                        <button type="button" class="tc-textbtn" id="tcReset">Reset to IST, CDT, and London</button>
+                    </section>
+                </div>
+            </div>
+
             <!-- Timestamp -->
             <div class="tools-panel" data-tool-panel="timestamp">
                 <div class="ts-page">
@@ -371,5 +433,6 @@
     <script src="/js/escape-html.js"></script>
     <script src="/js/tools-command-grid.js"></script>
     <script src="/js/tools-app.js"></script>
+    <script src="/js/time-converter.js"></script>
 </body>
 </html>
