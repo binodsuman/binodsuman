@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <title>AI Tutorial | Binod Suman</title>
+    <meta name="description" content="Free AI tutorials for beginners and intermediate builders: Generative AI, LLMs, Python, LangChain, LangGraph, RAG, MCP, agents, memory, and guardrails.">
+    <link rel="canonical" href="https://binodsuman.com/ai-tutorials/">
+    <meta property="og:title" content="AI Tutorial | Binod Suman">
+    <meta property="og:description" content="Hands-on study notes for the frameworks people use to build with AI, with examples and real use cases.">
+    <meta property="og:url" content="https://binodsuman.com/ai-tutorials/">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/site-nav.css">
+    <script src="/js/theme-boot.js"></script>
+    <link rel="stylesheet" href="/css/ai-tutorials.css">
+</head>
+<body class="ait-page">
+<main class="ait-wrap">
+    <nav class="ait-crumb"><a href="/">Home</a> · AI Tutorial</nav>
+    <header class="ait-hero">
+        <span class="ait-kicker">Free study material</span>
+        <h1>AI Tutorial</h1>
+        <p class="ait-lead">Hands-on notes for the frameworks and ideas people use to build with AI. Each topic starts from zero, then adds real examples, production patterns, and the mistakes that show up once a demo leaves a notebook.</p>
+        <div class="ait-meta">
+            <span class="ait-pill">Beginner → intermediate</span>
+            <span class="ait-pill">13 topics</span>
+            <span class="ait-pill">Code, use cases, checklists</span>
+        </div>
+    </header>
+
+    <div class="ait-path">
+        <a href="/ai-tutorials/generative-ai/"><strong>Start here</strong><span>1. Generative AI</span></a>
+        <a href="/ai-tutorials/python-for-ai/"><strong>Then the language</strong><span>2. Python for AI</span></a>
+        <a href="/ai-tutorials/llm-fundamentals/"><strong>How models work</strong><span>3. LLM Fundamentals</span></a>
+        <a href="/ai-tutorials/langchain/"><strong>First framework</strong><span>4. LangChain</span></a>
+    </div>
+
+    <section class="ait-group">
+        <h2>Foundations</h2>
+        <div class="ait-grid">
+            <a class="ait-card" href="/ai-tutorials/generative-ai/">
+                <div class="ait-card-top"><span class="ait-tag">Concepts</span><span class="ait-level">Beginner</span></div>
+                <h3>Generative AI</h3>
+                <p>What GenAI, ML, and deep learning actually do. Tokens, temperature, hallucinations, embeddings, and a first RAG sketch.</p>
+            </a>
+            <a class="ait-card" href="/ai-tutorials/python-for-ai/">
+                <div class="ait-card-top"><span class="ait-tag">Language</span><span class="ait-level">Beginner</span></div>
+                <h3>Python for AI</h3>
+                <p>The slice of Python every SDK uses: dicts, functions, JSON, type hints, Pydantic, and async, on one ticket-triage program.</p>
+            </a>
+            <a class="ait-card" href="/ai-tutorials/llm-fundamentals/">
+                <div class="ait-card-top"><span class="ait-tag">Models</span><span class="ait-level">Beginner</span></div>
+                <h3>LLM Fundamentals</h3>
+                <p>Tokens, next-token prediction, temperature, prompts, context windows, cost, and latency on a real chat model.</p>
+            </a>
+        </div>
+    </section>
+
+    <section class="ait-group">
+        <h2>Frameworks and retrieval</h2>
+        <div class="ait-grid">
+            <a class="ait-card" href="/ai-tutorials/langchain/">
+                <div class="ait-card-top"><span class="ait-tag">General</span><span class="ait-level">Beginner</span></div>
+                <h3>LangChain</h3>
+                <p>Models, prompts, tools, and structured output with Pydantic so your code reads fields instead of parsing a sentence.</p>
+            </a>
+            <a class="ait-card" href="/ai-tutorials/rag/">
+                <div class="ait-card-top"><span class="ait-tag">Evals</span><span class="ait-level">Intermediate</span></div>
+                <h3>RAG &amp; RAGAS</h3>
+                <p>Retrieve the right chunks, then score faithfulness and retrieval separately so you know which half to fix.</p>
+            </a>
+            <a class="ait-card" href="/ai-tutorials/llamaindex/">
+                <div class="ait-card-top"><span class="ait-tag">Data</span><span class="ait-level">Intermediate</span></div>
+                <h3>LlamaIndex</h3>
+                <p>Readers, chunks, indexes, and query engines that answer from your documents and cite the page they used.</p>
+            </a>
+        </div>
+    </section>
+
+    <section class="ait-group">
+        <h2>Agents, graphs, and tools</h2>
+        <div class="ait-grid">
+            <a class="ait-card" href="/ai-tutorials/langgraph/">
+                <div class="ait-card-top"><span class="ait-tag">Graph</span><span class="ait-level">Intermediate</span></div>
+                <h3>LangGraph</h3>
+                <p>Agents as graphs: shared state, loops, branches, memory, and a pause for a human before anything you cannot undo.</p>
+            </a>
+            <a class="ait-card" href="/ai-tutorials/deep-agents/">
+                <div class="ait-card-top"><span class="ait-tag">Harness</span><span class="ait-level">Intermediate</span></div>
+                <h3>Deep Agents</h3>
+                <p>Planning with to-do lists, notes in files, and specialist subagents for jobs that do not fit one prompt.</p>
+            </a>
+            <a class="ait-card" href="/ai-tutorials/mcp/">
+                <div class="ait-card-top"><span class="ait-tag">Protocol</span><span class="ait-level">Intermediate</span></div>
+                <h3>MCP</h3>
+                <p>The Model Context Protocol: write a tool server once and let Claude, Cursor, and your own agents call it.</p>
+            </a>
+            <a class="ait-card" href="/ai-tutorials/openai-agents-sdk/">
+                <div class="ait-card-top"><span class="ait-tag">Vendor SDK</span><span class="ait-level">Intermediate</span></div>
+                <h3>OpenAI Agents SDK</h3>
+                <p>An agent loop with tools, handoffs, guardrails, and sessions, built around a shop support assistant.</p>
+            </a>
+            <a class="ait-card" href="/ai-tutorials/claude-code/">
+                <div class="ait-card-top"><span class="ait-tag">Coding agent</span><span class="ait-level">Intermediate</span></div>
+                <h3>Claude Code</h3>
+                <p>Anthropic’s terminal agent: read a repo, edit it, run commands, and control it with CLAUDE.md, skills, and hooks.</p>
+            </a>
+        </div>
+    </section>
+
+    <section class="ait-group">
+        <h2>Memory and safety</h2>
+        <div class="ait-grid">
+            <a class="ait-card" href="/ai-tutorials/langmem/">
+                <div class="ait-card-top"><span class="ait-tag">Memory</span><span class="ait-level">Intermediate</span></div>
+                <h3>LangMem</h3>
+                <p>Long-term memory: extract facts from a chat, keep them under a user id, and find them in the next conversation.</p>
+            </a>
+            <a class="ait-card" href="/ai-tutorials/nemo-guardrails/">
+                <div class="ait-card-top"><span class="ait-tag">Guardrails</span><span class="ait-level">Intermediate</span></div>
+                <h3>NeMo Guardrails</h3>
+                <p>NVIDIA’s rails between the user and the model: refuse jailbreaks, block secrets, and log which rule stopped a message.</p>
+            </a>
+        </div>
+    </section>
+</main>
+<script src="/js/site-nav.js"></script>
+</body>
+</html>

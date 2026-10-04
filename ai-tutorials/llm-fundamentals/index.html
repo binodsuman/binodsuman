@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <title>LLM Fundamentals | AI Tutorial | Binod Suman</title>
+    <meta name="description" content="LLM fundamentals: tokens, next-token prediction, temperature, top-p, system prompts, few-shot, context window, cost, and latency.">
+    <link rel="canonical" href="https://binodsuman.com/ai-tutorials/llm-fundamentals/">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/site-nav.css">
+    <script src="/js/theme-boot.js"></script>
+    <link rel="stylesheet" href="/css/ai-tutorials.css">
+</head>
+<body class="ait-page">
+<main class="ait-wrap">
+    <nav class="ait-crumb"><a href="/">Home</a> · <a href="/ai-tutorials/">AI Tutorial</a> · LLM Fundamentals</nav>
+    <header class="ait-hero">
+        <span class="ait-kicker">Models · one task</span>
+        <h1>LLM Fundamentals</h1>
+        <p class="ait-lead">A large language model reads tokens and writes the next token from probabilities it learned. Temperature, prompts, the context window, cost, and latency are the knobs you actually turn. The ideas are the same on Groq, OpenAI, Anthropic, or Gemini.</p>
+        <div class="ait-meta"><span class="ait-pill">Beginner</span><span class="ait-pill">Works with any chat API</span></div>
+    </header>
+    <div class="ait-layout">
+        <aside class="ait-toc">
+            <p>On this page</p>
+            <a href="#what">What a model is</a>
+            <a href="#tokens">Tokens</a>
+            <a href="#sampling">Sampling</a>
+            <a href="#prompts">Prompts that sort tickets</a>
+            <a href="#eval">Scoring the prompt</a>
+            <a href="#limits">Context, cost, latency</a>
+            <a href="#practice">Practice</a>
+        </aside>
+        <article>
+            <section class="ait-section" id="what">
+                <h2>Hosted models and open weights</h2>
+
+<div class="ait-analogy"><span class="ait-label">Analogy</span>A hosted model is a taxi: you pay per ride and you do not own the car. An open-weight model is a car you can drive yourself or rent from someone who already bought it.</div>
+<div class="ait-diagram"><span class="ait-label">Data flow</span><div class="ait-flow"><span>Prompt</span><i>→</i><span>API or local weights</span><i>→</i><span>Tokens in</span><i>→</i><span>Tokens out</span><i>→</i><span>Usage and text</span></div></div>
+<p>Almost every current chat model is a transformer. It is trained to predict the next token, then tuned to follow instructions. The ideas here — tokens, temperature, messages, cost — do not change when you switch from Groq to OpenAI, Anthropic, or Gemini. The client library and the model name change.</p>
+<p class="ait-code-label">Starter</p><pre class="ait-code">messages = [
+    {&quot;role&quot;: &quot;system&quot;, &quot;content&quot;: &quot;Reply with one short sentence.&quot;},
+    {&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: &quot;What is a token?&quot;},
+]
+print(&quot;send messages, read text + usage from the response&quot;)
+print(messages[1][&quot;content&quot;])</pre>
+<div class="ait-usecase"><h3>Example</h3><p>gpt-oss on Groq, GPT on OpenAI, and Claude on Anthropic are three taxis. Your ticket-sorting prompt can ride in any of them.</p></div>
+
+                <p>Almost every current chat model is a transformer, the architecture from the 2017 paper <em>Attention Is All You Need</em>. It is trained to predict the next token, then tuned to follow instructions.</p>
+                <ul>
+                    <li><strong>Hosted:</strong> the provider runs the weights. You send an API key. GPT, Claude, Gemini, and Groq-hosted models work this way.</li>
+                    <li><strong>Open-weight:</strong> the numbers are published. You can download them or call a host that already did. Llama, Qwen, and gpt-oss are in this family.</li>
+                </ul>
+                <p>A practical free path used in many public labs is <code>openai/gpt-oss-120b</code> on Groq, with the <code>groq</code> Python client. Swap the client and the model string and the rest of this page still holds.</p>
+                <pre class="ait-code">import os
+from groq import Groq
+
+client = Groq(api_key=os.environ["GROQ_API_KEY"])
+reply = client.chat.completions.create(
+    model="openai/gpt-oss-120b",
+    temperature=0,
+    messages=[
+        {"role": "system", "content": "Reply with one short sentence."},
+        {"role": "user", "content": "What is a token?"},
+    ],
+)
+print(reply.choices[0].message.content)
+print(reply.usage)</pre>
+            </section>
+
+            <section class="ait-section" id="tokens">
+                <h2>Count tokens before you guess</h2>
+
+<div class="ait-analogy"><span class="ait-label">Analogy</span>Tokens are the stamps on a letter. The post office charges by stamp, not by how pretty the handwriting is. A short policy pasted into every chat is a lot of stamps.</div>
+<div class="ait-diagram"><span class="ait-label">Data flow</span><div class="ait-flow"><span>Text</span><i>→</i><span>Tokenizer</span><i>→</i><span>Token ids</span><i>→</i><span>Count</span><i>→</i><span>Cost estimate</span></div></div>
+<p>The generation loop assigns a score to every token in the vocabulary, turns scores into probabilities, and picks one. Output tokens are usually more expensive than input tokens, and they arrive one by one, so a long answer is both the bill and the wait. Count the system prompt once and multiply by daily calls.</p>
+<p class="ait-code-label">Starter</p><pre class="ait-code">text = &quot;Refund order A-1001, the parcel arrived broken.&quot;
+# Rough English guess: ~4 characters per token. Count for real before you budget.
+guess = max(1, len(text) // 4)
+print(text)
+print(&quot;rough tokens:&quot;, guess)</pre>
+<div class="ait-usecase"><h3>Example</h3><p>A 40-word refund policy looks cheap until it is pasted into 10,000 chats a day. That is the line item to shorten.</p></div>
+
+                <p>Billing and the context window are both in tokens. A rough English rule is 1 token ≈ 4 characters, and it is wrong often enough that you should count.</p>
+                <pre class="ait-code">import tiktoken
+enc = tiktoken.get_encoding("cl100k_base")
+text = "Refund order A-1001, the parcel arrived broken."
+print(len(enc.encode(text)), enc.encode(text)[:8])</pre>
+                <div class="ait-usecase">
+                    <h3>Use case: a support macro</h3>
+                    <p>A 40-word refund policy looks cheap. Pasted into every one of 10,000 chats a day, with the customer thread on top, it dominates the bill. Count the system prompt once, multiply by daily calls, and you know whether to shorten it.</p>
+                </div>
+                <p>Generation is a loop: the model assigns a score to every token in its vocabulary, turns scores into probabilities, picks one, appends it, and repeats. Streaming just shows you those tokens as they are chosen.</p>
+            </section>
+
+            <section class="ait-section" id="sampling">
+                <h2>Temperature, top-p, length, seed</h2>
+
+<div class="ait-analogy"><span class="ait-label">Analogy</span>Sampling is how the model breaks ties. Temperature 0 almost always takes the favorite. top_p ignores the rare nonsense tokens at the tail. A seed asks for the same path again, and not every host promises it.</div>
+<div class="ait-diagram"><span class="ait-label">Data flow</span><div class="ait-flow"><span>Scores</span><i>→</i><span>temperature / top_p</span><i>→</i><span>One token</span><i>→</i><span>Append</span><i>→</i><span>Repeat</span></div></div>
+<p>Set max tokens so a rambling answer cannot eat the budget. Two runs at temperature 0.7 will not match. Judge a prompt by a score over many examples, not by one screenshot. A seed helps when you compare two prompts and want less noise.</p>
+<p class="ait-code-label">Starter</p><pre class="ait-code">def pick(task: str) -&gt; dict:
+    if task == &quot;json&quot;:
+        return {&quot;temperature&quot;: 0, &quot;max_tokens&quot;: 80}
+    return {&quot;temperature&quot;: 0.7, &quot;max_tokens&quot;: 400}
+
+print(pick(&quot;json&quot;))</pre>
+<div class="ait-usecase"><h3>Example</h3><p>Ticket JSON wants temperature 0 and a short cap. A marketing title wants a higher temperature and a cap so it stays one line.</p></div>
+
+                <div class="ait-table-wrap">
+                    <table class="ait-table">
+                        <tr><th>Knob</th><th>Effect</th><th>Set it when</th></tr>
+                        <tr><td>temperature 0</td><td>Mostly the top token. Stable JSON and labels.</td><td>Ticket sorting, extraction, SQL</td></tr>
+                        <tr><td>temperature 0.7–1</td><td>More variety.</td><td>Drafting emails, titles, brainstorms</td></tr>
+                        <tr><td>top_p</td><td>Only sample from the smallest set of tokens whose probabilities add up to p.</td><td>You want variety without the rare nonsense tokens</td></tr>
+                        <tr><td>max tokens</td><td>Hard stop on the answer length.</td><td>You must leave budget, or stop a rambling model</td></tr>
+                        <tr><td>seed</td><td>Asks the provider to repeat a sampling path. Not a promise on every host.</td><td>You are comparing two prompts and want less noise</td></tr>
+                    </table>
+                </div>
+                <div class="ait-callout"><strong>Same code, different words.</strong> Unless temperature is 0, two runs will not match. Judge prompts by a score over many examples, not by one screenshot.</div>
+            </section>
+
+            <section class="ait-section" id="prompts">
+                <h2>One task: sort a support ticket</h2>
+
+<div class="ait-analogy"><span class="ait-label">Analogy</span>A prompt is a job description plus a form. The job description is the system message. The form is the shape of the answer. Few-shot means you also show two filled-in forms.</div>
+<div class="ait-diagram"><span class="ait-label">Data flow</span><div class="ait-flow"><span>System rules</span><i>→</i><span>One or two examples</span><i>→</i><span>New ticket</span><i>→</i><span>JSON label</span></div></div>
+<p>Change one thing at a time: the instruction, then an example, then temperature. If accuracy goes up and tokens go down, keep it. If the prose sounds smarter and the score falls, revert. The same form works for a hospital inbox, an invoice extract, and a review tagged bug / feature / praise.</p>
+<p class="ait-code-label">Starter</p><pre class="ait-code">SYSTEM = (
+    &quot;Sort the ticket. Reply with JSON only: &quot;
+    &#x27;{&quot;topic&quot;:&quot;billing|shipping|other&quot;,&quot;priority&quot;:&quot;low|medium|high&quot;}&#x27;
+)
+ticket = &quot;Charged twice for order A-1001&quot;
+print(SYSTEM)
+print(&quot;USER:&quot;, ticket)</pre>
+<div class="ait-usecase"><h3>Example</h3><p>“Charged twice” should become billing/high. “Where is parcel A17?” should become shipping/medium. If the second one comes back billing, add that example.</p></div>
+
+                <p>Vague instructions fail in public. This task makes the failure obvious: label a ticket as billing, shipping, or other, with a priority, as one JSON object.</p>
+                <pre class="ait-code">SYSTEM = """You sort support tickets.
+Return only JSON: {"topic":"billing|shipping|other","priority":"low|medium|high"}.
+billing = payment, refund, invoice. shipping = delivery, tracking, damaged parcel.
+If unsure, use other and low."""
+
+def messages(text: str):
+    return [
+        {"role": "system", "content": SYSTEM},
+        {"role": "user", "content": text},
+    ]</pre>
+                <p><strong>Few-shot</strong> means you also show examples. Two or three is enough. Put them in the user message or as earlier user/assistant pairs.</p>
+                <pre class="ait-code">EXAMPLES = """
+Ticket: Charged twice. → {"topic":"billing","priority":"high"}
+Ticket: Where is parcel A17? → {"topic":"shipping","priority":"medium"}
+Ticket: Do you sell gift cards? → {"topic":"other","priority":"low"}
+"""</pre>
+                <div class="ait-usecase">
+                    <h3>More prompt jobs with the same shape</h3>
+                    <ul>
+                        <li>Route a hospital inbox: appointment, prescription, emergency. Emergency must be high and must tell the user to call local emergency services, not wait on the bot.</li>
+                        <li>Extract invoice fields: vendor, total, currency, date. Reject the run if currency is missing.</li>
+                        <li>Classify a product review as bug, feature, or praise so a PM dashboard can count them.</li>
+                    </ul>
+                </div>
+            </section>
+
+            <section class="ait-section" id="eval">
+                <h2>Score the prompt, do not admire it</h2>
+
+<div class="ait-analogy"><span class="ait-label">Analogy</span>An eval is a small exam with an answer key. You do not grade the model by how impressive one answer feels. You grade how many questions it got right.</div>
+<div class="ait-diagram"><span class="ait-label">Data flow</span><div class="ait-flow"><span>Goldens</span><i>→</i><span>Your prompt</span><i>→</i><span>Predictions</span><i>→</i><span>Exact match</span><i>→</i><span>A percent you can track</span></div></div>
+<p>Keep a handful of questions you never edit the prompt against. Otherwise the bot memorizes your quiz. Exact match is enough for labels. When wording can vary and still be right, you need a looser score, which is what RAGAS-style judges are for later.</p>
+<p class="ait-code-label">Starter</p><pre class="ait-code">goldens = [(&quot;Charged twice&quot;, &quot;billing&quot;), (&quot;Where is my parcel?&quot;, &quot;shipping&quot;)]
+preds = [&quot;billing&quot;, &quot;billing&quot;]  # second one is wrong
+correct = sum(p == g[1] for p, g in zip(preds, goldens))
+print(f&quot;{correct}/{len(goldens)}&quot;)</pre>
+<div class="ait-usecase"><h3>Example</h3><p>Three goldens that match support’s real macros will teach you more than thirty goldens you invented in one sitting.</p></div>
+
+                <pre class="ait-code">GOLDENS = [
+    ("Charged twice for order A-1001", "billing", "high"),
+    ("Tracking has not moved in 6 days", "shipping", "medium"),
+    ("What are your store hours?", "other", "low"),
+]
+
+def exact(pred, topic, priority):
+    return pred.get("topic") == topic and pred.get("priority") == priority
+
+# correct / len(GOLDENS) is the number you track when you edit the prompt</pre>
+                <p>Change one thing at a time: the instruction, then an example, then temperature. If accuracy jumps from 70% to 90% and tokens drop, keep it. If the prose “sounds smarter” and the score falls, revert.</p>
+            </section>
+
+            <section class="ait-section" id="limits">
+                <h2>Context, cost, and latency</h2>
+
+<div class="ait-analogy"><span class="ait-label">Analogy</span>Cost is stamps. Latency is how long the customer stares at a spinner. The context window is the desk those stamps have to fit on.</div>
+<div class="ait-diagram"><span class="ait-label">Data flow</span><div class="ait-flow"><span>Input tokens</span><i>→</i><span>Output tokens</span><i>→</i><span>Price</span><i>→</i><span>Time</span><i>→</i><span>Cache if the question repeats</span></div></div>
+<p>Leave room in the window for the answer. Cap max_tokens. Stream when a person is watching. Batch when nobody is. If the same question arrives during an outage, cache it for 30 seconds instead of calling the model on every refresh.</p>
+<p class="ait-code-label">Starter</p><pre class="ait-code">def dollars(in_tok, out_tok, in_price, out_price):
+    return (in_tok * in_price + out_tok * out_price) / 1_000_000
+
+print(round(dollars(400, 30, 0.15, 0.60) * 20_000, 2), &quot;dollars for 20k calls&quot;)</pre>
+<div class="ait-usecase"><h3>Example</h3><p>A status-page assistant that calls the model for “is checkout down?” on every reload will get rate-limited at the worst moment. A 30-second cache fixes that.</p></div>
+
+                <p>The context window must hold the system prompt, examples, the ticket, and the answer. A 128k window is not a reason to paste the wiki. Extra tokens add cost and delay, and they dilute the instruction.</p>
+                <pre class="ait-code"># sketch: dollars ≈ (input_tokens * in_price + output_tokens * out_price) / 1_000_000
+def estimate(in_tokens, out_tokens, in_price, out_price):
+    return (in_tokens * in_price + out_tokens * out_price) / 1_000_000</pre>
+                <p>Output tokens are often several times more expensive than input tokens, and they arrive one by one, so a long answer is both the bill and the wait. Cap <code>max_tokens</code>. Stream when a human is watching. Batch when nobody is.</p>
+                <div class="ait-usecase">
+                    <h3>Use case: a status page assistant</h3>
+                    <p>Users refresh during an outage. Cache the system prompt result for “is checkout down?” for 30 seconds instead of calling the model on every hit. Latency goes from a second to a cache read, and the provider stops rate-limiting you at the worst moment.</p>
+                </div>
+            </section>
+
+            <section class="ait-section" id="practice">
+                <h2>Practice</h2>
+                <ul class="ait-checks">
+                    <li>Count tokens in your system prompt with <code>tiktoken</code> or the provider’s usage field.</li>
+                    <li>Run the same ticket at temperature 0 and 1. Compare.</li>
+                    <li>Add one few-shot example that fixes a ticket your prompt gets wrong.</li>
+                    <li>Compute daily cost for 20,000 calls if each call is 400 input and 30 output tokens.</li>
+                </ul>
+            </section>
+            <div class="ait-next">
+                <a href="/ai-tutorials/python-for-ai/"><small>Previous</small>Python for AI</a>
+                <a href="/ai-tutorials/langchain/"><small>Next</small>LangChain</a>
+            </div>
+        </article>
+    </div>
+</main>
+<script src="/js/site-nav.js"></script>
+</body>
+</html>

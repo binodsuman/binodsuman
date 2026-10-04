@@ -144,7 +144,7 @@ html[data-theme] .prompt-page {
 }
 
 .site-header .nav-container {
-    max-width: 1200px;
+    max-width: 1400px;
     margin: 0 auto;
     padding: 0 2rem;
     display: flex;
@@ -170,7 +170,7 @@ html[data-theme] .prompt-page {
 .site-header .nav-menu {
     display: flex;
     list-style: none;
-    gap: 1.5rem;
+    gap: 1.05rem;
     align-items: center;
 }
 
@@ -219,6 +219,10 @@ html[data-theme] .prompt-page {
 
 .site-header .tutorials-link::after {
     display: none;
+}
+
+.site-header .tutorials-link.active-child {
+    box-shadow: 0 0 0 2px var(--header-bg), 0 0 0 4px var(--accent);
 }
 
 .site-header .mobile-menu-btn {

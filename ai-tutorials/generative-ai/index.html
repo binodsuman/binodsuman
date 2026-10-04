@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <title>Generative AI | AI Tutorial | Binod Suman</title>
+    <meta name="description" content="Generative AI for beginners: ML vs deep learning vs GenAI, LLMs, tokens, temperature, context windows, hallucinations, embeddings, and RAG.">
+    <link rel="canonical" href="https://binodsuman.com/ai-tutorials/generative-ai/">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/site-nav.css">
+    <script src="/js/theme-boot.js"></script>
+    <link rel="stylesheet" href="/css/ai-tutorials.css">
+</head>
+<body class="ait-page">
+<main class="ait-wrap">
+    <nav class="ait-crumb"><a href="/">Home</a> · <a href="/ai-tutorials/">AI Tutorial</a> · Generative AI</nav>
+    <header class="ait-hero">
+        <span class="ait-kicker">Foundations · Day 1</span>
+        <h1>Generative AI</h1>
+        <p class="ait-lead">Generative AI learns patterns from existing data and uses those patterns to create new text, code, images, audio, or video. This page is the map you need before any framework.</p>
+        <div class="ait-meta">
+            <span class="ait-pill">Beginner</span>
+            <span class="ait-pill">No framework yet</span>
+        </div>
+    </header>
+    <div class="ait-layout">
+        <aside class="ait-toc">
+            <p>On this page</p>
+            <a href="#three-layers">Three layers</a>
+            <a href="#llm">How an LLM answers</a>
+            <a href="#messages">Chat messages</a>
+            <a href="#temperature">Temperature</a>
+            <a href="#context">Context window</a>
+            <a href="#hallucination">Hallucination</a>
+            <a href="#rag">RAG sketch</a>
+            <a href="#embeddings">Embeddings</a>
+            <a href="#practice">Practice</a>
+        </aside>
+        <article>
+            <section class="ait-section" id="three-layers">
+                <h2>Machine learning, deep learning, generative AI</h2>
+
+<div class="ait-analogy"><span class="ait-label">Analogy</span>Think of a kitchen. Machine learning is a cook who tastes a dish and says “too salty.” Deep learning is a cook trained on millions of dishes. Generative AI is the cook who then plates a new dish you have never ordered.</div>
+<div class="ait-diagram"><span class="ait-label">Data flow</span><div class="ait-flow"><span>Past examples</span><i>→</i><span>Learn a pattern</span><i>→</i><span>Predict or create something new</span></div></div>
+<p>Most modern generators are deep-learning models. Text and code use transformers. Pictures often use diffusion: start from noise and remove it until a picture appears. A product can use both layers. A fraud model decides. A language model explains the decision in a sentence a customer can read.</p>
+<p class="ait-code-label">Starter</p><pre class="ait-code">task = &quot;write a refund email&quot;  # create  -&gt; generative
+task = &quot;is this email spam?&quot;     # decide -&gt; classic ML
+print(&quot;generative&quot; if task.startswith(&quot;write&quot;) else &quot;predictive&quot;)</pre>
+<div class="ait-usecase"><h3>Example</h3><p>Spam detection is prediction. “Write a polite reply to this spam complaint” is generation. The second one needs a generator even if the first one is a small classifier.</p></div>
+
+                <p>These three names sit on top of each other. Mixing them up makes every later topic feel harder than it is.</p>
+                <div class="ait-table-wrap">
+                    <table class="ait-table">
+                        <tr><th>Layer</th><th>What it learns</th><th>Everyday example</th></tr>
+                        <tr><td>Machine learning</td><td>Patterns used to predict or decide</td><td>Spam vs not spam from past emails</td></tr>
+                        <tr><td>Deep learning</td><td>The same idea, with many layers of a neural network</td><td>A photo model that finds a face</td></tr>
+                        <tr><td>Generative AI</td><td>Those patterns, used to produce new content</td><td>A paragraph, a Java method, a picture</td></tr>
+                    </table>
+                </div>
+                <p>Modern generative systems are mostly deep learning. Text and code models are usually <strong>transformers</strong>. Image models are often <strong>diffusion</strong> models. A large language model (LLM) is the text-and-code case: GPT, Claude, Gemini, Llama, Qwen.</p>
+                <div class="ait-callout"><strong>Use case.</strong> A bank’s fraud model is classic ML: it scores a transaction. A support bot that writes a reply is generative AI. Many products use both: the fraud model decides, the LLM explains the decision in plain language.</div>
+            </section>
+
+            <section class="ait-section" id="llm">
+                <h2>An LLM does not look the answer up</h2>
+
+<div class="ait-analogy"><span class="ait-label">Analogy</span>An LLM is autocomplete with a huge vocabulary. It does not open a book. It bets on the next piece of text, called a token, then bets again.</div>
+<div class="ait-diagram"><span class="ait-label">Data flow</span><div class="ait-flow"><span>Your prompt</span><i>→</i><span>Tokens</span><i>→</i><span>Neural net</span><i>→</i><span>Next token</span><i>→</i><span>Repeat until stop</span></div></div>
+<p>A token is often a word or part of a word. “Unbelievable” may be several tokens. You pay, and you hit length limits, in tokens. The loop is the whole trick: score every possible next token, pick one, append it, continue. Streaming is that loop shown live.</p>
+<p class="ait-code-label">Starter</p><pre class="ait-code">text = &quot;Binary search keeps&quot;
+# A tokenizer would split this into word pieces. This starter just shows the loop idea.
+pieces = text.split()
+print(&quot;so far:&quot;, pieces)
+print(&quot;model would append one more piece, then repeat&quot;)</pre>
+<div class="ait-usecase"><h3>Example</h3><p>Ask “explain binary search in Java.” The model continues the pattern of a good explanation. It can be excellent and still invent a method that does not exist, because nothing in the loop checks a compiler.</p></div>
+
+                <p>Search engines retrieve a page. An LLM predicts the next piece of text, called a token, over and over until the reply is done.</p>
+                <pre class="ait-code">Prompt
+  → Tokenization (split text into tokens)
+  → Neural network
+  → Predict next token
+  → Predict next token
+  → … until a stop
+  → Final response</pre>
+                <p>A token is a chunk of text, often a word or part of a word. “Unbelievable” might be several tokens. You pay, and you hit length limits, in tokens, not in characters.</p>
+                <div class="ait-usecase">
+                    <h3>Real use case: a coding tutor</h3>
+                    <p>You ask “explain binary search in Java.” The model has seen millions of explanations. It does not open a textbook. It continues the pattern of a good explanation, one token at a time. That is why the answer can be excellent and still invent a method name that does not exist.</p>
+                </div>
+            </section>
+
+            <section class="ait-section" id="messages">
+                <h2>A chat request is a list of messages</h2>
+
+<div class="ait-analogy"><span class="ait-label">Analogy</span>A chat API is a script handed to an actor. The system line is the role. User lines are the other person. Assistant lines are what the actor already said. If you leave a line out, the actor never heard it.</div>
+<div class="ait-diagram"><span class="ait-label">Data flow</span><div class="ait-flow"><span>system: rules</span><i>→</i><span>user: question</span><i>→</i><span>assistant: earlier reply</span><i>→</i><span>user: follow-up</span><i>→</i><span>new assistant reply</span></div></div>
+<p>Three roles matter. system sets behavior. user is the request. assistant is earlier output you want the model to continue from. Put system first. A vague “help me” produces a vague reply. A role, a format, and one example produce text a program can read.</p>
+<p class="ait-code-label">Starter</p><pre class="ait-code">messages = [
+    {&quot;role&quot;: &quot;system&quot;, &quot;content&quot;: &quot;You teach Java. One example, then the code.&quot;},
+    {&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: &quot;What is a for-loop?&quot;},
+]
+print(messages[0][&quot;role&quot;], &quot;sets the behavior&quot;)
+print(&quot;send this whole list every call; the API does not remember the last one&quot;)</pre>
+<div class="ait-usecase"><h3>Example</h3><p>A tutor bot that “forgets” you are learning Java forgot because you stopped sending that system message, not because the model has a bad memory inside one request.</p></div>
+
+                <p>The model does not remember your last API call. You send the conversation you want it to see. Each message has a role and content.</p>
+                <div class="ait-table-wrap">
+                    <table class="ait-table">
+                        <tr><th>Role</th><th>Job</th></tr>
+                        <tr><td>system</td><td>How the assistant should behave. “You are a Java tutor. Answer with a short explanation, then code.”</td></tr>
+                        <tr><td>user</td><td>The person’s request.</td></tr>
+                        <tr><td>assistant</td><td>Earlier replies, so the next turn can continue them.</td></tr>
+                    </table>
+                </div>
+                <pre class="ait-code">{
+  "model": "some-model",
+  "messages": [
+    {"role": "system", "content": "You are a Java programming tutor."},
+    {"role": "user", "content": "Explain binary search."},
+    {"role": "assistant", "content": "Binary search repeatedly divides a sorted array in half."},
+    {"role": "user", "content": "Give me Java code."}
+  ]
+}</pre>
+                <p>Put the system message first. The quality of this list changes the answer more than most people expect. A vague “help me” produces a vague reply. A role, a format, and one example produce something you can parse.</p>
+            </section>
+
+            <section class="ait-section" id="temperature">
+                <h2>Temperature: predictable or varied</h2>
+
+<div class="ait-analogy"><span class="ait-label">Analogy</span>Temperature is how wild the autocomplete is allowed to be. Zero is “always pick the most likely word.” High is “sometimes pick a surprising word.”</div>
+<div class="ait-diagram"><span class="ait-label">Data flow</span><div class="ait-flow"><span>Model scores</span><i>→</i><span>Temperature</span><i>→</i><span>Pick a token</span><i>→</i><span>Stable or varied text</span></div></div>
+<p>Low temperature (0 to 0.3) is for labels, JSON, and money. Medium is for normal explanations. High is for titles and brainstorms, and it also raises the chance of drifting. Many teams pin temperature at 0 whenever code will parse the answer.</p>
+<p class="ait-code-label">Starter</p><pre class="ait-code">def style(task):
+    if task in {&quot;invoice&quot;, &quot;json&quot;, &quot;sql&quot;}:
+        return 0.0
+    if task == &quot;brainstorm titles&quot;:
+        return 0.9
+    return 0.4
+
+print(&quot;ticket label temperature:&quot;, style(&quot;invoice&quot;))</pre>
+<div class="ait-usecase"><h3>Example</h3><p>A payment-status sentence should not be creative. A slogan workshop can be. Use 0 for “classify this ticket,” and something higher only when variety is the point.</p></div>
+
+                <p>Temperature controls how willing the model is to pick a less likely next token.</p>
+                <ul>
+                    <li><strong>Low</strong> (0 to 0.3): stable, repetitive, good for JSON, classification, banking text, ticket labels.</li>
+                    <li><strong>Medium</strong> (0.4 to 0.7): normal chat and explanations.</li>
+                    <li><strong>High</strong> (0.8 to 1.2): more variety, more risk of drifting, useful for brainstorming titles or marketing lines.</li>
+                </ul>
+                <div class="ait-callout"><strong>Banking app?</strong> Use a low temperature. A payment-status sentence should not be creative. A slogan workshop can be high. Many teams set temperature to 0 for anything a program will read.</div>
+            </section>
+
+            <section class="ait-section" id="context">
+                <h2>The context window is the model’s desk</h2>
+
+<div class="ait-analogy"><span class="ait-label">Analogy</span>The context window is the desk. Everything the model can see this turn — rules, history, documents, the new question, and room for the answer — has to fit on that desk.</div>
+<div class="ait-diagram"><span class="ait-label">Data flow</span><div class="ait-flow"><span>System prompt</span><i>→</i><span>History</span><i>→</i><span>Retrieved docs</span><i>→</i><span>New question</span><i>→</i><span>Room for the answer</span></div></div>
+<p>If an early “I am coding in Java” message falls off the desk, the model does not know it. A bigger window is not a reason to paste a whole wiki: cost, delay, and noise all get worse, and private text you did not need is now in the request.</p>
+<p class="ait-code-label">Starter</p><pre class="ait-code">limit = 8000  # tokens, toy number
+used = {&quot;system&quot;: 400, &quot;history&quot;: 2200, &quot;docs&quot;: 3000, &quot;question&quot;: 80}
+left = limit - sum(used.values())
+print(&quot;tokens left for the answer:&quot;, left)</pre>
+<div class="ait-usecase"><h3>Example</h3><p>A support chat that suddenly answers in the wrong language often lost the system line or the user’s preference because the history was trimmed to save tokens.</p></div>
+
+                <p>The context window is the maximum number of tokens the model can read in one request: system prompt, history, retrieved documents, and the new question, plus room for the answer.</p>
+                <p>Imagine a chat that starts with “I am coding in Java.” Twenty turns later you ask “what language am I using?” The model only knows if that earlier message is still inside the window you sent. If you dropped it to save tokens, the model honestly does not know.</p>
+                <p>You cannot paste a million internal documents into the window. Cost, latency, and noise all get worse, and private text you did not need to send is now in the request.</p>
+            </section>
+
+            <section class="ait-section" id="hallucination">
+                <h2>Hallucination</h2>
+
+<div class="ait-analogy"><span class="ait-label">Analogy</span>A hallucination is a student who would rather finish the sentence than say “I don’t know.” The sentence sounds confident because confidence is how the model was trained to write.</div>
+<div class="ait-diagram"><span class="ait-label">Data flow</span><div class="ait-flow"><span>Prompt</span><i>→</i><span>Plausible next tokens</span><i>→</i><span>Confident answer</span><i>→</i><span>Check against a source</span></div></div>
+<p>Three reducers work in practice. Ask the model to abstain. Put the real document in the prompt (RAG). Validate the output: types, tests, or a second check. Generated code is untrusted input. Read it, then run it in a sandbox with no extra network and a time limit.</p>
+<p class="ait-code-label">Starter</p><pre class="ait-code">answer = &quot;The return window is 90 days.&quot;  # sounds fluent
+policy = &quot;Returns are allowed for 30 days.&quot;
+print(&quot;trust it?&quot;, answer.split()[-2] in policy)  # starter: do not trust without a check</pre>
+<div class="ait-usecase"><h3>Example</h3><p>A bot that invents a 90-day return policy is worse than a bot that says the policy page does not say. Treat invented Java the same way: do not exec() it on your laptop.</p></div>
+
+                <p>A hallucination is a confident answer that is wrong, unsupported, or invented. It happens because the model is trained to continue plausible text, not to check every fact against a source.</p>
+                <p>Three practical reducers:</p>
+                <ol>
+                    <li><strong>Better prompts.</strong> Ask it to say “I don’t know” and to quote the source you provided.</li>
+                    <li><strong>RAG.</strong> Put the real document in the prompt and tell it to use only that.</li>
+                    <li><strong>Validation.</strong> Check types, run tests, or have a second model score the answer.</li>
+                </ol>
+                <div class="ait-usecase">
+                    <h3>Real use case: generated Java</h3>
+                    <p>Do not execute model-written code on your machine as if it were trusted. Treat it like input from the internet. Read it, run static checks, then execute inside a sandbox: no extra network, limited CPU, memory, and time, and a filesystem it cannot use to touch your home directory. A container is the usual boundary. Infinite loops, file reads, and surprise network calls are normal failure modes, not rare ones.</p>
+                </div>
+            </section>
+
+            <section class="ait-section" id="rag">
+                <h2>When the model has never seen your documents</h2>
+
+<div class="ait-analogy"><span class="ait-label">Analogy</span>RAG is an open-book exam. You are not allowed to bring the whole library into the room. You bring the three pages that match the question, then you write.</div>
+<div class="ait-diagram"><span class="ait-label">Data flow</span><div class="ait-flow"><span>Documents</span><i>→</i><span>Chunks</span><i>→</i><span>Vectors</span><i>→</i><span>Search</span><i>→</i><span>Prompt + chunks</span><i>→</i><span>Answer</span></div></div>
+<p>Do not send every company document. They will not fit, the bill explodes, and irrelevant pages confuse the model. Embed the question and the chunks, keep the closest chunks, and tell the model to use only those. If 80 of 100 questions retrieve the right page and 70 of those 80 answers are right, retrieval is the bigger leak.</p>
+<p class="ait-code-label">Starter</p><pre class="ait-code">docs = [&quot;Returns: 30 days, unused.&quot;, &quot;Shipping: free over $50.&quot;]
+q = &quot;return window&quot;
+hits = [d for d in docs if &quot;return&quot; in q or &quot;30&quot; in d]
+print(&quot;put only this in the prompt:&quot;, hits[0])</pre>
+<div class="ait-usecase"><h3>Example</h3><p>An employee handbook bot for “how many parental-leave weeks?” must quote the policy chunk. It must not answer from general knowledge about other companies.</p></div>
+
+                <p>An internal Amazon-style employee bot cannot answer from training data about this quarter’s runbooks. The design is retrieval-augmented generation (RAG):</p>
+                <pre class="ait-code">Internal documents
+  → extract text
+  → chunk into passages
+  → embedding model turns each chunk into a vector
+  → store vectors in a vector database
+
+User question
+  → embed the question
+  → find the closest chunks
+  → put those chunks in the prompt
+  → LLM writes the answer</pre>
+                <p>Why not send every document? A company wiki will not fit the window, the bill would be huge, irrelevant pages confuse the model, and access control gets harder. RAG says: find what this question needs, then generate.</p>
+                <div class="ait-usecase">
+                    <h3>A small eval that tells you where it broke</h3>
+                    <p>You run 100 questions. 80 retrieve the right document. Of those 80, 70 answers are correct. Retrieval accuracy is 80%. Generation accuracy, given the right context, is 87.5%. The bigger leak is retrieval. Fix chunking, the embedding model, top-k, or add a reranker before you blame the chat model.</p>
+                </div>
+                <p>Chunk size is a tradeoff. Too small and you lose the sentence that explains the rule. Too large and you pull in noise and spend tokens. Prefer paragraph or section boundaries, overlap a little so a rule split across a boundary still appears, then measure which size retrieves better. Do not send all 10 retrieved chunks blindly: drop weak scores and leave room in the window for the prompt and the answer.</p>
+            </section>
+
+            <section class="ait-section" id="embeddings">
+                <h2>Embeddings and cosine similarity</h2>
+
+<div class="ait-analogy"><span class="ait-label">Analogy</span>An embedding is a map pin for meaning. Two sentences about the same idea land near each other even when they share no words. Cosine similarity measures the angle between those pins.</div>
+<div class="ait-diagram"><span class="ait-label">Data flow</span><div class="ait-flow"><span>Text</span><i>→</i><span>Embedding model</span><i>→</i><span>Vector</span><i>→</i><span>Compare angles</span><i>→</i><span>Nearest chunk</span></div></div>
+<p>Keyword search misses “customer-first leadership” when the page says “start with the customer and work backwards.” Vectors catch that. You store the vectors in a vector database and query with the same embedding model you used to store them. Mixing two embedding models in one index makes the geometry meaningless.</p>
+<p class="ait-code-label">Starter</p><pre class="ait-code"># Tiny stand-in: count overlapping words. A real embedding model replaces this.
+def silly_sim(a, b):
+    return len(set(a.lower().split()) &amp; set(b.lower().split()))
+
+q = &quot;customer first leadership&quot;
+page = &quot;start with the customer and work backwards&quot;
+print(&quot;overlap&quot;, silly_sim(q, page), &quot;(real vectors would still score this as close)&quot;)</pre>
+<div class="ait-usecase"><h3>Example</h3><p>Duplicate tickets: “package never came” and “where is my parcel?” should land near each other. Resume search: “built data pipelines” should match “ETL on Spark.”</p></div>
+
+                <p>An embedding is a list of numbers that stands for meaning. Similar sentences point in a similar direction. Cosine similarity measures that angle. A smaller angle means a closer meaning. Keyword search misses “customer-first leadership” when the page says “start with the customer and work backwards.” Embeddings catch that.</p>
+                <pre class="ait-code">from sentence_transformers import SentenceTransformer
+from sentence_transformers.util import cos_sim
+
+documents = [
+    "Amazon leaders start with the customer and work backwards.",
+    "Amazon employees should take ownership of their projects.",
+    "Binary search works efficiently on sorted arrays.",
+    "Java uses classes and objects for object-oriented programming.",
+]
+query = "Tell me about customer-first leadership"
+model = SentenceTransformer("all-MiniLM-L6-v2")
+
+doc_vecs = model.encode(documents)
+query_vec = model.encode(query)
+scores = cos_sim(query_vec, doc_vecs)[0]
+
+for document, score in zip(documents, scores):
+    print(f"{score:.4f} -&gt; {document}")
+
+print(documents[int(scores.argmax())])</pre>
+                <p><code>argmax()</code> returns the index of the largest score, not the score itself. For the top two, sort the indexes and take the first two. With several queries, <code>cos_sim</code> returns one row per query.</p>
+                <div class="ait-usecase">
+                    <h3>More use cases for the same idea</h3>
+                    <ul>
+                        <li>Duplicate detection on support tickets: “package never came” and “where is my parcel?” land near each other.</li>
+                        <li>Resume search: “built data pipelines” matches “ETL on Spark” without sharing those words.</li>
+                        <li>Recommendation: embed a product description and suggest neighbours.</li>
+                    </ul>
+                </div>
+            </section>
+
+            <section class="ait-section" id="practice">
+                <h2>Practice</h2>
+                <ul class="ait-checks">
+                    <li>Write a system, user, and assistant message for a tutor that only answers Java questions.</li>
+                    <li>Pick temperature for three apps: invoice classification, a story, a SQL generator. Say why.</li>
+                    <li>Explain why a 500-page PDF should be chunked before it is embedded.</li>
+                    <li>Given 100 questions, 60 good retrievals, and 55 good answers among those 60, say whether you fix search or generation first.</li>
+                </ul>
+            </section>
+            <div class="ait-next">
+                <a href="/ai-tutorials/"><small>Back</small>All tutorials</a>
+                <a href="/ai-tutorials/python-for-ai/"><small>Next</small>Python for AI</a>
+            </div>
+        </article>
+    </div>
+</main>
+<script src="/js/site-nav.js"></script>
+</body>
+</html>

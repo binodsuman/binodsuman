@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <title>Claude Code | AI Tutorial | Binod Suman</title>
+    <meta name="description" content="Claude Code for intermediate developers: the agent loop, CLAUDE.md, slash commands, skills, hooks, subagents, permissions, and CI review.">
+    <link rel="canonical" href="https://binodsuman.com/ai-tutorials/claude-code/">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/site-nav.css">
+    <script src="/js/theme-boot.js"></script>
+    <link rel="stylesheet" href="/css/ai-tutorials.css">
+</head>
+<body class="ait-page">
+<main class="ait-wrap">
+    <nav class="ait-crumb"><a href="/">Home</a> · <a href="/ai-tutorials/">AI Tutorial</a> · Claude Code</nav>
+    <header class="ait-hero">
+        <span class="ait-kicker">Coding agent</span>
+        <h1>Claude Code</h1>
+        <p class="ait-lead">Claude Code is Anthropic’s agent that reads a repository, edits files, and runs commands from the terminal. Asking it a question is easy. Leaving it alone with real work means controlling permissions, memory, and the procedures it repeats.</p>
+        <div class="ait-meta"><span class="ait-pill">Intermediate</span><span class="ait-pill">Terminal, IDE, or CI</span></div>
+    </header>
+    <div class="ait-layout">
+        <aside class="ait-toc">
+            <p>On this page</p>
+            <a href="#loop">The agent loop</a>
+            <a href="#kt">Knowledge transfer</a>
+            <a href="#md">CLAUDE.md</a>
+            <a href="#skills">Commands, skills, hooks</a>
+            <a href="#project">A tiny repo</a>
+            <a href="#ci">Headless and CI</a>
+            <a href="#practice">Practice</a>
+        </aside>
+        <article>
+            <section class="ait-section" id="loop">
+                <h2>What it does on each task</h2>
+
+<div class="ait-analogy"><span class="ait-label">Analogy</span>Claude Code is a coworker who can open the repo, run the tests, and edit files. Trusting the folder lets them in the room. It is not a blank cheque to push, delete, or send data out.</div>
+<div class="ait-diagram"><span class="ait-label">Data flow</span><div class="ait-flow"><span>You describe an outcome</span><i>→</i><span>Read / search</span><i>→</i><span>Command or edit</span><i>→</i><span>Ask if not allowed</span><i>→</i><span>Diff</span></div></div>
+<p>The same agent runs in the terminal, VS Code, JetBrains, a desktop app, and on the web. It needs a paid plan or an API key. Permissions, hooks, and a short project file are how the cheque stays small. Ask for a plan before a multi-file edit.</p>
+<p class="ait-code-label">Starter</p><pre class="ait-code">print(&quot;cd your-repo&quot;)
+print(&quot;claude&quot;)
+print(&quot;Explain how a short code is created. Do not edit files.&quot;)</pre>
+<div class="ait-usecase"><h3>Example</h3><p>“Do not edit files” is a real first prompt on a codebase you do not know. You get a map before a diff.</p></div>
+
+                <p>You describe an outcome. Claude Code reads files, searches, runs commands, and edits, one tool call at a time. It asks before actions you have not allowed. The same agent runs in the terminal, VS Code, JetBrains, a desktop app, and on the web. It needs a paid Claude plan or an Anthropic API key.</p>
+                <pre class="ait-code">cd your-repo
+claude
+# trust the folder when asked, then:
+# "Explain how a short code is created and resolved. Do not edit files."</pre>
+                <p>Trusting a folder lets the agent read it. It is not a blank cheque to push, delete, or curl data out. Permissions, hooks, and a tight <code>CLAUDE.md</code> are how you keep the cheque small.</p>
+            </section>
+
+            <section class="ait-section" id="kt">
+                <h2>Start with an explanation, not an edit</h2>
+
+<div class="ait-analogy"><span class="ait-label">Analogy</span>The first session is a tour, not a renovation. You ask where the pipes are. You do not start knocking down walls.</div>
+<div class="ait-diagram"><span class="ait-label">Data flow</span><div class="ait-flow"><span>Trust the folder</span><i>→</i><span>Ask for a map</span><i>→</i><span>Read the map</span><i>→</i><span>Then a plan</span><i>→</i><span>Then a diff</span></div></div>
+<p>On a repo you did not write, “analyse this project” replaces a one-hour knowledge transfer. Correct a wrong plan in one paragraph instead of reverting six files. Review prompts should say “flag missing tests,” not “improve this,” or you get a noisy rewrite.</p>
+<p class="ait-code-label">Starter</p><pre class="ait-code">prompts = [
+    &quot;Explain how a short code is created and resolved. Do not edit files.&quot;,
+    &quot;Where would a 4-character code collide with a 6-character code?&quot;,
+    &quot;Add a failing test for that, then fix it, then show the diff.&quot;,
+]
+print(prompts[0])</pre>
+<div class="ait-usecase"><h3>Example</h3><p>A stack trace pasted in should name the file to open first. You still confirm before anyone edits.</p></div>
+
+                <p>The highest-value first prompt on a codebase you do not know is “analyse this project”. On a small LangChain bootcamp repo that means: which notebooks exist, what they teach, what is uncommitted. You get a knowledge transfer without booking a teammate.</p>
+                <div class="ait-usecase">
+                    <h3>Prompts that stay useful</h3>
+                    <ul>
+                        <li>“Where is the bug if a short code of length 4 sometimes collides? Only read.”</li>
+                        <li>“Add a failing test for that collision, then fix it, then show me the diff.”</li>
+                        <li>“Review this change the way a teammate would. Do not rewrite style.”</li>
+                    </ul>
+                </div>
+                <p>Ask for a plan before a multi-file edit. If the plan touches the wrong module, you correct one paragraph instead of reverting six files.</p>
+            </section>
+
+            <section class="ait-section" id="md">
+                <h2>CLAUDE.md is project memory</h2>
+
+<div class="ait-analogy"><span class="ait-label">Analogy</span>CLAUDE.md is the note on the fridge. It is there every morning. You stop repeating yourself, and the next person sees the same note.</div>
+<div class="ait-diagram"><span class="ait-label">Data flow</span><div class="ait-flow"><span>Repo root</span><i>→</i><span>CLAUDE.md</span><i>→</i><span>Every new session reads it</span><i>→</i><span>CI can read it too</span></div></div>
+<p>Keep it short and true. A 400-line style guide gets ignored in the middle. User-level memory is for preferences across repos. Project rules stay in the repo. If the file lies, the agent will follow the lie confidently.</p>
+<p class="ait-code-label">Starter</p><pre class="ait-code"># CLAUDE.md
+Short codes are 6 characters, [a-z0-9].
+Run tests with: python -m pytest
+Do not add dependencies.
+Never commit .env.
+Prefer a failing test before a fix.</pre>
+<div class="ait-usecase"><h3>Example</h3><p>“Use pytest, not unittest” in that file saves the argument on every session, including a review bot in CI.</p></div>
+
+                <p>Instructions you retype every session belong in <code>CLAUDE.md</code> at the repo root. Claude reads it when a session starts.</p>
+                <pre class="ait-code"># CLAUDE.md
+This repo is a tiny URL shortener: three Python files, no framework.
+
+- Short codes are 6 characters, [a-z0-9].
+- Run tests with: python -m pytest
+- Do not add dependencies.
+- Never commit .env or print secrets.
+- Prefer a failing test before a fix.</pre>
+                <p>Keep it short and true. A 400-line style guide gets ignored in the middle. A user-level memory is for preferences across repos (“use pytest”). Project rules stay in the repo so the next person, and CI, see the same file.</p>
+            </section>
+
+            <section class="ait-section" id="skills">
+                <h2>Slash commands, skills, hooks, subagents</h2>
+
+<div class="ait-analogy"><span class="ait-label">Analogy</span>A slash command is a saved sentence. A skill is a saved procedure. A hook is a lock. A subagent is a coworker in another room so your room does not fill with clutter.</div>
+<div class="ait-diagram"><span class="ait-label">Data flow</span><div class="ait-flow"><span>Prompt you retype</span><i>→</i><span>Slash command</span><i>→</i><span>Multi-step procedure</span><i>→</i><span>Skill</span><i>→</i><span>Must never happen</span><i>→</i><span>Hook</span></div></div>
+<p>Hooks beat reminders. “Please do not read .env” is a request. A deny rule is a control. Use requests for taste and rules for secrets. MCP servers attach external tools (issues, browsers, internal APIs) without teaching the agent a one-off shell pipeline. A subagent is for a wide search that would flood the main conversation.</p>
+<p class="ait-code-label">Starter</p><pre class="ait-code">deny = [&quot;git push&quot;, &quot;cat .env&quot;, &quot;rm -rf&quot;]
+allow = [&quot;python -m pytest&quot;, &quot;git diff&quot;, &quot;git status&quot;]
+print(&quot;deny&quot;, deny)
+print(&quot;allow&quot;, allow)</pre>
+<div class="ait-usecase"><h3>Example</h3><p>“Run the tests and summarise failures” becomes a slash command. Blocking `cat .env` becomes a deny rule, not a sentence in the prompt.</p></div>
+
+                <div class="ait-table-wrap">
+                    <table class="ait-table">
+                        <tr><th>Piece</th><th>What it is</th><th>Use it for</th></tr>
+                        <tr><td>Slash command</td><td>A saved prompt you invoke with <code>/name</code></td><td>The paragraph you retype: “write a pytest for the function I mention”</td></tr>
+                        <tr><td>Skill</td><td>A procedure, often a folder with a <code>SKILL.md</code></td><td>A multi-step job that should happen the same way every time, such as “add an API endpoint”</td></tr>
+                        <tr><td>Hook</td><td>Your script at a fixed point (before a tool, after an edit)</td><td>A rule that is code. A prompt can be talked out of a hook. A hook that rejects <code>rm -rf</code> cannot.</td></tr>
+                        <tr><td>Subagent</td><td>A side task with its own context</td><td>A wide search that would flood the main conversation</td></tr>
+                        <tr><td>MCP server</td><td>External tools over the Model Context Protocol</td><td>Issue trackers, browsers, internal APIs</td></tr>
+                    </table>
+                </div>
+                <pre class="ait-code"># A hook idea: block edits outside the repo, and block reading .env
+# Settings also support allow and deny lists for shell commands.
+# Deny: git push, curl | sh, cat .env
+# Allow: python -m pytest, git diff, git status</pre>
+                <div class="ait-callout"><strong>Hooks beat reminders.</strong> “Please do not read .env” is a request. A deny rule is a control. Use requests for taste, and rules for secrets and production systems.</div>
+            </section>
+
+            <section class="ait-section" id="project">
+                <h2>Practice on a link shortener</h2>
+
+<div class="ait-analogy"><span class="ait-label">Analogy</span>Practice on a program you can hold in your head. If you cannot tell the agent is wrong, the repo is too big for a first lesson.</div>
+<div class="ait-diagram"><span class="ait-label">Data flow</span><div class="ait-flow"><span>Read the three files</span><i>→</i><span>Failing test</span><i>→</i><span>Fix</span><i>→</i><span>You run pytest</span></div></div>
+<p>A link shortener with one bug (codes shorter than 6) is enough. Ask for the explanation, then a test that fails on "ab", then the fix. Run pytest yourself. Unattended mode comes after the tests exist, not before.</p>
+<p class="ait-code-label">Starter</p><pre class="ait-code">ALPHABET = &quot;abcdefghijklmnopqrstuvwxyz0123456789&quot;
+
+def looks_like_code(text: str) -&gt; bool:
+    return len(text) == 6 and all(ch in ALPHABET for ch in text)
+
+print(looks_like_code(&quot;ab&quot;))      # False, too short
+print(looks_like_code(&quot;ab12cd&quot;))  # True</pre>
+<div class="ait-usecase"><h3>Example</h3><p>The bug is an alias: a 2-character string matching a 6-character code. The test is assert not looks_like_code('ab'). The fix is the length check.</p></div>
+
+                <p>A good teaching repo is three files: create a short code, resolve it, and a bug that only appears sometimes (a collision, an off-by-one, a missing character in the alphabet). You can hold the whole program in your head, so you can tell when the agent is wrong.</p>
+                <pre class="ait-code"># shortener.py  (the bug: codes can be shorter than 6, so "ab" aliases "ab12cd")
+import secrets
+ALPHABET = "abcdefghijklmnopqrstuvwxyz0123456789"
+
+def create_code(length: int = 6) -&gt; str:
+    return "".join(secrets.choice(ALPHABET) for _ in range(length))
+
+def looks_like_code(text: str) -&gt; bool:
+    return all(ch in ALPHABET for ch in text)  # forgot: len(text) == 6</pre>
+                <p>A solid session: ask for an explanation, ask for a test that fails on <code>"ab"</code>, then ask for the fix, then run pytest yourself. Unattended mode (“fix the bug and stop”) is something you turn on after the tests exist, not before.</p>
+                <div class="ait-usecase">
+                    <h3>Day-to-day uses beyond the tutorial repo</h3>
+                    <ul>
+                        <li>Onboarding: “map the request path from the HTTP handler to the database”.</li>
+                        <li>Migrations: “list every caller of <code>create_code</code> before we change its signature”.</li>
+                        <li>Incident: paste a stack trace and ask which file to open first. You still confirm before editing.</li>
+                    </ul>
+                </div>
+            </section>
+
+            <section class="ait-section" id="ci">
+                <h2>Headless mode and review in CI</h2>
+
+<div class="ait-analogy"><span class="ait-label">Analogy</span>Headless mode is the same coworker on a night shift. They are useful with a narrow job and the same project note. They are noisy if the job is “improve this pull request.”</div>
+<div class="ait-diagram"><span class="ait-label">Data flow</span><div class="ait-flow"><span>Pull request</span><i>→</i><span>CI starts the agent</span><i>→</i><span>CLAUDE.md</span><i>→</i><span>Comment: missing tests or secrets</span><i>→</i><span>You decide</span></div></div>
+<p>A review bot should share the repo’s CLAUDE.md. Compare this with an open agent harness: both can plan, edit, spawn subagents, and speak MCP. This one is wired to Claude. An open harness can point at other models. Procedures you write as files travel further than a habit that only lives in one chat.</p>
+<p class="ait-code-label">Starter</p><pre class="ait-code">job = &quot;Flag missing tests and anything that looks like a secret. Do not rewrite style.&quot;
+print(job)</pre>
+<div class="ait-usecase"><h3>Example</h3><p>“Flag a missing test for looks_like_code” is a good CI comment. “Clean up the whole file” is how you get a drive-by rewrite.</p></div>
+
+                <p>The same agent can run without an interactive terminal: a script, or a GitHub Action that comments on a pull request. That reviewer is useful when it has the same <code>CLAUDE.md</code> and a narrow job (“flag missing tests and secrets”). It is noisy when the prompt is “improve this PR”.</p>
+                <p>Compare this with Deep Agents: both plan, edit files, spawn subagents, and speak MCP. Claude Code is Anthropic’s product around Claude. Deep Agents is the open harness you can point at other models. Skills you write as markdown travel further than a habit that only lives in one chat.</p>
+            </section>
+
+            <section class="ait-section" id="practice">
+                <h2>Practice</h2>
+                <ul class="ait-checks">
+                    <li>Write a 8-line <code>CLAUDE.md</code> for a repo you actually work in.</li>
+                    <li>Add one deny rule you wish a past agent had obeyed.</li>
+                    <li>Turn “run the tests and summarise failures” into a slash command.</li>
+                    <li>Fix <code>looks_like_code</code> only after a test fails on a 2-character string.</li>
+                </ul>
+            </section>
+            <div class="ait-next">
+                <a href="/ai-tutorials/nemo-guardrails/"><small>Previous</small>NeMo Guardrails</a>
+                <a href="/ai-tutorials/"><small>Done</small>All tutorials</a>
+            </div>
+        </article>
+    </div>
+</main>
+<script src="/js/site-nav.js"></script>
+</body>
+</html>

@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <title>OpenAI Agents SDK | AI Tutorial | Binod Suman</title>
+    <meta name="description" content="OpenAI Agents SDK for intermediate builders: Agent, Runner, tools, handoffs, guardrails, and sessions on a shop support bot.">
+    <link rel="canonical" href="https://binodsuman.com/ai-tutorials/openai-agents-sdk/">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/site-nav.css">
+    <script src="/js/theme-boot.js"></script>
+    <link rel="stylesheet" href="/css/ai-tutorials.css">
+</head>
+<body class="ait-page">
+<main class="ait-wrap">
+    <nav class="ait-crumb"><a href="/">Home</a> · <a href="/ai-tutorials/">AI Tutorial</a> · OpenAI Agents SDK</nav>
+    <header class="ait-hero">
+        <span class="ait-kicker">Vendor SDK</span>
+        <h1>OpenAI Agents SDK</h1>
+        <p class="ait-lead">The OpenAI Agents SDK runs an agent loop: send instructions and the conversation to a model, run any tool it asks for, repeat until it returns a final answer. Handoffs, guardrails, and sessions are the pieces you add when one loop is not enough.</p>
+        <div class="ait-meta"><span class="ait-pill">Intermediate</span><span class="ait-pill">openai-agents</span></div>
+    </header>
+    <div class="ait-layout">
+        <aside class="ait-toc">
+            <p>On this page</p>
+            <a href="#pieces">The pieces</a>
+            <a href="#loop">The loop</a>
+            <a href="#tool">A lookup tool</a>
+            <a href="#handoff">Handoffs</a>
+            <a href="#guard">Guardrails</a>
+            <a href="#session">Sessions</a>
+            <a href="#practice">Practice</a>
+        </aside>
+        <article>
+            <section class="ait-section" id="pieces">
+                <h2>A small set of pieces</h2>
+
+<div class="ait-analogy"><span class="ait-label">Analogy</span>The SDK is a small band. Agent is the musician. Runner is the conductor. Tools are instruments. Handoffs are passing the solo. Guardrails are the door staff. Sessions are the set list from last night.</div>
+<div class="ait-diagram"><span class="ait-label">Data flow</span><div class="ait-flow"><span>Agent</span><i>→</i><span>Runner</span><i>→</i><span>Tools</span><i>→</i><span>Handoff or guardrail</span><i>→</i><span>Result</span></div></div>
+<p>The package is `openai-agents`. It is a lightweight loop: send instructions and the conversation, run any tool the model asks for, repeat until the reply is text. A stand-in model lets you learn the control flow with no key. One line swaps in a real model later.</p>
+<p class="ait-code-label">Starter</p><pre class="ait-code">print(&quot;Agent(name, instructions, tools)&quot;)
+print(&quot;result = await Runner.run(agent, message)&quot;)
+print(&quot;result.final_output&quot;)</pre>
+<div class="ait-usecase"><h3>Example</h3><p>A shop greeter is an Agent with instructions and no tools. The moment it must look up an order, you add a tool. You do not add a new framework.</p></div>
+
+                <div class="ait-table-wrap">
+                    <table class="ait-table">
+                        <tr><th>Piece</th><th>Role</th></tr>
+                        <tr><td>Agent</td><td>A name, instructions, a model, and tools.</td></tr>
+                        <tr><td>Runner</td><td>Runs the agent and returns a result you can read.</td></tr>
+                        <tr><td>Tools</td><td>Python functions the model may call.</td></tr>
+                        <tr><td>Handoffs</td><td>One agent passes the conversation to a specialist.</td></tr>
+                        <tr><td>Guardrails</td><td>Checks on the input or the final answer.</td></tr>
+                        <tr><td>Sessions</td><td>Memory that survives across separate runs.</td></tr>
+                    </table>
+                </div>
+                <p>The package is <code>openai-agents</code>. It is a lightweight alternative to building the loop yourself, and it is OpenAI’s own shape for multi-agent workflows. You can point agents at OpenAI models. For learning the control flow, a stand-in model with fixed rules lets every lesson run without a key; one line swaps in the real model later.</p>
+            </section>
+
+            <section class="ait-section" id="loop">
+                <h2>How a run works</h2>
+
+<div class="ait-analogy"><span class="ait-label">Analogy</span>The loop is a waiter. They take the order to the kitchen. If the kitchen asks for a missing detail, they go back. When the kitchen sends a plate, they stop walking.</div>
+<div class="ait-diagram"><span class="ait-label">Data flow</span><div class="ait-flow"><span>Message</span><i>→</i><span>Model</span><i>→</i><span>Tool request?</span><i>→</i><span>Run tool</span><i>→</i><span>Model again</span><i>→</i><span>final_output</span></div></div>
+<p>You call Runner with an agent and a message. Text is the final output. A tool request is not. Trace the run when the answer appears without a tool you expected. The model skipped the tool, or the tool was not on that agent.</p>
+<p class="ait-code-label">Starter</p><pre class="ait-code">def loop(reply: str) -&gt; str:
+    if reply.startswith(&quot;tool:&quot;):
+        return &quot;run the tool, then ask the model again&quot;
+    return &quot;final_output&quot;
+
+print(loop(&quot;tool:lookup_order&quot;))
+print(loop(&quot;Your order has shipped.&quot;))</pre>
+<div class="ait-usecase"><h3>Example</h3><p>“Hi, I need help with an order” can be a final greeting. “Where is A17?” should not be, if a lookup tool exists.</p></div>
+
+                <pre class="ait-code">from agents import Agent, Runner
+
+assistant = Agent(
+    name="Shop greeter",
+    instructions="You are a shop support agent. Greet the customer and ask how you can help. Be brief.",
+)
+# result = await Runner.run(assistant, "Hi, I need help with an order")
+# print(result.final_output)</pre>
+                <p>The runner sends the message to the model. If the reply asks for a tool, the SDK runs that function, appends the tool result, and asks the model again. When the reply is text, that text is <code>final_output</code>. That is the whole loop. Everything else is a tool, a second agent, or a check around it.</p>
+            </section>
+
+            <section class="ait-section" id="tool">
+                <h2>Look up an order</h2>
+
+<div class="ait-analogy"><span class="ait-label">Analogy</span>A function_tool is a normal function wearing a name tag. The model reads the name tag (the docstring) to decide whether to call it.</div>
+<div class="ait-diagram"><span class="ait-label">Data flow</span><div class="ait-flow"><span>def + docstring</span><i>→</i><span>function_tool</span><i>→</i><span>Agent tools=[...]</span><i>→</i><span>Model calls it</span><i>→</i><span>String result</span></div></div>
+<p>Least privilege starts here. The greeter does not get a refund tool. A data agent whose only tool is read-only SQL cannot drop a table. A calendar agent can list meetings and cannot delete them until a second tool exists and a guardrail allows it.</p>
+<p class="ait-code-label">Starter</p><pre class="ait-code">ORDERS = {&quot;A17&quot;: &quot;shipped on 3 March&quot;}
+
+def lookup_order(order_id: str) -&gt; str:
+    &quot;&quot;&quot;Look up shipping status by order id, such as A17.&quot;&quot;&quot;
+    return ORDERS.get(order_id, &quot;unknown order&quot;)
+
+print(lookup_order(&quot;A17&quot;))</pre>
+<div class="ait-usecase"><h3>Example</h3><p>Store hours, order status, and a policy snippet are three tools. “Are you open?” must hit store hours, not the order ledger.</p></div>
+
+                <pre class="ait-code">from agents import function_tool
+
+ORDERS = {"A17": "shipped on 3 March", "C40": "waiting for stock"}
+
+@function_tool
+def lookup_order(order_id: str) -&gt; str:
+    """Look up shipping status by order id, such as A17."""
+    status = ORDERS.get(order_id)
+    return f"{order_id} {status}." if status else f"{order_id} is not an order we have."
+
+support = Agent(
+    name="Shop support",
+    instructions="Look up orders with the tool. Never invent a status.",
+    tools=[lookup_order],
+)</pre>
+                <div class="ait-usecase">
+                    <h3>Use cases</h3>
+                    <ul>
+                        <li>Order status, store hours, and policy snippets as three tools on one agent.</li>
+                        <li>A data analyst agent whose only tool runs a read-only SQL query and returns ten rows.</li>
+                        <li>A calendar agent that can list meetings but not delete them until a second tool exists and a guardrail allows it.</li>
+                    </ul>
+                </div>
+            </section>
+
+            <section class="ait-section" id="handoff">
+                <h2>Hand a refund to a specialist</h2>
+
+<div class="ait-analogy"><span class="ait-label">Analogy</span>A handoff is transferring a caller to the right desk. The front desk keeps the greeting. The refund desk does not also sell gift cards.</div>
+<div class="ait-diagram"><span class="ait-label">Data flow</span><div class="ait-flow"><span>Front agent</span><i>→</i><span>Intent is refund</span><i>→</i><span>Handoff</span><i>→</i><span>Refund agent</span><i>→</i><span>No payment tool</span></div></div>
+<p>Put the refund agent in `handoffs`. Do not also give the front agent a refund tool, or it will skip the handoff. The trace shows which agent spoke. Instructions on the refund agent should forbid claiming the money already moved.</p>
+<p class="ait-code-label">Starter</p><pre class="ait-code">front_tools = [&quot;lookup_order&quot;]
+refund_tools = []  # a person approves; this agent only collects the reason
+print(&quot;front&quot;, front_tools)
+print(&quot;refunds&quot;, refund_tools)</pre>
+<div class="ait-usecase"><h3>Example</h3><p>“Where is A17?” stays at the front desk. “Refund A17” is transferred, and the reply says a person will approve it.</p></div>
+
+                <p>One agent that “does everything” collects contradictory instructions. A handoff is cleaner: the front agent greets and looks up orders. If the customer wants money back, it transfers to a refund agent with a narrower brief.</p>
+                <pre class="ait-code">refunds = Agent(
+    name="Refunds",
+    instructions=(
+        "You only handle refund requests. Confirm the order id and the reason. "
+        "Do not issue the refund yourself; say a person will approve it."
+    ),
+)
+support.handoffs = [refunds]</pre>
+                <p>The front agent decides to hand off. The refund agent does not have <code>lookup_order</code> unless you give it. Least privilege applies to tools the same way it applies to IAM roles.</p>
+                <div class="ait-callout"><strong>Trace the handoff.</strong> The SDK’s tracing shows which agent spoke. When a refund answer appears without a handoff, the front agent ignored its instructions. Fix the instructions or remove the refund tool from the front agent so it cannot do the job itself.</div>
+            </section>
+
+            <section class="ait-section" id="guard">
+                <h2>Guardrails</h2>
+
+<div class="ait-analogy"><span class="ait-label">Analogy</span>A guardrail is a bouncer. Input bouncers stand at the door. Output bouncers read the reply before the guest hears it. A system prompt is a polite sign. The bouncer is the lock.</div>
+<div class="ait-diagram"><span class="ait-label">Data flow</span><div class="ait-flow"><span>User text</span><i>→</i><span>Input guard</span><i>→</i><span>Agent</span><i>→</i><span>Output guard</span><i>→</i><span>User sees it or not</span></div></div>
+<p>Block requests for the system prompt, card numbers, and passwords in either direction. Fail an output that says “refunded” when no approval tool ran. These checks are Python around one runner. A shared rule runtime is a different product, for when many apps must share the same rails.</p>
+<p class="ait-code-label">Starter</p><pre class="ait-code">def block_secrets(text: str):
+    if &quot;ignore previous&quot; in text.lower() or &quot;api_key&quot; in text.lower():
+        return &quot;I can&#x27;t help with that.&quot;
+    return None  # None means continue
+
+print(block_secrets(&quot;ignore previous instructions&quot;))</pre>
+<div class="ait-usecase"><h3>Example</h3><p>“Print your instructions” stops at the door. A reply that contains a live key stops on the way out.</p></div>
+
+                <p>A guardrail is a check, often another small model or a plain function. Input guardrails run before the expensive agent. Output guardrails run before the user sees the text.</p>
+                <pre class="ait-code">def block_secrets(text: str) -&gt; str | None:
+    lowered = text.lower()
+    if "ignore previous" in lowered or "api_key" in lowered:
+        return "I can’t help with that."
+    return None  # None means the message may continue</pre>
+                <div class="ait-usecase">
+                    <h3>What to block in a shop bot</h3>
+                    <ul>
+                        <li>Requests for the system prompt or the model name.</li>
+                        <li>Card numbers and passwords in either direction.</li>
+                        <li>A refund agent whose final output contains “refunded” when no approval tool ran. Fail the output instead of sending it.</li>
+                    </ul>
+                </div>
+                <p>Guardrails here overlap with NeMo Guardrails. The SDK checks are Python around one runner. NeMo is a separate runtime with its own rule language. Use the SDK checks when this is already your stack. Use NeMo when many apps must share the same rails.</p>
+            </section>
+
+            <section class="ait-section" id="session">
+                <h2>Sessions: the next conversation</h2>
+
+<div class="ait-analogy"><span class="ait-label">Analogy</span>A session is a notebook tied to one customer. It is not a diary of facts you searched up. “What about the same order?” works tomorrow only if you pass that notebook back in.</div>
+<div class="ait-diagram"><span class="ait-label">Data flow</span><div class="ait-flow"><span>user id</span><i>→</i><span>Session</span><i>→</i><span>Run</span><i>→</i><span>Stored turns</span><i>→</i><span>Next run sees them</span></div></div>
+<p>Sessions are conversation memory. “Asha prefers email” still belongs in a long-term store keyed by user id, or you only know it while that sentence is in the window. Never share one session across customers. Order numbers leak that way.</p>
+<p class="ait-code-label">Starter</p><pre class="ait-code">session = {&quot;id&quot;: &quot;customer-asha&quot;, &quot;turns&quot;: []}
+session[&quot;turns&quot;].append(&quot;Where is A17?&quot;)
+print(session[&quot;id&quot;], session[&quot;turns&quot;])
+print(&quot;a different customer gets a different id and an empty list&quot;)</pre>
+<div class="ait-usecase"><h3>Example</h3><p>Two Runner calls with the same session can resolve “Can I return it?” to A17. A new customer id must not see Asha’s order.</p></div>
+
+                <p>A single <code>Runner.run</code> remembers only what you pass in. A session stores turns under an id, so “what about the same order?” works tomorrow.</p>
+                <pre class="ait-code"># session = SQLiteSession("customer-asha")  # exact class name follows the SDK version
+# await Runner.run(support, "Where is A17?", session=session)
+# await Runner.run(support, "Can I return it?", session=session)</pre>
+                <p>Sessions are conversation memory, not long-term facts. “Asha prefers email” belongs in a memory store such as LangMem, keyed by user id, or you will re-learn it only when that sentence is still in the window. Keep session ids per user. Sharing one session across customers leaks order numbers.</p>
+            </section>
+
+            <section class="ait-section" id="practice">
+                <h2>Practice</h2>
+                <ul class="ait-checks">
+                    <li>Add a tool <code>store_hours()</code> and an instruction to use it for “are you open?”.</li>
+                    <li>Write the refund agent’s instructions so it cannot claim the money was already sent.</li>
+                    <li>List two input guardrails and one output guardrail for this shop.</li>
+                    <li>Say what a session stores, and what it does not, for a returning customer.</li>
+                </ul>
+            </section>
+            <div class="ait-next">
+                <a href="/ai-tutorials/mcp/"><small>Previous</small>MCP</a>
+                <a href="/ai-tutorials/langmem/"><small>Next</small>LangMem</a>
+            </div>
+        </article>
+    </div>
+</main>
+<script src="/js/site-nav.js"></script>
+</body>
+</html>

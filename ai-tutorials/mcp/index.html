@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <title>MCP | AI Tutorial | Binod Suman</title>
+    <meta name="description" content="Model Context Protocol for beginners and intermediate builders: hosts, clients, servers, tools, resources, prompts, and stdio vs HTTP.">
+    <link rel="canonical" href="https://binodsuman.com/ai-tutorials/mcp/">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/site-nav.css">
+    <script src="/js/theme-boot.js"></script>
+    <link rel="stylesheet" href="/css/ai-tutorials.css">
+</head>
+<body class="ait-page">
+<main class="ait-wrap">
+    <nav class="ait-crumb"><a href="/">Home</a> · <a href="/ai-tutorials/">AI Tutorial</a> · MCP</nav>
+    <header class="ait-hero">
+        <span class="ait-kicker">Protocol · tools</span>
+        <h1>Model Context Protocol</h1>
+        <p class="ait-lead">MCP is not a framework. It is an open standard so one tool server can be used by Claude, Cursor, VS Code, and an agent you write yourself. You describe the tool once. Every host lists it and calls it.</p>
+        <div class="ait-meta"><span class="ait-pill">Intermediate</span><span class="ait-pill">Python 3.10+ · MCP SDK</span></div>
+    </header>
+    <div class="ait-layout">
+        <aside class="ait-toc">
+            <p>On this page</p>
+            <a href="#roles">Three roles</a>
+            <a href="#server">A shop server</a>
+            <a href="#three">Tools, resources, prompts</a>
+            <a href="#transport">Transports</a>
+            <a href="#agent">An agent that calls it</a>
+            <a href="#limits">Limits</a>
+            <a href="#practice">Practice</a>
+        </aside>
+        <article>
+            <section class="ait-section" id="roles">
+                <h2>Host, client, server</h2>
+
+<div class="ait-analogy"><span class="ait-label">Analogy</span>MCP is a universal remote. The host is the person holding it. Each client is one button wired to one device. The server is the device. The host does not grow a custom plug for every device.</div>
+<div class="ait-diagram"><span class="ait-label">Architecture</span><div class="ait-stack"><div>Host — Cursor, Claude, or your app</div><div>Client — one connection per server</div><div>Server — tools, resources, and prompts</div><div>Transport — stdio locally, or Streamable HTTP remotely</div></div></div>
+<p>The protocol is JSON-RPC. The spec splits a data layer (tools, resources, prompts, discovery) from a transport layer (stdio or Streamable HTTP). A host such as VS Code creates a new client object for each server: filesystem, database, a remote service. Local stdio servers usually serve one client. Remote HTTP servers serve many. The server never calls a model. You can test it with no API key.</p>
+<p class="ait-code-label">Starter</p><pre class="ait-code">print(&quot;Host: Cursor, Claude, or your own app&quot;)
+print(&quot;Client: one connection&quot;)
+print(&quot;Server: your Python program, no model inside&quot;)</pre>
+<div class="ait-usecase"><h3>Example</h3><p>“Weather in New York” cannot be answered from training. The client fetches the tool list, the model picks get_weather, and the server runs your function.</p></div>
+
+                <p>Anthropic introduced MCP in November 2024. The messages are JSON-RPC. Three roles:</p>
+                <div class="ait-table-wrap">
+                    <table class="ait-table">
+                        <tr><th>Role</th><th>Who it is</th><th>Example</th></tr>
+                        <tr><td>Host</td><td>The AI app the person uses</td><td>Claude Desktop, Cursor, your own chatbot</td></tr>
+                        <tr><td>Client</td><td>The connection the host opens to one server</td><td>One client per server</td></tr>
+                        <tr><td>Server</td><td>The process that offers tools and data</td><td>A small Python program for your shop’s orders</td></tr>
+                    </table>
+                </div>
+                <p>Ask “what’s the weather in New York?”. The model cannot know today’s weather from training. The client fetches the server’s tool list, the model picks <code>get_weather</code>, and the call goes to the server. The server does not call a model. It runs your function and returns text. You can build and test the server with no API key.</p>
+            </section>
+
+            <section class="ait-section" id="server">
+                <h2>A server for one shop</h2>
+
+<div class="ait-analogy"><span class="ait-label">Analogy</span>A server is a menu. The docstring is the description a diner reads. A blank description means the diner guesses.</div>
+<div class="ait-diagram"><span class="ait-label">Data flow</span><div class="ait-flow"><span>Function + types</span><i>→</i><span>SDK builds schema</span><i>→</i><span>Host lists tools</span><i>→</i><span>Model calls one</span><i>→</i><span>You return text</span></div></div>
+<p>FastMCP turns that function into a tool. The name, description, and JSON Schema come from the function and the type hints. Write the server once and attach it to Claude, Cursor, and your own agent. Return a short string. A 2 MB blob blows the model’s context. Log the rest on the server.</p>
+<p class="ait-code-label">Starter</p><pre class="ait-code">ORDERS = {&quot;A17&quot;: &quot;shipped on 3 March&quot;}
+
+def lookup_order(order_id: str) -&gt; str:
+    &quot;&quot;&quot;Look up shipping status by order id, such as A17.&quot;&quot;&quot;
+    return ORDERS.get(order_id, &quot;unknown order&quot;)
+
+print(lookup_order(&quot;A17&quot;))</pre>
+<div class="ait-usecase"><h3>Example</h3><p>The same order server can sit in a support desktop app and in an engineer’s editor. The second app does not get a custom plugin.</p></div>
+
+                <pre class="ait-code">from mcp.server.fastmcp import FastMCP
+
+mcp = FastMCP("shop")
+ORDERS = {"A17": "shipped on 3 March", "C40": "waiting for stock"}
+
+@mcp.tool()
+def lookup_order(order_id: str) -&gt; str:
+    """Look up an order's shipping status by its id, such as A17."""
+    status = ORDERS.get(order_id)
+    return f"{order_id} {status}." if status else f"{order_id} is not an order we have."
+
+if __name__ == "__main__":
+    mcp.run()  # speaks MCP on stdin/stdout</pre>
+                <p>The SDK builds the tool name, description, and JSON Schema from the function and its type hints. A docstring is not optional polish. It is what the model reads when it decides whether to call the tool.</p>
+                <div class="ait-usecase">
+                    <h3>Write once, connect everywhere</h3>
+                    <ul>
+                        <li>The same order server in Claude Desktop for support, and in Cursor for an engineer reproducing a bug.</li>
+                        <li>A Postgres server the data team already runs, attached to a new internal agent without a custom plugin.</li>
+                        <li>A GitHub or filesystem server so a coding agent reads issues through MCP instead of a one-off shell wrapper.</li>
+                    </ul>
+                </div>
+            </section>
+
+            <section class="ait-section" id="three">
+                <h2>Tools, resources, and prompts</h2>
+
+<div class="ait-analogy"><span class="ait-label">Analogy</span>Tools are buttons the model presses. Resources are documents the app can attach. Prompts are saved scripts a person can run, like slash commands.</div>
+<div class="ait-diagram"><span class="ait-label">Data flow</span><div class="ait-flow"><span>tools: do something</span><i>→</i><span>resources: read something</span><i>→</i><span>prompts: start a task</span></div></div>
+<p>Memory is not the server’s job. Calls are stateless. The host keeps the conversation. Do not hide a customer’s history in a global on the server and expect the next host to see it. Dangerous tools should require a person to approve them inside the host.</p>
+<p class="ait-code-label">Starter</p><pre class="ait-code">tools = [&quot;lookup_order&quot;]
+resources = [&quot;policy://returns&quot;]
+prompts = [&quot;refund_reply&quot;]
+print({&quot;tools&quot;: tools, &quot;resources&quot;: resources, &quot;prompts&quot;: prompts})</pre>
+<div class="ait-usecase"><h3>Example</h3><p>A returns policy is a resource. “Draft a refund reply” is a prompt. lookup_order is a tool. create_refund is a tool that should ask first.</p></div>
+
+                <ul>
+                    <li><strong>Tools</strong> are functions the model calls. <code>lookup_order</code>, <code>create_refund</code>.</li>
+                    <li><strong>Resources</strong> are data the app can read, like a file or a policy page, addressed by a URI. The model does not have to “call” them as actions; the host attaches them.</li>
+                    <li><strong>Prompts</strong> are templates a user can pick, the way slash commands work. “Draft a refund reply” with holes for the order id.</li>
+                </ul>
+                <pre class="ait-code">@mcp.resource("policy://returns")
+def returns_policy() -&gt; str:
+    return "30 days, unused, with receipt."
+
+@mcp.prompt()
+def refund_reply(order_id: str) -&gt; str:
+    return f"Write a short refund update for order {order_id}. Use only tool results."</pre>
+                <div class="ait-callout"><strong>Memory is not the server’s job.</strong> MCP calls are stateless. The host keeps the conversation. Do not hide a customer’s history in a global variable on the server and expect the next host to see it.</div>
+            </section>
+
+            <section class="ait-section" id="transport">
+                <h2>stdio locally, HTTP when it is remote</h2>
+
+<div class="ait-analogy"><span class="ait-label">Analogy</span>stdio is two people passing notes under a door on the same computer. HTTP is a phone line, so you need to know who is calling.</div>
+<div class="ait-diagram"><span class="ait-label">Data flow</span><div class="ait-flow"><span>Local: host starts a process</span><i>→</i><span>stdin/stdout JSON-RPC</span><i>→</i><span>Remote: Streamable HTTP</span><i>→</i><span>Auth</span></div></div>
+<p>That config is what a desktop host uses for a local server. A remote server must authenticate, or a refund tool on the internet is an open refund button. Keep API keys in the server environment, not in the chat.</p>
+<p class="ait-code-label">Starter</p><pre class="ait-code">config = {
+    &quot;mcpServers&quot;: {
+        &quot;shop&quot;: {&quot;command&quot;: &quot;python&quot;, &quot;args&quot;: [&quot;server.py&quot;]}
+    }
+}
+print(config[&quot;mcpServers&quot;][&quot;shop&quot;][&quot;command&quot;])</pre>
+<div class="ait-usecase"><h3>Example</h3><p>An internal REST “get order” endpoint becomes one MCP tool. Every agent sees a name and a schema. The key stays on the server.</p></div>
+
+                <p>A local server is a process the host starts. Messages go over standard input and output. That is what <code>mcp.run()</code> does, and it is what a Claude or Cursor config points at:</p>
+                <pre class="ait-code">{
+  "mcpServers": {
+    "shop": {
+      "command": "python",
+      "args": ["server.py"]
+    }
+  }
+}</pre>
+                <p>A remote server speaks Streamable HTTP so many people can use one deployment. Put auth on that endpoint. A tool that refunds an order, exposed on the internet with no identity check, is an open refund button.</p>
+                <div class="ait-usecase">
+                    <h3>Use case: an internal API</h3>
+                    <p>You already have REST for “get order”. Wrap it in one MCP tool instead of pasting the URL into every agent prompt. The model sees a name and a schema. The API key stays in the server’s environment, not in the chat.</p>
+                </div>
+            </section>
+
+            <section class="ait-section" id="agent">
+                <h2>Your own agent as the host</h2>
+
+<div class="ait-analogy"><span class="ait-label">Analogy</span>Your own agent can be the host. It lists tools, asks a model which one to call, runs it, and stops when the model answers in text.</div>
+<div class="ait-diagram"><span class="ait-label">Data flow</span><div class="ait-flow"><span>List tools</span><i>→</i><span>Model picks</span><i>→</i><span>Call server</span><i>→</i><span>Tool result</span><i>→</i><span>Final answer</span></div></div>
+<p>Test with an in-memory client first. You exercise the real protocol without a port and without a model. When A17 returns the shipped sentence, then attach a model. LangChain and the OpenAI Agents SDK both have adapters so you do not hand-roll JSON-RPC. Approval still belongs on refunds, deletes, and email.</p>
+<p class="ait-code-label">Starter</p><pre class="ait-code">tools = {&quot;lookup_order&quot;: lambda order_id: &quot;A17 shipped&quot; if order_id == &quot;A17&quot; else &quot;unknown&quot;}
+print(tools[&quot;lookup_order&quot;](&quot;A17&quot;))</pre>
+<div class="ait-usecase"><h3>Example</h3><p>A green test that lookup_order("A17") returns the ledger sentence is the whole server. The model is a later guest.</p></div>
+
+                <p>After the server works, a host can list tools and loop: send the question and the tool list to a model, run the tool the model picked, send the result back, stop when the model answers in text. LangChain and the OpenAI Agents SDK both have MCP adapters so you do not hand-roll JSON-RPC.</p>
+                <p>Test the server with an in-memory client first. You exercise the real protocol without a port and without a model. When lookup of <code>A17</code> returns the shipped sentence, then attach a model.</p>
+                <div class="ait-callout"><strong>Approval belongs on dangerous tools.</strong> Listing a tool is not the same as letting the model call it. Hosts can ask a person before <code>create_refund</code>. Do that for anything that spends money, deletes data, or sends mail.</div>
+            </section>
+
+            <section class="ait-section" id="limits">
+                <h2>When plain Python is enough</h2>
+
+<div class="ait-analogy"><span class="ait-label">Analogy</span>If only your own process will ever call the function, MCP is a second plug for a lamp that already has one. Use a normal function.</div>
+<div class="ait-diagram"><span class="ait-label">Data flow</span><div class="ait-flow"><span>One app</span><i>→</i><span>Plain function</span><i>→</i><span>Second app or team</span><i>→</i><span>MCP server</span></div></div>
+<p>Adopt MCP when Claude, Cursor, and a bot you wrote all need the same tool. Keep results small. Put auth on HTTP. Do not store conversation memory on the server.</p>
+<p class="ait-code-label">Starter</p><pre class="ait-code">def lookup_order(order_id: str) -&gt; str:
+    return &quot;shipped&quot;
+
+print(&quot;call lookup_order directly until a second host needs it&quot;)</pre>
+<div class="ait-usecase"><h3>Example</h3><p>A helper used by one script stays a function. The order lookup your whole company will attach to editors becomes a server.</p></div>
+
+                <p>If only your own process will ever call the function, an MCP server is extra moving parts. Use a normal function. Adopt MCP when a second app, or a second team, needs the same tool.</p>
+                <p>Keep tool results small. Returning a 2 MB JSON blob blows the model’s context. Return the one order, or a short error. Log the rest on the server.</p>
+            </section>
+
+            <section class="ait-section" id="practice">
+                <h2>Practice</h2>
+                <ul class="ait-checks">
+                    <li>Add <code>list_recent_orders()</code> with a docstring that says it returns at most 5 ids.</li>
+                    <li>Add a resource for the shipping policy and a prompt named <code>where_is_my_order</code>.</li>
+                    <li>Decide which tool needs a human approval, and write the one-line reason.</li>
+                    <li>Explain why the server file has no API key for the LLM.</li>
+                </ul>
+            </section>
+            <div class="ait-next">
+                <a href="/ai-tutorials/deep-agents/"><small>Previous</small>Deep Agents</a>
+                <a href="/ai-tutorials/openai-agents-sdk/"><small>Next</small>OpenAI Agents SDK</a>
+            </div>
+        </article>
+    </div>
+</main>
+<script src="/js/site-nav.js"></script>
+</body>
+</html>

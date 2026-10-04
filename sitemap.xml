@@ -56,6 +56,76 @@
     <priority>0.9</priority>
   </url>
   <url>
+    <loc>https://binodsuman.com/ai-tutorials/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://binodsuman.com/ai-tutorials/generative-ai/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://binodsuman.com/ai-tutorials/python-for-ai/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://binodsuman.com/ai-tutorials/llm-fundamentals/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://binodsuman.com/ai-tutorials/langchain/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://binodsuman.com/ai-tutorials/rag/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://binodsuman.com/ai-tutorials/llamaindex/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://binodsuman.com/ai-tutorials/langgraph/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://binodsuman.com/ai-tutorials/deep-agents/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://binodsuman.com/ai-tutorials/mcp/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://binodsuman.com/ai-tutorials/openai-agents-sdk/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://binodsuman.com/ai-tutorials/langmem/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://binodsuman.com/ai-tutorials/nemo-guardrails/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://binodsuman.com/ai-tutorials/claude-code/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://binodsuman.com/cheat-sheets/</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>

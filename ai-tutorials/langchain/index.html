@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <title>LangChain | AI Tutorial | Binod Suman</title>
+    <meta name="description" content="LangChain for beginners and intermediate builders: LCEL, prompts, tools, Pydantic structured output, and response_format on agents.">
+    <link rel="canonical" href="https://binodsuman.com/ai-tutorials/langchain/">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/site-nav.css">
+    <script src="/js/theme-boot.js"></script>
+    <link rel="stylesheet" href="/css/ai-tutorials.css">
+</head>
+<body class="ait-page">
+<main class="ait-wrap">
+    <nav class="ait-crumb"><a href="/">Home</a> · <a href="/ai-tutorials/">AI Tutorial</a> · LangChain</nav>
+    <header class="ait-hero">
+        <span class="ait-kicker">Framework · structured output</span>
+        <h1>LangChain</h1>
+        <p class="ait-lead">LangChain is the layer under a lot of agents: one interface for models, prompts, messages, and tools. The skill that pays off first is structured output — a Pydantic class instead of a paragraph your code has to slice apart.</p>
+        <div class="ait-meta"><span class="ait-pill">Beginner → intermediate</span><span class="ait-pill">LangChain 1.x</span></div>
+    </header>
+    <div class="ait-layout">
+        <aside class="ait-toc">
+            <p>On this page</p>
+            <a href="#what">What it is for</a>
+            <a href="#lcel">A chain with LCEL</a>
+            <a href="#movie">Structured movie</a>
+            <a href="#nested">Nested schemas</a>
+            <a href="#agent">response_format</a>
+            <a href="#shop">Shop ticket agent</a>
+            <a href="#when">When to skip it</a>
+            <a href="#practice">Practice</a>
+        </aside>
+        <article>
+            <section class="ait-section" id="what">
+                <h2>What LangChain is for</h2>
+
+<div class="ait-analogy"><span class="ait-label">Analogy</span>LangChain is a power strip. The model is the appliance. The strip is the shared plug shape: prompts, tools, and messages that work across brands.</div>
+<div class="ait-diagram"><span class="ait-label">Data flow</span><div class="ait-flow"><span>Prompt</span><i>→</i><span>Model</span><i>→</i><span>Tools or parser</span><i>→</i><span>One result</span></div></div>
+<p>Official docs describe an agent as a model plus a harness. The harness is the loop around the model: prompt, tools, and middleware. `create_agent` is the small harness. Use LangGraph when the path must mix fixed steps with model decisions. Use a “deep” harness when you also want a filesystem and subagents. LangSmith is how you trace any of them.</p>
+<p class="ait-code-label">Starter</p><pre class="ait-code"># pip install langchain
+# The smallest idea: a prompt, a model, and a result.
+print(&quot;chain = prompt | model | parser&quot;)
+print(&quot;agent = create_agent(model, tools, system_prompt)&quot;)</pre>
+<div class="ait-usecase"><h3>Example</h3><p>One weather tool and a system prompt is a LangChain agent. A refund that must pause for a human is already a LangGraph problem.</p></div>
+
+                <p>You can call a model with a few lines of the provider SDK. LangChain earns its place when you compose pieces: a prompt, a model, a parser, a retriever, a tool. LCEL, the LangChain Expression Language, joins those pieces with a pipe:</p>
+                <pre class="ait-code">chain = prompt | model | parser
+answer = chain.invoke({"question": "What is RAG?"})</pre>
+                <p>Chat models speak in messages (system, human, AI). Older “LLM” classes spoke in one string. New code should use chat models. For multi-step agents with loops and pauses, move to LangGraph; LangChain still supplies the model and the tools.</p>
+            </section>
+
+            <section class="ait-section" id="lcel">
+                <h2>A first chain</h2>
+
+<div class="ait-analogy"><span class="ait-label">Analogy</span>The pipe is an assembly line. Each station takes what the previous station made. You can look at any station without unpacking the whole factory.</div>
+<div class="ait-diagram"><span class="ait-label">Data flow</span><div class="ait-flow"><span>dict with variables</span><i>→</i><span>Prompt</span><i>→</i><span>Chat model</span><i>→</i><span>Parser</span><i>→</i><span>string or object</span></div></div>
+<p>init_chat_model with a provider prefix (openai, anthropic, or groq) keeps the same chain and swaps the brand. Keys come from the environment. Stream with .stream when a person is watching. A single raw SDK call is still fine for one completion with no tools. Pick the version your team will understand in six months.</p>
+<p class="ait-code-label">Starter</p><pre class="ait-code"># pip install langchain langchain-openai  (or another provider package)
+print(&quot;prompt = ChatPromptTemplate.from_messages([&quot;)
+print(&#x27;    (&quot;system&quot;, &quot;Answer in two sentences.&quot;),&#x27;)
+print(&#x27;    (&quot;human&quot;, &quot;{question}&quot;),&#x27;)
+print(&quot;])&quot;)
+print(&quot;chain = prompt | model | StrOutputParser()&quot;)</pre>
+<div class="ait-usecase"><h3>Example</h3><p>A release-notes blurb is this chain: the diff goes in `{question}`, plain text comes out. No tools, no loop.</p></div>
+
+                <pre class="ait-code">from langchain.chat_models import init_chat_model
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.output_parsers import StrOutputParser
+
+prompt = ChatPromptTemplate.from_messages([
+    ("system", "Answer in two sentences."),
+    ("human", "{question}"),
+])
+model = init_chat_model("groq:openai/gpt-oss-120b", temperature=0)
+chain = prompt | model | StrOutputParser()
+print(chain.invoke({"question": "What is a vector database?"}))</pre>
+                <p><code>init_chat_model</code> takes a <code>provider:model</code> string, so the same chain can point at Groq, OpenAI, or Anthropic by changing one argument. Keys come from the environment (<code>GROQ_API_KEY</code>, <code>OPENAI_API_KEY</code>).</p>
+                <div class="ait-usecase">
+                    <h3>Use case: a release-notes blurb</h3>
+                    <p>Product pastes a git diff summary into <code>{question}</code>. The chain always returns plain text. No tools, no loop. This is the right size for LangChain. A single raw SDK call is also fine here; pick the one your team will still understand in six months.</p>
+                </div>
+            </section>
+
+            <section class="ait-section" id="movie">
+                <h2>Structured output with Pydantic</h2>
+
+<div class="ait-analogy"><span class="ait-label">Analogy</span>Structured output is a form instead of an essay. The model still writes, but the boxes have names and types, so your code can read `movie.year` instead of hunting through a paragraph.</div>
+<div class="ait-diagram"><span class="ait-label">Data flow</span><div class="ait-flow"><span>Schema</span><i>→</i><span>Model call</span><i>→</i><span>Typed object</span><i>→</i><span>Your database</span></div></div>
+<p>Field descriptions are instructions, the same way a tool docstring is. Pydantic then checks types. A schema makes the shape reliable. It does not make the biography true. If the rating must be real, look it up and let the schema only format that result.</p>
+<p class="ait-code-label">Starter</p><pre class="ait-code">from pydantic import BaseModel, Field
+
+class Movie(BaseModel):
+    title: str = Field(description=&quot;The title of the movie&quot;)
+    year: int = Field(description=&quot;Year released&quot;)
+
+# model_with_structure = model.with_structured_output(Movie)
+# movie = model_with_structure.invoke(&quot;Tell me about Inception&quot;)
+print(Movie(title=&quot;Inception&quot;, year=2010))</pre>
+<div class="ait-usecase"><h3>Example</h3><p>“Tell me about Inception” as prose is an essay. The same question through `Movie` is four fields you can store.</p></div>
+
+                <p>Ask “tell me about Inception” and you get paragraphs. Wrap the model with a schema and you get fields your code can store.</p>
+                <pre class="ait-code">from pydantic import BaseModel, Field
+
+class Movie(BaseModel):
+    title: str = Field(description="The title of the movie")
+    year: int = Field(description="The year the movie was released")
+    director: str = Field(description="The director of the movie")
+    rating: float = Field(description="The movie's rating out of 10")
+
+model_with_structure = model.with_structured_output(Movie)
+response = model_with_structure.invoke("Provide details about the movie Inception")
+print(response.title, response.year, response.director, response.rating)</pre>
+                <p>Field descriptions are instructions to the model, the same way a tool docstring is. Pydantic then checks the types. A year that comes back as <code>"two thousand ten"</code> fails instead of landing in your database.</p>
+                <div class="ait-callout"><strong>Facts still need a source.</strong> A schema makes the shape reliable. It does not make the biography true. Models mix up cast lists. If the rating must be real, look it up with a tool or a database, and let the schema only format that result.</div>
+            </section>
+
+            <section class="ait-section" id="nested">
+                <h2>Nested objects and lists</h2>
+
+<div class="ait-analogy"><span class="ait-label">Analogy</span>A nested schema is a form with a table inside it. The cast is a list of rows. Each row has its own boxes.</div>
+<div class="ait-diagram"><span class="ait-label">Data flow</span><div class="ait-flow"><span>Actor schema</span><i>→</i><span>List of actors</span><i>→</i><span>Movie schema</span><i>→</i><span>One object with a cast</span></div></div>
+<p>Some hosts need method='json_schema' for nested lists. The default asks for a tool call, and required lists sometimes come back empty. Put units in the field description (budget in millions USD) or the number will be ambiguous. model_dump() turns the whole tree into JSON.</p>
+<p class="ait-code-label">Starter</p><pre class="ait-code">from pydantic import BaseModel
+
+class Actor(BaseModel):
+    name: str
+    role: str
+
+class MovieDetails(BaseModel):
+    title: str
+    cast: list[Actor]
+
+print(MovieDetails(title=&quot;Inception&quot;, cast=[Actor(name=&quot;Leonardo DiCaprio&quot;, role=&quot;Dom Cobb&quot;)]))</pre>
+<div class="ait-usecase"><h3>Example</h3><p>Meeting notes: title, a list of decisions, and a list of owners. The UI renders the list. Nobody regexes a paragraph.</p></div>
+
+                <pre class="ait-code">class Actor(BaseModel):
+    name: str
+    role: str
+
+class MovieDetails(BaseModel):
+    title: str
+    year: int
+    cast: list[Actor]
+    genres: list[str]
+    budget: float | None = Field(None, description="Budget in millions USD")
+
+rich = model.with_structured_output(MovieDetails, method="json_schema")
+details = rich.invoke("Provide details about the movie Inception")
+print(details.cast[0].name, details.budget)</pre>
+                <p>Some hosts (Groq’s gpt-oss in the public labs) need <code>method="json_schema"</code> for nested lists. The default method asks for a tool call, and required lists sometimes come back empty. <code>budget=160.0</code> means 160 million because the description said “millions USD”. The unit lives in the field text. Be explicit.</p>
+                <div class="ait-usecase">
+                    <h3>Use case: a meeting note</h3>
+                    <p>Schema: <code>title</code>, <code>decisions: list[str]</code>, <code>owners: list[Actor]</code> where Actor is name plus action. The notes app saves <code>details.model_dump()</code> as JSON. The UI never regexes a paragraph.</p>
+                </div>
+            </section>
+
+            <section class="ait-section" id="agent">
+                <h2>The same shape on an agent: response_format</h2>
+
+<div class="ait-analogy"><span class="ait-label">Analogy</span>response_format is the form the agent must hand in after it has used its tools. The tools gather facts. The form is the only thing your code keeps.</div>
+<div class="ait-diagram"><span class="ait-label">Data flow</span><div class="ait-flow"><span>User message</span><i>→</i><span>Tool calls</span><i>→</i><span>Tool results</span><i>→</i><span>Schema tool</span><i>→</i><span>structured_response</span></div></div>
+<p>Pydantic validates. A TypedDict is only a shape, returned as a dict. A dataclass is an object without those checks. On some hosts the schema has to be wrapped as a tool (`ToolStrategy`) because the model cannot return JSON and call tools in the same request. If the model never calls that tool, there is no structured_response.</p>
+<p class="ait-code-label">Starter</p><pre class="ait-code">from pydantic import BaseModel, Field
+
+class ContactInfo(BaseModel):
+    name: str = Field(description=&quot;Person&#x27;s name&quot;)
+    email: str = Field(description=&quot;Email address&quot;)
+
+# agent = create_agent(model, response_format=ContactInfo)
+# result[&quot;structured_response&quot;].email
+print(ContactInfo(name=&quot;Ada&quot;, email=&quot;ada@example.com&quot;).model_dump())</pre>
+<div class="ait-usecase"><h3>Example</h3><p>“John Doe, john@example.com, (555) 123-4567” should become three fields. Your CRM writes the fields. It does not parse the sentence.</p></div>
+
+                <p><code>with_structured_output</code> is one model call. An agent may call tools first, then fill the schema. Pass the class as <code>response_format</code>. The object comes back on <code>result["structured_response"]</code>.</p>
+                <pre class="ait-code">from langchain.agents import create_agent
+from langchain.agents.structured_output import ToolStrategy
+
+class ContactInfo(BaseModel):
+    """Contact information for a person."""
+    name: str = Field(description="The name of the person")
+    email: str = Field(description="The email address of the person")
+    phone: str = Field(description="The phone number of the person")
+
+agent = create_agent(
+    model="groq:openai/gpt-oss-120b",
+    response_format=ToolStrategy(ContactInfo),
+)
+result = agent.invoke({
+    "messages": [{"role": "user", "content":
+        "Extract contact info from: John Doe, john@example.com, (555) 123-4567"}]
+})
+print(result["structured_response"])</pre>
+                <div class="ait-table-wrap">
+                    <table class="ait-table">
+                        <tr><th>Schema style</th><th>You get</th><th>Use it when</th></tr>
+                        <tr><td>Pydantic BaseModel</td><td>An object, validated</td><td>A bad value must fail</td></tr>
+                        <tr><td>TypedDict</td><td>A plain dict, no checks</td><td>You only need the keys</td></tr>
+                        <tr><td>dataclass</td><td>An object, no Pydantic checks</td><td>You want attributes without the dependency</td></tr>
+                    </table>
+                </div>
+                <p>Comments on a TypedDict are invisible to the model. Put descriptions in <code>Annotated[str, ..., "The name of the person"]</code> if you are not using Pydantic fields.</p>
+            </section>
+
+            <section class="ait-section" id="shop">
+                <h2>A shop agent that returns a ticket</h2>
+
+<div class="ait-analogy"><span class="ait-label">Analogy</span>The shop agent is a clerk who must look at the ledger before filling in the form. The form is not allowed to invent a status the ledger did not show.</div>
+<div class="ait-diagram"><span class="ait-label">Data flow</span><div class="ait-flow"><span>Question</span><i>→</i><span>lookup_order</span><i>→</i><span>Ledger text</span><i>→</i><span>Ticket schema</span><i>→</i><span>order_id + status</span></div></div>
+<p>Wire the tool and the schema into `create_agent`. The system prompt should say “fill the ticket only from tool results.” With a tool strategy, the class name becomes a tool the model must call to finish. Ask about B22 and the status should be the unknown branch, not a guessed shipment.</p>
+<p class="ait-code-label">Starter</p><pre class="ait-code">ORDERS = {&quot;A17&quot;: &quot;shipped on 3 March&quot;}
+
+def lookup_order(order_id: str) -&gt; str:
+    return ORDERS.get(order_id, &quot;unknown order&quot;)
+
+print(lookup_order(&quot;A17&quot;))
+print({&quot;order_id&quot;: &quot;A17&quot;, &quot;status&quot;: &quot;shipped&quot;})</pre>
+<div class="ait-usecase"><h3>Example</h3><p>Support software wants an order id and a status. A sentence like “it is on the way” cannot update a database. The ticket object can.</p></div>
+
+                <p>Support software wants an order id and a status, not a sentence. The agent looks the order up, then fills <code>Ticket</code>.</p>
+                <pre class="ait-code">from langchain.tools import tool
+
+ORDERS = {"A17": "shipped on 3 March", "C40": "waiting for stock"}
+
+class Ticket(BaseModel):
+    """A support ticket for one order."""
+    order_id: str
+    status: str
+
+@tool
+def lookup_order(order_id: str) -&gt; str:
+    """Look up an order's shipping status by its id, such as A17."""
+    status = ORDERS.get(order_id)
+    return f"{order_id} {status}." if status else f"{order_id} is not an order we have."
+
+agent = create_agent(
+    model,
+    tools=[lookup_order],
+    response_format=ToolStrategy(Ticket),
+    system_prompt=(
+        "You are the support assistant for a small online shop. "
+        "Look up the order, then fill in the Ticket using only what the tools returned."
+    ),
+)
+result = agent.invoke({"messages": [{"role": "user", "content": "Where is my order A17?"}]})
+print(result["structured_response"])</pre>
+                <p>With <code>ToolStrategy</code>, the class becomes one more tool. The model must call it to finish. If your prompt never leads there, there is no <code>structured_response</code>. OpenAI and Anthropic models can often use native structured output; Groq’s gpt-oss needs <code>ToolStrategy</code> because it cannot return JSON and call tools in the same request.</p>
+                <div class="ait-usecase">
+                    <h3>Three more places this pattern fits</h3>
+                    <ul>
+                        <li><strong>HR inbox:</strong> tool reads the policy PDF chunk, schema returns <code>eligible: bool</code> and <code>clause_id</code>.</li>
+                        <li><strong>CRM update:</strong> schema is <code>company</code>, <code>next_step</code>, <code>date</code>. Your app writes the row. Nobody parses “let’s circle back Tuesday”.</li>
+                        <li><strong>Incident bot:</strong> tools hit status pages, schema returns <code>service</code>, <code>severity</code>, <code>customer_impact</code>.</li>
+                    </ul>
+                </div>
+            </section>
+
+            <section class="ait-section" id="when">
+                <h2>When a raw SDK is simpler</h2>
+
+<div class="ait-analogy"><span class="ait-label">Analogy</span>A framework is a truck. A single grocery run does not need a truck. A moving day does.</div>
+<div class="ait-diagram"><span class="ait-label">Data flow</span><div class="ait-flow"><span>One call?</span><i>→</i><span>Raw SDK</span><i>→</i><span>Many steps or tools?</span><i>→</i><span>LangChain</span><i>→</i><span>Branches and pauses?</span><i>→</i><span>LangGraph</span></div></div>
+<p>Skip the framework for one completion. Use it when you want the same code to swap providers, bind tools, and trace with LangSmith. Set `LANGSMITH_TRACING=true` before the chain feels mysterious. Retrieved text is untrusted: a document can say “ignore your instructions.” Keep the system prompt outside that blob. Pin versions.</p>
+<p class="ait-code-label">Starter</p><pre class="ait-code">def choose(tools: int, pauses: bool) -&gt; str:
+    if pauses:
+        return &quot;LangGraph&quot;
+    if tools:
+        return &quot;LangChain create_agent&quot;
+    return &quot;provider SDK&quot;
+
+print(choose(0, False))</pre>
+<div class="ait-usecase"><h3>Example</h3><p>A latency-critical endpoint that only rewrites one sentence should stay on the provider SDK. An agent that looks up orders should not.</p></div>
+
+                <ul>
+                    <li>One completion, no tools, no schema — the provider SDK is shorter.</li>
+                    <li>A latency-critical endpoint — fewer layers, easier profiles.</li>
+                    <li>Tutorials that import <code>LLMChain</code> — that API is old. Prefer <code>langchain_core</code> pipes or <code>create_agent</code>.</li>
+                </ul>
+                <p>Pin versions. Turn on LangSmith or another tracer before the chain is “mysteriously wrong”. Retrieved text is untrusted: a document can contain “ignore your instructions”. Keep the system prompt outside the retrieved blob.</p>
+            </section>
+
+            <section class="ait-section" id="practice">
+                <h2>Practice</h2>
+                <ul class="ait-checks">
+                    <li>Add <code>customer: str = "unknown"</code> to <code>Ticket</code> and see the default when the user never gives a name.</li>
+                    <li>Ask about order <code>B22</code> and read the status the tool forces.</li>
+                    <li>Print <code>result["structured_response"].model_dump()</code>.</li>
+                    <li>Rewrite <code>ContactInfo</code> as a TypedDict and compare what you get back.</li>
+                </ul>
+            </section>
+            <div class="ait-next">
+                <a href="/ai-tutorials/llm-fundamentals/"><small>Previous</small>LLM Fundamentals</a>
+                <a href="/ai-tutorials/rag/"><small>Next</small>RAG &amp; RAGAS</a>
+            </div>
+        </article>
+    </div>
+</main>
+<script src="/js/site-nav.js"></script>
+</body>
+</html>

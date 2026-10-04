@@ -1,0 +1,429 @@
+/* AI Tutorial pages — theme-aware study material */
+.ait-page {
+    font-family: 'Inter', system-ui, sans-serif;
+    background: var(--page-bg);
+    color: var(--page-fg);
+    min-height: 100vh;
+}
+
+.ait-wrap {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 6.25rem 1.25rem 4rem;
+}
+
+.ait-crumb {
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin-bottom: 1.1rem;
+}
+
+.ait-crumb a {
+    color: var(--primary);
+    text-decoration: none;
+}
+
+.ait-crumb a:hover { text-decoration: underline; }
+
+.ait-hero {
+    margin-bottom: 1.75rem;
+}
+
+.ait-kicker {
+    display: inline-block;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #fff;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    padding: 0.28rem 0.7rem;
+    border-radius: 999px;
+    margin-bottom: 0.7rem;
+}
+
+.ait-hero h1 {
+    font-size: clamp(1.9rem, 4vw, 2.7rem);
+    line-height: 1.15;
+    margin: 0 0 0.6rem;
+}
+
+.ait-lead {
+    font-size: 1.08rem;
+    line-height: 1.6;
+    color: var(--muted);
+    max-width: 46rem;
+    margin: 0;
+}
+
+.ait-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+
+.ait-pill {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--page-fg);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 0.28rem 0.65rem;
+}
+
+.ait-path {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.75rem;
+    margin: 1.5rem 0 2rem;
+}
+
+.ait-path a {
+    display: block;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 0.85rem 0.95rem;
+    text-decoration: none;
+    color: var(--page-fg);
+}
+
+.ait-path a strong {
+    display: block;
+    font-size: 0.78rem;
+    color: var(--primary);
+    margin-bottom: 0.2rem;
+}
+
+.ait-path a span {
+    font-size: 0.92rem;
+    font-weight: 600;
+}
+
+.ait-group {
+    margin-bottom: 2rem;
+}
+
+.ait-group h2 {
+    font-size: 0.78rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 0 0 0.75rem;
+}
+
+.ait-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 0.85rem;
+}
+
+.ait-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1rem 1.05rem 1.05rem;
+    text-decoration: none;
+    color: var(--page-fg);
+    min-height: 168px;
+    transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.ait-card:hover {
+    transform: translateY(-2px);
+    border-color: var(--primary);
+    box-shadow: var(--shadow);
+}
+
+.ait-card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.ait-tag {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--primary);
+}
+
+.ait-level {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--muted);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 0.12rem 0.45rem;
+}
+
+.ait-card h3 {
+    margin: 0;
+    font-size: 1.15rem;
+}
+
+.ait-card p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.92rem;
+    line-height: 1.45;
+}
+
+.ait-layout {
+    display: grid;
+    grid-template-columns: 210px 1fr;
+    gap: 1.75rem;
+    align-items: start;
+}
+
+.ait-toc {
+    position: sticky;
+    top: 88px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 0.85rem 0.9rem;
+}
+
+.ait-toc p {
+    margin: 0 0 0.45rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--muted);
+}
+
+.ait-toc a {
+    display: block;
+    color: var(--page-fg);
+    text-decoration: none;
+    font-size: 0.84rem;
+    padding: 0.28rem 0;
+    line-height: 1.35;
+}
+
+.ait-toc a:hover { color: var(--primary); }
+
+.ait-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.25rem 1.3rem 1.35rem;
+    margin-bottom: 1rem;
+}
+
+.ait-section h2 {
+    margin: 0 0 0.7rem;
+    font-size: 1.28rem;
+}
+
+.ait-section h3 {
+    margin: 1.15rem 0 0.4rem;
+    font-size: 1.05rem;
+}
+
+.ait-section p,
+.ait-section li {
+    line-height: 1.65;
+    font-size: 0.98rem;
+}
+
+.ait-section p { margin: 0.45rem 0 0.7rem; }
+
+.ait-section ul,
+.ait-section ol {
+    margin: 0.3rem 0 0.8rem;
+    padding-left: 1.2rem;
+}
+
+.ait-callout {
+    background: var(--surface-2);
+    border-left: 3px solid var(--accent);
+    border-radius: 8px;
+    padding: 0.75rem 0.9rem;
+    margin: 0.8rem 0;
+}
+
+.ait-callout strong { color: var(--accent); }
+
+.ait-analogy {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 0.75rem 0.9rem;
+    margin: 0.75rem 0;
+    line-height: 1.55;
+}
+
+.ait-label {
+    display: block;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--primary);
+    margin-bottom: 0.25rem;
+}
+
+.ait-diagram {
+    margin: 0.85rem 0 1rem;
+    padding: 0.85rem 0.9rem 0.95rem;
+    border: 1px dashed var(--border);
+    border-radius: 12px;
+    background: var(--surface-2);
+}
+
+.ait-flow,
+.ait-branches {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.ait-flow span,
+.ait-branches span,
+.ait-stack div {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--page-fg);
+    border-radius: 8px;
+    padding: 0.42rem 0.65rem;
+    font-size: 0.82rem;
+    font-weight: 600;
+    line-height: 1.35;
+}
+
+.ait-flow i,
+.ait-branches i {
+    color: var(--primary);
+    font-style: normal;
+    font-weight: 700;
+}
+
+.ait-stack {
+    display: grid;
+    gap: 0.35rem;
+}
+
+.ait-stack div { border-left: 3px solid var(--primary); }
+
+.ait-split {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 0.55rem;
+    align-items: center;
+}
+
+.ait-split ul {
+    margin: 0;
+    padding-left: 1.1rem;
+    font-size: 0.86rem;
+}
+
+.ait-code-label {
+    margin: 0.8rem 0 0.15rem;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--muted);
+}
+
+.ait-table-wrap { overflow-x: auto; margin: 0.6rem 0 0.9rem; }
+
+.ait-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+}
+
+.ait-table th,
+.ait-table td {
+    text-align: left;
+    vertical-align: top;
+    border-bottom: 1px solid var(--border);
+    padding: 0.5rem 0.55rem;
+}
+
+.ait-table th {
+    font-size: 0.75rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--muted);
+}
+
+.ait-code {
+    background: #0f172a;
+    color: #e2e8f0;
+    border-radius: 10px;
+    padding: 0.9rem 1rem;
+    overflow-x: auto;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.82rem;
+    line-height: 1.55;
+    margin: 0.6rem 0 0.9rem;
+}
+
+.ait-code .c { color: #94a3b8; }
+
+.ait-usecase {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 0.8rem 0.9rem;
+    margin: 0.7rem 0;
+    background: var(--surface-2);
+}
+
+.ait-usecase h3 { margin-top: 0; }
+
+.ait-checks { list-style: none; padding-left: 0; }
+.ait-checks li { padding-left: 1.4rem; position: relative; margin: 0.35rem 0; }
+.ait-checks li::before { content: "☐"; position: absolute; left: 0; color: var(--primary); }
+
+.ait-next {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-top: 1.2rem;
+}
+
+.ait-next a {
+    flex: 1;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 0.8rem 0.95rem;
+    text-decoration: none;
+    color: var(--page-fg);
+}
+
+.ait-next a small {
+    display: block;
+    color: var(--muted);
+    font-size: 0.75rem;
+    margin-bottom: 0.15rem;
+}
+
+.ait-source {
+    margin-top: 1.4rem;
+    font-size: 0.88rem;
+    color: var(--muted);
+}
+
+.ait-source a { color: var(--primary); }
+
+@media (max-width: 860px) {
+    .ait-path { grid-template-columns: 1fr 1fr; }
+    .ait-layout { grid-template-columns: 1fr; }
+    .ait-toc { position: static; }
+    .ait-next { flex-direction: column; }
+}

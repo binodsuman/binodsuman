@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <title>LlamaIndex | AI Tutorial | Binod Suman</title>
+    <meta name="description" content="LlamaIndex for beginners and intermediate builders: documents, node parsers, indexes, retrievers, query engines, citations, and when to refuse.">
+    <link rel="canonical" href="https://binodsuman.com/ai-tutorials/llamaindex/">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/site-nav.css">
+    <script src="/js/theme-boot.js"></script>
+    <link rel="stylesheet" href="/css/ai-tutorials.css">
+</head>
+<body class="ait-page">
+<main class="ait-wrap">
+    <nav class="ait-crumb"><a href="/">Home</a> · <a href="/ai-tutorials/">AI Tutorial</a> · LlamaIndex</nav>
+    <header class="ait-hero">
+        <span class="ait-kicker">Data framework</span>
+        <h1>LlamaIndex</h1>
+        <p class="ait-lead">LlamaIndex connects a language model to your documents so it answers from them instead of guessing. The pieces are readers, node parsers, indexes, retrievers, and a query engine. A help-centre bot is the cleanest way to see all of them.</p>
+        <div class="ait-meta"><span class="ait-pill">Intermediate</span><span class="ait-pill">llama-index-core 0.14</span></div>
+    </header>
+    <div class="ait-layout">
+        <aside class="ait-toc">
+            <p>On this page</p>
+            <a href="#pieces">The pieces</a>
+            <a href="#index">Build an index</a>
+            <a href="#query">Ask and cite</a>
+            <a href="#refuse">Refuse when it is missing</a>
+            <a href="#vs">LlamaIndex vs LangChain</a>
+            <a href="#usecases">Use cases</a>
+            <a href="#practice">Practice</a>
+        </aside>
+        <article>
+            <section class="ait-section" id="pieces">
+                <h2>Readers, nodes, indexes, retrievers</h2>
+
+<div class="ait-analogy"><span class="ait-label">Analogy</span>LlamaIndex is a filing cabinet for a model. Loaders put papers in. Splitters cut them. The index is the cabinet. The retriever pulls folders. The query engine writes the reply from those folders.</div>
+<div class="ait-diagram"><span class="ait-label">Layers</span><div class="ait-stack"><div>Query engine — writes the answer from the nodes</div><div>Retriever — finds the closest nodes</div><div>Index — stores embeddings</div><div>Node parser — cuts documents into chunks</div><div>Reader — loads files into Documents</div></div></div>
+<p>The core package is small. Embeddings and vector databases are separate integrations. You can retrieve with a local embedding model and no API key, then attach a chat model when you want prose. Bad PDF extraction makes every later score meaningless. A clean markdown help centre does not need a fancy parser. A scanned invoice often does.</p>
+<p class="ait-code-label">Starter</p><pre class="ait-code">print(&quot;Document -&gt; node parser -&gt; VectorStoreIndex -&gt; as_query_engine&quot;)
+print(&quot;response.source_nodes  # the pages the answer used&quot;)</pre>
+<div class="ait-usecase"><h3>Example</h3><p>A help centre, a wiki, and a folder of runbooks all become Documents with metadata, then an index.</p></div>
+
+                <div class="ait-table-wrap">
+                    <table class="ait-table">
+                        <tr><th>Piece</th><th>What it does</th></tr>
+                        <tr><td>Reader / loader</td><td>Turns a file, page, or row into a <code>Document</code> with text and metadata.</td></tr>
+                        <tr><td>Node parser</td><td>Splits a document into chunks called nodes. This is where chunk size and overlap live.</td></tr>
+                        <tr><td>Index</td><td>Stores nodes so you can find them. A vector index embeds each node.</td></tr>
+                        <tr><td>Retriever</td><td>Given a question, returns the closest nodes.</td></tr>
+                        <tr><td>Query engine</td><td>Retrieves, builds a prompt, asks the LLM, and returns an answer plus sources.</td></tr>
+                    </table>
+                </div>
+                <p>The core package is small. Embeddings, OpenAI, and a specific vector database are separate integration packages. You can run retrieval with a local model such as <code>all-MiniLM-L6-v2</code> and no API key, then attach a real chat model when you want generated answers.</p>
+            </section>
+
+            <section class="ait-section" id="index">
+                <h2>A shop help centre</h2>
+
+<div class="ait-analogy"><span class="ait-label">Analogy</span>Metadata is the tab on the folder. “Staff only” has to be a tab you filter on, or a customer will open that folder.</div>
+<div class="ait-diagram"><span class="ait-label">Data flow</span><div class="ait-flow"><span>Text + metadata</span><i>→</i><span>Embed</span><i>→</i><span>Index</span><i>→</i><span>Filter</span><i>→</i><span>Only customer pages</span></div></div>
+<p>Build the index once, query it many times. Re-index a file when it changes. You do not retrain a model to update a price. One index per client, with a client_id filter on every query, is how you avoid a cross-client leak.</p>
+<p class="ait-code-label">Starter</p><pre class="ait-code">docs = [
+    {&quot;text&quot;: &quot;Returns: 30 days if unused.&quot;, &quot;audience&quot;: &quot;customer&quot;},
+    {&quot;text&quot;: &quot;Staff can override a return up to $25.&quot;, &quot;audience&quot;: &quot;staff&quot;},
+]
+visible = [d for d in docs if d[&quot;audience&quot;] == &quot;customer&quot;]
+print(visible[0][&quot;text&quot;])</pre>
+<div class="ait-usecase"><h3>Example</h3><p>The staff override must not appear for a customer question about earbuds, even if the words “return” match.</p></div>
+
+                <pre class="ait-code">from llama_index.core import Document, VectorStoreIndex, Settings
+from llama_index.embeddings.huggingface import HuggingFaceEmbedding
+
+Settings.embed_model = HuggingFaceEmbedding(model_name="BAAI/bge-small-en-v1.5")
+# Settings.llm = ...  # attach a chat model when you want generated prose
+
+docs = [
+    Document(
+        text="Returns: 30 days if unused, with receipt. Opened earbuds are final sale.",
+        metadata={"page": "returns", "audience": "customer"},
+    ),
+    Document(
+        text="Staff can override a return up to $25 with a manager code.",
+        metadata={"page": "returns-staff", "audience": "staff"},
+    ),
+    Document(
+        text="Shipping is free over $50 and $6 otherwise. Delivery takes 3 to 5 business days.",
+        metadata={"page": "shipping", "audience": "customer"},
+    ),
+]
+index = VectorStoreIndex.from_documents(docs)</pre>
+                <p>Metadata is not decoration. The staff override must not be retrieved for a customer. Filter before you generate.</p>
+            </section>
+
+            <section class="ait-section" id="query">
+                <h2>Ask, and show the page you used</h2>
+
+<div class="ait-analogy"><span class="ait-label">Analogy</span>A citation is the page number in the margin. Users trust “returns” more than a fluent paragraph, and you can debug a bad answer by reading the node that was actually used.</div>
+<div class="ait-diagram"><span class="ait-label">Data flow</span><div class="ait-flow"><span>Question</span><i>→</i><span>Filter</span><i>→</i><span>Top k nodes</span><i>→</i><span>Prompt</span><i>→</i><span>Answer</span><i>→</i><span>source_nodes</span></div></div>
+<p>Print the prompt once. If the node text is missing, or the instruction never says to refuse, no model choice will save you. `similarity_top_k` of 2 is a start. Raise it only when the answer is split across pages.</p>
+<p class="ait-code-label">Starter</p><pre class="ait-code">nodes = [
+    {&quot;page&quot;: &quot;returns&quot;, &quot;score&quot;: 0.82, &quot;text&quot;: &quot;30 days if unused.&quot;},
+    {&quot;page&quot;: &quot;shipping&quot;, &quot;score&quot;: 0.21, &quot;text&quot;: &quot;Free over $50.&quot;},
+]
+best = max(nodes, key=lambda n: n[&quot;score&quot;])
+print(best[&quot;page&quot;], best[&quot;text&quot;])</pre>
+<div class="ait-usecase"><h3>Example</h3><p>“How long do I have to return earbuds?” should show the returns page next to the sentence, not only the sentence.</p></div>
+
+                <pre class="ait-code">from llama_index.core.vector_stores import MetadataFilters, ExactMatchFilter
+
+filters = MetadataFilters(filters=[ExactMatchFilter(key="audience", value="customer")])
+engine = index.as_query_engine(similarity_top_k=2, filters=filters)
+response = engine.query("How long do I have to return earbuds?")
+
+print(response)
+for node in response.source_nodes:
+    print(node.metadata.get("page"), round(node.score or 0, 3))</pre>
+                <p>A good help bot shows the page id next to the answer. Users trust “returns” more than a fluent paragraph, and you can debug a bad answer by reading the node that was actually retrieved.</p>
+                <div class="ait-callout"><strong>Look at the prompt once.</strong> Print the prompt the query engine would send. If the node text is missing, or the instruction says nothing about refusing, no model choice will save you.</div>
+            </section>
+
+            <section class="ait-section" id="refuse">
+                <h2>Refuse when the pages do not know</h2>
+
+<div class="ait-analogy"><span class="ait-label">Analogy</span>Refusal is a valid answer. It is the librarian saying the shelf does not have that book, instead of inventing a book.</div>
+<div class="ait-diagram"><span class="ait-label">Data flow</span><div class="ait-flow"><span>Retrieved text</span><i>→</i><span>Does it contain the fact?</span><i>→</i><span>Answer</span><i>→</i><span>or exactly: I don&#x27;t know</span></div></div>
+<p>Put the refusal sentence in the prompt and demand that exact string, so your UI can branch on it. A chat engine can keep turns, but still embed only the new question. Do not embed the whole transcript as the query or you will retrieve whatever you talked about last Tuesday.</p>
+<p class="ait-code-label">Starter</p><pre class="ait-code">context = &quot;Shipping is free over $50.&quot;
+question = &quot;Do you price-match?&quot;
+print(&quot;I don&#x27;t know&quot; if &quot;price&quot; not in context.lower() else context)</pre>
+<div class="ait-usecase"><h3>Example</h3><p>“Do you price-match?” with no price-match page should be “I don’t know,” not a made-up yes.</p></div>
+
+                <pre class="ait-code">from llama_index.core import PromptTemplate
+
+qa = PromptTemplate(
+    "Context:\n{context_str}\n\n"
+    "Answer the question using only the context. "
+    "If the context does not contain the answer, reply exactly: I don't know.\n"
+    "Question: {query_str}\nAnswer:"
+)
+engine = index.as_query_engine(text_qa_template=qa, similarity_top_k=2, filters=filters)
+print(engine.query("Do you price-match other stores?"))</pre>
+                <div class="ait-usecase">
+                    <h3>Where this shows up at work</h3>
+                    <ul>
+                        <li><strong>Support:</strong> policy pages in, a link to the page out. Agents stop pasting outdated macros.</li>
+                        <li><strong>Internal search:</strong> runbooks and a wiki. Staff need the paragraph, not a paraphrase that drops a step.</li>
+                        <li><strong>Docs that change weekly:</strong> re-index the changed file. You do not retrain a model to update a price.</li>
+                        <li><strong>Contracts:</strong> one index per client, metadata <code>client_id</code>, filters on every query. Cross-client retrieval is a data leak.</li>
+                    </ul>
+                </div>
+            </section>
+
+            <section class="ait-section" id="vs">
+                <h2>LlamaIndex, LangChain, and a vector database</h2>
+
+<div class="ait-analogy"><span class="ait-label">Analogy</span>LlamaIndex is the filing cabinet. LangChain is the office manager who decides when to open it. Many teams use both.</div>
+<div class="ait-diagram"><span class="ait-label">Data flow</span><div class="ait-flow"><span>Documents</span><i>→</i><span>LlamaIndex retrieve</span><i>→</i><span>Chunks</span><i>→</i><span>LangGraph decides</span><i>→</i><span>Answer</span></div></div>
+<p>You do not have to adopt the whole framework. A vector index is a convenience over embed, store, and search. If you already have Postgres with pgvector, keep it and use LlamaIndex only for readers. Hosted parsers help on messy PDFs. They are overhead on markdown.</p>
+<p class="ait-code-label">Starter</p><pre class="ait-code">def tool_retrieve(question: str) -&gt; str:
+    return &quot;Returns: 30 days if unused.&quot;  # the cabinet
+
+print(&quot;agent may call tool_retrieve, then answer&quot;)</pre>
+<div class="ait-usecase"><h3>Example</h3><p>A support agent that sometimes must look up a policy, and sometimes must look up an order, wants a graph around retrieval, not retrieval as the whole app.</p></div>
+
+                <p>LlamaIndex is strongest when the job is “documents in, grounded answer out”: loaders, parsing, indexes, citations. LangChain is strongest when the job is “compose a model, tools, and an agent”. Many teams use LlamaIndex (or a plain vector store) for retrieval and LangGraph for the agent that decides when to retrieve.</p>
+                <p>You do not have to adopt the whole framework. <code>VectorStoreIndex</code> is a convenience over embed → store → search. If you already have Postgres with pgvector, you can keep it and only use LlamaIndex’s readers.</p>
+                <p>Hosted add-ons exist for hard documents: LlamaParse for messy PDFs, LlamaCloud for a managed index. A clean markdown help centre does not need them. A scanned invoice PDF often does, because bad extraction makes every later score meaningless.</p>
+            </section>
+
+            <section class="ait-section" id="usecases">
+                <h2>Intermediate patterns</h2>
+
+<div class="ait-analogy"><span class="ait-label">Analogy</span>Intermediate retrieval is about the window you show the model. Find a small precise chunk, then hand it the surrounding section so the exception clause is still visible.</div>
+<div class="ait-diagram"><span class="ait-label">Data flow</span><div class="ait-flow"><span>Small chunk hits</span><i>→</i><span>Expand to parent section</span><i>→</i><span>Router picks an index</span><i>→</i><span>Answer</span></div></div>
+<p>A router sends shipping questions to the shipping index, not the company dump. Sentence-window or parent chunks fix the “30 days without the exception” bug. Re-index changed files. Do not rebuild the world for one edited paragraph.</p>
+<p class="ait-code-label">Starter</p><pre class="ait-code">hit = &quot;30 days&quot;
+parent = &quot;Returns: 30 days if unused. Opened earbuds are final sale.&quot;
+print(&quot;send the parent, not only:&quot;, hit)</pre>
+<div class="ait-usecase"><h3>Example</h3><p>Contracts: one index per client. Runbooks: retrieve the step, then show the heading above it so step 3 is not missing step 2’s warning.</p></div>
+
+                <ul>
+                    <li><strong>Sentence window or parent chunks:</strong> retrieve a small chunk for precision, then pass the surrounding section to the model so it sees the exception clause.</li>
+                    <li><strong>Router:</strong> a question about shipping should hit the shipping index, not the entire company dump.</li>
+                    <li><strong>Chat engine:</strong> <code>index.as_chat_engine()</code> keeps turns. Still send only the new question through retrieval; do not embed the whole transcript as the query.</li>
+                </ul>
+            </section>
+
+            <section class="ait-section" id="practice">
+                <h2>Practice</h2>
+                <ul class="ait-checks">
+                    <li>Add a gift-card page and ask a question that should hit it.</li>
+                    <li>Remove the audience filter and show how a customer can see the staff override.</li>
+                    <li>Ask a question the docs do not answer and confirm the refusal string.</li>
+                    <li>Print <code>source_nodes</code> and decide if top-k should be 2 or 4.</li>
+                </ul>
+            </section>
+            <div class="ait-next">
+                <a href="/ai-tutorials/rag/"><small>Previous</small>RAG &amp; RAGAS</a>
+                <a href="/ai-tutorials/langgraph/"><small>Next</small>LangGraph</a>
+            </div>
+        </article>
+    </div>
+</main>
+<script src="/js/site-nav.js"></script>
+</body>
+</html>

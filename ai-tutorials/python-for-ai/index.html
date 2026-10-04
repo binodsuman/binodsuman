@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <title>Python for AI | AI Tutorial | Binod Suman</title>
+    <meta name="description" content="Python for AI beginners: data types, functions, JSON, errors, type hints, Pydantic, and async, taught on a support-ticket triage program.">
+    <link rel="canonical" href="https://binodsuman.com/ai-tutorials/python-for-ai/">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/site-nav.css">
+    <script src="/js/theme-boot.js"></script>
+    <link rel="stylesheet" href="/css/ai-tutorials.css">
+</head>
+<body class="ait-page">
+<main class="ait-wrap">
+    <nav class="ait-crumb"><a href="/">Home</a> · <a href="/ai-tutorials/">AI Tutorial</a> · Python for AI</nav>
+    <header class="ait-hero">
+        <span class="ait-kicker">Language · one program</span>
+        <h1>Python for AI</h1>
+        <p class="ait-lead">Most model SDKs and agent frameworks are Python-first. You do not need the whole language. You need text, dicts, functions, files, errors, type hints, Pydantic, and async — used on the same support-ticket program until it is real.</p>
+        <div class="ait-meta"><span class="ait-pill">Beginner</span><span class="ait-pill">Python 3.10+</span></div>
+    </header>
+    <div class="ait-layout">
+        <aside class="ait-toc">
+            <p>On this page</p>
+            <a href="#why">Why this slice</a>
+            <a href="#data">Data the model returns</a>
+            <a href="#functions">Functions and tools</a>
+            <a href="#files">Files and JSON</a>
+            <a href="#errors">Errors and retries</a>
+            <a href="#types">Types and Pydantic</a>
+            <a href="#async">Async</a>
+            <a href="#project">Ticket triage</a>
+            <a href="#practice">Practice</a>
+        </aside>
+        <article>
+            <section class="ait-section" id="why">
+                <h2>Why AI code looks like this</h2>
+
+<div class="ait-analogy"><span class="ait-label">Analogy</span>Python for AI is a pocket knife, not the whole toolbox. Five tickets can teach the whole pocket knife: read them, label them, check the label, save it.</div>
+<div class="ait-diagram"><span class="ait-label">Data flow</span><div class="ait-flow"><span>File of tickets</span><i>→</i><span>Your function</span><i>→</i><span>Model or stand-in</span><i>→</i><span>Check the shape</span><i>→</i><span>Save JSON</span></div></div>
+<p>OpenAI, Anthropic, Google, Hugging Face, LangChain, and LlamaIndex all ship Python first. Early on, a stand-in function can pretend to be the model so you learn the program with no API key. Swap the stand-in for a real client at the end. Use a virtual environment and pin packages. AI libraries move fast.</p>
+<p class="ait-code-label">Starter</p><pre class="ait-code">tickets = [
+    {&quot;id&quot;: &quot;T1&quot;, &quot;text&quot;: &quot;Charged twice for order A-1001&quot;},
+    {&quot;id&quot;: &quot;T2&quot;, &quot;text&quot;: &quot;Package has not moved in 6 days&quot;},
+]
+print(len(tickets), &quot;tickets ready&quot;)</pre>
+<div class="ait-usecase"><h3>Example</h3><p>A nightly job that labels 500 tickets has the same shape as a chatbot: load work, call a model, validate, persist.</p></div>
+
+                <p>OpenAI, Anthropic, Google, Hugging Face, LangChain, and LlamaIndex all ship Python first. The same five tickets can teach the whole slice: read them from a file, ask a model to label each one, check the label, save the result.</p>
+                <pre class="ait-code">tickets = [
+    {"id": "T1", "text": "Charged twice for order A-1001"},
+    {"id": "T2", "text": "Package has not moved in 6 days"},
+    {"id": "T3", "text": "How do I change my email?"},
+]</pre>
+                <p>Early on, a stand-in function can pretend to be the model so you learn the program with no API key. Swap in a real client at the end.</p>
+            </section>
+
+            <section class="ait-section" id="data">
+                <h2>Strings, lists, and dictionaries</h2>
+
+<div class="ait-analogy"><span class="ait-label">Analogy</span>A dictionary is a labeled drawer. A list is a row of drawers. Model JSON becomes drawers you open with strings, not with positions.</div>
+<div class="ait-diagram"><span class="ait-label">Data flow</span><div class="ait-flow"><span>JSON text</span><i>→</i><span>dict</span><i>→</i><span>list of dicts</span><i>→</i><span>filter</span><i>→</i><span>the rows you keep</span></div></div>
+<p>You will write this comprehension again to drop low-score search hits. Index with strings (ticket['id']), not with hope. If a key might be missing, use .get('priority', 'low') so one bad row does not crash the batch.</p>
+<p class="ait-code-label">Starter</p><pre class="ait-code">tickets = [{&quot;id&quot;: &quot;T1&quot;, &quot;text&quot;: &quot;refund&quot;}, {&quot;id&quot;: &quot;T2&quot;, &quot;text&quot;: &quot;hello&quot;}]
+hot = [t for t in tickets if &quot;refund&quot; in t[&quot;text&quot;]]
+print(hot[0][&quot;id&quot;])</pre>
+<div class="ait-usecase"><h3>Example</h3><p>An on-call bot keeps only incidents where severity is “page.” Same filter, different keys.</p></div>
+
+                <p>A ticket is a dictionary. A batch is a list of dictionaries. Model JSON comes back as text, then becomes a dictionary you index with strings.</p>
+                <pre class="ait-code">ticket = tickets[0]
+print(ticket["id"], ticket["text"])
+
+labels = []
+for ticket in tickets:
+    labels.append({"id": ticket["id"], "topic": "billing"})
+
+# same idea, written as a comprehension
+ids = [t["id"] for t in tickets if "order" in t["text"].lower()]</pre>
+                <div class="ait-usecase">
+                    <h3>Use case: log lines into rows</h3>
+                    <p>An on-call bot reads a list of incident dicts (<code>service</code>, <code>severity</code>, <code>message</code>) and keeps only <code>severity == "page"</code>. That filter is the same comprehension you will later use to drop low-score RAG chunks.</p>
+                </div>
+            </section>
+
+            <section class="ait-section" id="functions">
+                <h2>Functions are how tools are born</h2>
+
+<div class="ait-analogy"><span class="ait-label">Analogy</span>A tool is a function with a name, arguments, and a return value. Frameworks only wrap that function. Write the plain function first.</div>
+<div class="ait-diagram"><span class="ait-label">Data flow</span><div class="ait-flow"><span>Arguments</span><i>→</i><span>Function</span><i>→</i><span>Return value</span><i>→</i><span>Framework wraps it as a tool</span></div></div>
+<p>Default arguments show up everywhere: `def search(query: str, k: int = 4)`. The default is what you get when the model forgets to pass k. Keep the docstring honest. Later, that docstring is what the model reads to decide whether to call the tool.</p>
+<p class="ait-code-label">Starter</p><pre class="ait-code">def classify(text: str) -&gt; dict:
+    if &quot;refund&quot; in text.lower():
+        return {&quot;topic&quot;: &quot;billing&quot;, &quot;priority&quot;: &quot;high&quot;}
+    return {&quot;topic&quot;: &quot;other&quot;, &quot;priority&quot;: &quot;low&quot;}
+
+print(classify(&quot;Please refund order A17&quot;))</pre>
+<div class="ait-usecase"><h3>Example</h3><p>lookup_order(order_id) is this same shape. The framework adds a schema. Your code still just returns a string.</p></div>
+
+                <p>A tool is a function with a clear name, arguments, and a return value. Write the plain function first. Frameworks only wrap it.</p>
+                <pre class="ait-code">def classify(text: str) -&gt; dict:
+    lowered = text.lower()
+    if "charged" in lowered or "refund" in lowered:
+        return {"topic": "billing", "priority": "high"}
+    if "package" in lowered or "shipping" in lowered:
+        return {"topic": "shipping", "priority": "medium"}
+    return {"topic": "other", "priority": "low"}
+
+print(classify("Charged twice for order A-1001"))</pre>
+                <p>Default arguments show up constantly: <code>def search(query: str, k: int = 4)</code>. Keyword arguments keep call sites readable when a client has ten options.</p>
+            </section>
+
+            <section class="ait-section" id="files">
+                <h2>Files and JSON</h2>
+
+<div class="ait-analogy"><span class="ait-label">Analogy</span>JSON on disk is the contract between tonight’s script and tomorrow’s script. If you cannot round-trip it, you do not have a pipeline.</div>
+<div class="ait-diagram"><span class="ait-label">Data flow</span><div class="ait-flow"><span>Path</span><i>→</i><span>read text</span><i>→</i><span>json.loads</span><i>→</i><span>your program</span><i>→</i><span>json.dumps</span><i>→</i><span>write text</span></div></div>
+<p>json.loads reads a string. json.load reads a file object. Always pass encoding utf-8. Model output often arrives wrapped in a markdown fence. Strip the fence or, better, ask for structured output so you never parse by hand.</p>
+<p class="ait-code-label">Starter</p><pre class="ait-code">import json
+raw = &#x27;{&quot;id&quot;: &quot;T1&quot;, &quot;text&quot;: &quot;refund&quot;}&#x27;
+ticket = json.loads(raw)
+print(ticket[&quot;id&quot;])
+print(json.dumps(ticket))</pre>
+<div class="ait-usecase"><h3>Example</h3><p>Goldens for an eval, a config file, and a batch of labels are three files with the same two functions: loads and dumps.</p></div>
+
+                <p>Goldens, configs, and model replies live in JSON. Always set the encoding, and use a <code>with</code> block so the file closes.</p>
+                <pre class="ait-code">import json
+from pathlib import Path
+
+raw = Path("tickets.json").read_text(encoding="utf-8")
+tickets = json.loads(raw)
+
+result = {"id": "T1", "topic": "billing", "priority": "high"}
+Path("out.json").write_text(json.dumps(result, indent=2), encoding="utf-8")</pre>
+                <div class="ait-callout"><strong>Gotcha.</strong> <code>json.loads</code> reads a string. <code>json.load</code> reads a file object. Model output often has a markdown fence around the JSON. Strip <code>```json</code> before you parse, or ask for structured output so you never parse by hand.</div>
+            </section>
+
+            <section class="ait-section" id="errors">
+                <h2>Errors, timeouts, retries</h2>
+
+<div class="ait-analogy"><span class="ait-label">Analogy</span>A retry is knocking again when the network blinked. It is not knocking again when you typed the wrong address. Those are different errors.</div>
+<div class="ait-diagram"><span class="ait-label">Data flow</span><div class="ait-flow"><span>Call</span><i>→</i><span>Timeout or 429</span><i>→</i><span>Wait</span><i>→</i><span>Try again</span><i>→</i><span>Give up with a clear error</span></div></div>
+<p>Backoff means 0.5s, then 1s, then 2s, so you do not stampede a rate limit. Catch a narrow error. A 400 from a bad prompt will fail forever and burn quota if you retry it. After the last try, raise a new error that names how many attempts you made.</p>
+<p class="ait-code-label">Starter</p><pre class="ait-code">def call():
+    raise TimeoutError(&quot;slow model&quot;)
+
+try:
+    call()
+except TimeoutError as exc:
+    print(&quot;retry this one:&quot;, exc)
+# do not retry ValueError from a broken prompt; it fails the same way every time</pre>
+<div class="ait-usecase"><h3>Example</h3><p>A nightly ticket job should retry rate limits and timeouts. It should park a bad prompt in errors.json and move on.</p></div>
+
+                <p>Model calls fail: network, rate limit, bad JSON, empty content. Catch the narrow error, wait, try again, then give up with a message a human can read.</p>
+                <pre class="ait-code">import time
+
+def call_with_retry(fn, attempts=3):
+    last_error = None
+    for n in range(attempts):
+        try:
+            return fn()
+        except (TimeoutError, ValueError) as exc:
+            last_error = exc
+            time.sleep(0.5 * (2 ** n))  # 0.5s, 1s, 2s
+    raise RuntimeError(f"gave up after {attempts} tries") from last_error</pre>
+                <div class="ait-usecase">
+                    <h3>Use case: a nightly ticket job</h3>
+                    <p>Five hundred tickets, a few 429s from the provider. Retry with backoff on rate limits. Do not retry a 400 caused by a broken prompt — that will fail the same way every time and burn the quota.</p>
+                </div>
+            </section>
+
+            <section class="ait-section" id="types">
+                <h2>Type hints and Pydantic</h2>
+
+<div class="ait-analogy"><span class="ait-label">Analogy</span>A type hint is a label on the drawer. Pydantic is the lock that checks the label when a model, not you, fills the drawer.</div>
+<div class="ait-diagram"><span class="ait-label">Data flow</span><div class="ait-flow"><span>Model text</span><i>→</i><span>Pydantic model</span><i>→</i><span>Valid object or error</span><i>→</i><span>dict for your database</span></div></div>
+<p>Hints alone do not check anything at runtime. Pydantic does. A missing field should fail here, not three services later. `model_dump()` is the plain dict you save. Field descriptions later become instructions to the model when you pass the class to a structured-output API.</p>
+<p class="ait-code-label">Starter</p><pre class="ait-code">from pydantic import BaseModel
+
+class TicketLabel(BaseModel):
+    topic: str
+    priority: str
+
+label = TicketLabel(topic=&quot;billing&quot;, priority=&quot;high&quot;)
+print(label.model_dump())</pre>
+<div class="ait-usecase"><h3>Example</h3><p>A clinic intake form with patient_name, symptom, and urgent: bool is the same lock. A wrong type never reaches the database.</p></div>
+
+                <p>A type hint documents the shape. Pydantic checks it at runtime, which is what you want when a model fills the fields.</p>
+                <pre class="ait-code">from pydantic import BaseModel, Field
+
+class TicketLabel(BaseModel):
+    topic: str = Field(description="billing, shipping, or other")
+    priority: str = Field(description="low, medium, or high")
+
+label = TicketLabel(topic="billing", priority="high")
+print(label.model_dump())</pre>
+                <p>If the model returns <code>priority: 1</code> and you declared <code>str</code>, Pydantic can coerce or reject it depending on the version and config. Rejection is what you want for labels. Later LangChain pages pass this same class to <code>with_structured_output</code>.</p>
+                <div class="ait-usecase">
+                    <h3>Use case: an intake form</h3>
+                    <p>A clinic bot must return <code>patient_name</code>, <code>symptom</code>, and <code>urgent: bool</code>. Pydantic is the gate before that object touches a database. A missing field fails here, not three services later.</p>
+                </div>
+            </section>
+
+            <section class="ait-section" id="async">
+                <h2>Async when you wait on many calls</h2>
+
+<div class="ait-analogy"><span class="ait-label">Analogy</span>Async is waiting for several phone calls at once. A model call is mostly waiting. A loop waits in a line. gather waits side by side.</div>
+<div class="ait-diagram"><span class="ait-label">Data flow</span><div class="ait-flow"><span>20 tickets</span><i>→</i><span>20 waiting calls</span><i>→</i><span>gather</span><i>→</i><span>all results</span></div></div>
+<p>Twenty calls of one second each take about twenty seconds in a line and about one second side by side. Cap concurrency with a semaphore of 5 so you do not hit the rate limit. Do not mix time.sleep into async code. It blocks the whole loop. Use asyncio.sleep.</p>
+<p class="ait-code-label">Starter</p><pre class="ait-code">import asyncio
+
+async def label_one(ticket_id: str) -&gt; str:
+    await asyncio.sleep(0.01)  # stand-in for the network
+    return ticket_id
+
+async def main():
+    done = await asyncio.gather(label_one(&quot;T1&quot;), label_one(&quot;T2&quot;))
+    print(done)
+
+asyncio.run(main())</pre>
+<div class="ait-usecase"><h3>Example</h3><p>Labeling a queue of support tickets, embedding a folder of files, and checking ten goldens are the three places this pays off first.</p></div>
+
+                <p>A model call is mostly waiting. <code>async</code> lets you wait on several at once instead of in a line.</p>
+                <pre class="ait-code">import asyncio
+
+async def label_one(ticket):
+    await asyncio.sleep(0.1)  # stand-in for the network
+    return {"id": ticket["id"], **classify(ticket["text"])}
+
+async def main():
+    tasks = [label_one(t) for t in tickets]
+    done = await asyncio.gather(*tasks)
+    print(done)
+
+asyncio.run(main())</pre>
+                <p>Rule of thumb: if you label 20 tickets and each call takes 1 second, a loop takes about 20 seconds. <code>gather</code> takes about 1 second plus a little overhead. Cap concurrency (a semaphore of 5) so you do not stampede the rate limit.</p>
+            </section>
+
+            <section class="ait-section" id="project">
+                <h2>Put it together: ticket triage</h2>
+
+<div class="ait-analogy"><span class="ait-label">Analogy</span>The finished program is a sandwich: load, call, check, save. Every framework you meet later is seasoning on that sandwich.</div>
+<div class="ait-diagram"><span class="ait-label">Data flow</span><div class="ait-flow"><span>tickets.json</span><i>→</i><span>stand-in or model</span><i>→</i><span>Pydantic</span><i>→</i><span>labels.json</span></div></div>
+<p>Keep the stand-in until the shape is right. Then replace only `stand_in` with a real client. Failures should land in an errors file, not disappear into a default label, once you care about quality. Pin the packages in requirements.txt.</p>
+<p class="ait-code-label">Starter</p><pre class="ait-code">import json
+from pydantic import BaseModel, ValidationError
+
+class TicketLabel(BaseModel):
+    topic: str
+    priority: str
+
+def stand_in(text: str) -&gt; str:
+    topic = &quot;billing&quot; if &quot;refund&quot; in text.lower() else &quot;other&quot;
+    return json.dumps({&quot;topic&quot;: topic, &quot;priority&quot;: &quot;low&quot;})
+
+try:
+    print(TicketLabel.model_validate_json(stand_in(&quot;refund me&quot;)))
+except ValidationError as exc:
+    print(&quot;bad model output&quot;, exc.error_count())</pre>
+<div class="ait-usecase"><h3>Example</h3><p>That sandwich is an intake bot, a nightly classifier, and the inside of a RAG eval. The files change. The order does not.</p></div>
+
+                <pre class="ait-code">import json
+from pathlib import Path
+from pydantic import BaseModel, Field, ValidationError
+
+class TicketLabel(BaseModel):
+    topic: str = Field(pattern="^(billing|shipping|other)$")
+    priority: str = Field(pattern="^(low|medium|high)$")
+
+def stand_in_model(text: str) -&gt; str:
+    guess = classify(text)
+    return json.dumps(guess)
+
+def triage(path: str) -&gt; list[dict]:
+    tickets = json.loads(Path(path).read_text(encoding="utf-8"))
+    saved = []
+    for ticket in tickets:
+        try:
+            label = TicketLabel.model_validate_json(stand_in_model(ticket["text"]))
+        except ValidationError:
+            label = TicketLabel(topic="other", priority="low")
+        saved.append({"id": ticket["id"], **label.model_dump()})
+    Path("labels.json").write_text(json.dumps(saved, indent=2), encoding="utf-8")
+    return saved</pre>
+                <p>That is the whole shape of an AI program: load work, call a model, validate, persist. Frameworks add tracing and tools around this loop. They do not replace it.</p>
+                <div class="ait-callout"><strong>Environments.</strong> Use a virtual environment (<code>python -m venv .venv</code>) and pin packages in <code>requirements.txt</code>. AI libraries move fast; “it worked on my laptop” is usually an unpinned upgrade.</div>
+            </section>
+
+            <section class="ait-section" id="practice">
+                <h2>Practice</h2>
+                <ul class="ait-checks">
+                    <li>Add a fourth ticket and a rule so “password reset” becomes topic <code>account</code>. Update the regex.</li>
+                    <li>Save failed validations to <code>errors.json</code> instead of silently relabeling them.</li>
+                    <li>Rewrite <code>triage</code> with <code>asyncio.gather</code> and a semaphore of 3.</li>
+                    <li>Explain <code>model_dump()</code> versus printing the Pydantic object.</li>
+                </ul>
+            </section>
+            <div class="ait-next">
+                <a href="/ai-tutorials/generative-ai/"><small>Previous</small>Generative AI</a>
+                <a href="/ai-tutorials/llm-fundamentals/"><small>Next</small>LLM Fundamentals</a>
+            </div>
+        </article>
+    </div>
+</main>
+<script src="/js/site-nav.js"></script>
+</body>
+</html>

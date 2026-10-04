@@ -38,6 +38,7 @@
                         <li><a href="/system-prompts/" class="nav-link" data-nav="system-prompts">System Prompt</a></li>
                     </ul>
                 </li>
+                <li><a href="/ai-tutorials/" class="nav-link tutorials-link" data-nav="ai-tutorials">AI Tutorial</a></li>
                 <li><a href="/tools/" class="nav-link" data-nav="dev-tools">Tools</a></li>
                 <li><a href="/study-planner/" class="nav-link" data-nav="study-planner">Study Planner</a></li>
             </ul>
@@ -135,6 +136,8 @@
             markChildActive('llm-prompt', 'slash-prompt');
         } else if (path === '/system-prompts' || path.endsWith('/system-prompts')) {
             markChildActive('llm-prompt', 'system-prompts');
+        } else if (path === '/ai-tutorials' || path.startsWith('/ai-tutorials/')) {
+            document.querySelector('[data-nav="ai-tutorials"]')?.classList.add('active-child');
         } else if (path === '/tools' || path.endsWith('/tools')) {
             document.querySelector('[data-nav="dev-tools"]')?.classList.add('active-child');
         } else if (path === '/study-planner' || path.endsWith('/study-planner')) {

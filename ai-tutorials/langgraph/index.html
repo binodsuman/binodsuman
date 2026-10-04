@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <title>LangGraph | AI Tutorial | Binod Suman</title>
+    <meta name="description" content="LangGraph for beginners and intermediate builders: state, nodes, edges, conditional loops, checkpoints, and human approval.">
+    <link rel="canonical" href="https://binodsuman.com/ai-tutorials/langgraph/">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/site-nav.css">
+    <script src="/js/theme-boot.js"></script>
+    <link rel="stylesheet" href="/css/ai-tutorials.css">
+</head>
+<body class="ait-page">
+<main class="ait-wrap">
+    <nav class="ait-crumb"><a href="/">Home</a> · <a href="/ai-tutorials/">AI Tutorial</a> · LangGraph</nav>
+    <header class="ait-hero">
+        <span class="ait-kicker">Graph and workflow</span>
+        <h1>LangGraph</h1>
+        <p class="ait-lead">LangGraph builds agents as graphs. Small Python functions share one state dictionary, and edges decide which function runs next. Loops, memory, and a pause for a human are normal, not special cases.</p>
+        <div class="ait-meta"><span class="ait-pill">Intermediate</span><span class="ait-pill">LangGraph 1.x · Python 3.10+</span></div>
+    </header>
+    <div class="ait-layout">
+        <aside class="ait-toc">
+            <p>On this page</p>
+            <a href="#why">Why a graph</a>
+            <a href="#blog">A fixed workflow</a>
+            <a href="#branch">A branch</a>
+            <a href="#agent">A tool loop</a>
+            <a href="#human">Human approval</a>
+            <a href="#when">When to use it</a>
+            <a href="#practice">Practice</a>
+        </aside>
+        <article>
+            <section class="ait-section" id="why">
+                <h2>Nodes, edges, state</h2>
+
+<div class="ait-analogy"><span class="ait-label">Analogy</span>A graph is a board game. Nodes are squares. State is the token you move. Edges are the arrows. Because an arrow can point backward, a square can be repeated until the job is done.</div>
+<div class="ait-diagram"><span class="ait-label">Data flow</span><div class="ait-flow"><span>State dict</span><i>→</i><span>Node function</span><i>→</i><span>Partial update</span><i>→</i><span>Edge</span><i>→</i><span>Next node</span></div></div>
+<p>LangChain gives you models and tools. LangGraph decides the order and keeps state. One model call with no branch does not need a graph. Reach for one when the path depends on a decision, a retry, or a person. Returning a partial dict merges. Replacing the whole message list by accident wipes history.</p>
+<p class="ait-code-label">Starter</p><pre class="ait-code">state = {&quot;url&quot;: &quot;https://example.com&quot;, &quot;title&quot;: &quot;&quot;}
+
+def write_title(state):
+    return {&quot;title&quot;: &quot;Notes&quot;}  # merge this key; do not rebuild the whole dict
+
+print({**state, **write_title(state)})</pre>
+<div class="ait-usecase"><h3>Example</h3><p>Fetch transcript, then title, then post is a graph even though nobody chooses the next step. The names make retries obvious.</p></div>
+
+                <p>A node is a function. State is one dictionary (or a typed dict) those functions read and update. An edge says which node runs after which. Because an edge can point backward, a step can repeat until the job is done.</p>
+                <p>LangChain gives you models, messages, and tools. LangGraph decides the order and keeps the state. For one model call with no branch, a plain function is simpler. Reach for a graph when the path depends on a decision, a retry, or a person.</p>
+            </section>
+
+            <section class="ait-section" id="blog">
+                <h2>Example: YouTube video to a blog post</h2>
+
+<div class="ait-analogy"><span class="ait-label">Analogy</span>A fixed workflow is a recipe card. The graph does not make it smarter. It makes each step a named station you can retry without rerunning the whole recipe.</div>
+<div class="ait-diagram"><span class="ait-label">Data flow</span><div class="ait-flow"><span>START</span><i>→</i><span>Fetch</span><i>→</i><span>Title</span><i>→</i><span>Post</span><i>→</i><span>END</span></div></div>
+<p>The same stations show up in real jobs: invoice PDF to fields to a ledger row, a pull request to tests to a comment, classify then retrieve then draft. Put each station in its own function so a failure names the station.</p>
+<p class="ait-code-label">Starter</p><pre class="ait-code">from typing import TypedDict
+
+class BlogState(TypedDict):
+    url: str
+    title: str
+
+def fetch(state: BlogState) -&gt; dict:
+    return {&quot;title&quot;: &quot;How agents keep state&quot;}
+
+print(fetch({&quot;url&quot;: &quot;https://youtu.be/demo&quot;, &quot;title&quot;: &quot;&quot;}))</pre>
+<div class="ait-usecase"><h3>Example</h3><p>A video-to-blog pipeline that fails on the transcript should not call the writing model. The edge into “title” never runs.</p></div>
+
+                <p>Three fixed steps: pull a transcript, write a title from it, write the post from both. Nothing here needs a model to choose the next node. The graph still helps because each step has a name, a state field, and a place to retry.</p>
+                <pre class="ait-code">from typing import TypedDict
+from langgraph.graph import StateGraph, START, END
+
+class BlogState(TypedDict):
+    url: str
+    transcript: str
+    title: str
+    post: str
+
+def fetch_transcript(state: BlogState) -&gt; dict:
+    # Real code calls a transcript API. This stand-in keeps the shape obvious.
+    return {"transcript": f"Transcript of {state['url']}: agents, tools, and state."}
+
+def write_title(state: BlogState) -&gt; dict:
+    return {"title": "How agents keep state"}
+
+def write_post(state: BlogState) -&gt; dict:
+    return {"post": f"# {state['title']}\n\n{state['transcript']}"}
+
+graph = StateGraph(BlogState)
+graph.add_node("fetch", fetch_transcript)
+graph.add_node("title", write_title)
+graph.add_node("post", write_post)
+graph.add_edge(START, "fetch")
+graph.add_edge("fetch", "title")
+graph.add_edge("title", "post")
+graph.add_edge("post", END)
+app = graph.compile()
+print(app.invoke({"url": "https://youtu.be/demo", "transcript": "", "title": "", "post": ""}))</pre>
+                <div class="ait-usecase">
+                    <h3>Same shape, other jobs</h3>
+                    <ul>
+                        <li>Invoice PDF → fields → ledger row → email to finance.</li>
+                        <li>Pull request → tests → summary comment. The test node can loop back once if the command fails.</li>
+                        <li>Support macro: classify → retrieve policy → draft → send.</li>
+                    </ul>
+                </div>
+            </section>
+
+            <section class="ait-section" id="branch">
+                <h2>A conditional edge</h2>
+
+<div class="ait-analogy"><span class="ait-label">Analogy</span>A conditional edge is a fork in the road. The sign is a function that reads state and returns the name of the next square. Cap the loop or the fork points at itself forever.</div>
+<div class="ait-diagram"><span class="ait-label">Data flow</span><div class="ait-flow"><span>Fetch result</span><i>→</i><span>route()</span><i>→</i><span>title  or  fetch again</span><i>→</i><span>stop after N tries</span></div></div>
+<p>Store `attempts` in state. Graphs make the loop visible. They do not make it safe. Map every return value of `route` to a real node, including the failure node.</p>
+<p class="ait-code-label">Starter</p><pre class="ait-code">def route(transcript: str, attempts: int) -&gt; str:
+    if attempts &gt;= 2:
+        return &quot;give_up&quot;
+    if len(transcript) &lt; 20:
+        return &quot;fetch&quot;
+    return &quot;title&quot;
+
+print(route(&quot;&quot;, 1))</pre>
+<div class="ait-usecase"><h3>Example</h3><p>A short transcript retries once. A second failure should land on an error node a human can see, not a third silent fetch.</p></div>
+
+                <pre class="ait-code">def route(state: BlogState) -&gt; str:
+    if len(state["transcript"]) &lt; 20:
+        return "fetch"   # try again, or swap in a clearer error node
+    return "title"
+
+graph.add_conditional_edges("fetch", route, {"fetch": "fetch", "title": "title"})</pre>
+                <p>Cap the retries in state (<code>attempts: int</code>) or this edge will loop forever. Graphs make the loop visible. They do not make it safe by themselves.</p>
+            </section>
+
+            <section class="ait-section" id="agent">
+                <h2>A support agent that chooses tools</h2>
+
+<div class="ait-analogy"><span class="ait-label">Analogy</span>A tool loop is a conversation between a model and a toolbox. The model asks. The tool node answers. The edge back to the model is the loop. Text with no tool call is the exit.</div>
+<div class="ait-diagram"><span class="ait-label">Data flow</span><div class="ait-flow"><span>User</span><i>→</i><span>Model</span><i>→</i><span>Tool call?</span><i>→</i><span>Tool node</span><i>→</i><span>Model</span><i>→</i><span>Final text</span></div></div>
+<p>`create_react_agent` is a prebuilt graph: model node, tool node, loop. When refunds must not take the same path as status checks, write the nodes yourself. Streaming shows each node as it finishes, which is how you see “it refunded before it looked up the order.”</p>
+<p class="ait-code-label">Starter</p><pre class="ait-code">ORDERS = {&quot;A17&quot;: &quot;shipped on 3 March&quot;}
+
+def lookup_order(order_id: str) -&gt; str:
+    return ORDERS.get(order_id, &quot;unknown&quot;)
+
+print(lookup_order(&quot;A17&quot;))</pre>
+<div class="ait-usecase"><h3>Example</h3><p>“Where is A17?” may call lookup and answer. “Refund A17” should take a different edge that stops for a person.</p></div>
+
+                <p>The user asks “where is order A17?”. One node calls the model. If the model requested a tool, a second node runs it and loops back. If the model answered in text, the graph ends.</p>
+                <pre class="ait-code">from langgraph.prebuilt import create_react_agent
+from langchain.tools import tool
+
+ORDERS = {"A17": "shipped on 3 March", "C40": "waiting for stock"}
+
+@tool
+def lookup_order(order_id: str) -&gt; str:
+    """Look up shipping status by order id, such as A17."""
+    status = ORDERS.get(order_id)
+    return f"{order_id} {status}." if status else f"{order_id} is unknown."
+
+# agent = create_react_agent(model, tools=[lookup_order])
+# agent.invoke({"messages": [("user", "Where is order A17?")]})
+print(lookup_order.invoke({"order_id": "A17"}))</pre>
+                <p><code>create_react_agent</code> is a prebuilt graph: model node, tool node, loop. When you outgrow it, write the nodes yourself so the branch is explicit — refunds go to a different node than status checks.</p>
+                <div class="ait-usecase">
+                    <h3>Use case: refund vs status</h3>
+                    <p>“Where is A17?” may call <code>lookup_order</code> and answer. “Refund A17” should not take the same edge. Route on the intent to a node that stops and asks a person. Money and deletions are the usual places teams add that pause.</p>
+                </div>
+            </section>
+
+            <section class="ait-section" id="human">
+                <h2>Pause, then resume</h2>
+
+<div class="ait-analogy"><span class="ait-label">Analogy</span>An interrupt is a pause button on one square. The board saves itself. A person presses resume later, possibly on another machine, and the token is still on that square.</div>
+<div class="ait-diagram"><span class="ait-label">Data flow</span><div class="ait-flow"><span>Run until refund node</span><i>→</i><span>Checkpoint</span><i>→</i><span>Human approves</span><i>→</i><span>Resume</span><i>→</i><span>Refund node runs</span></div></div>
+<p>Compile with a checkpointer and interrupt before the dangerous node. `MemorySaver` dies with the process, which is fine for a tutorial and wrong in production. Use Postgres or Redis when more than one server handles traffic. Resume with the same thread id.</p>
+<p class="ait-code-label">Starter</p><pre class="ait-code">thread = {&quot;id&quot;: &quot;customer-asha&quot;, &quot;status&quot;: &quot;waiting&quot;}
+approved = True
+thread[&quot;status&quot;] = &quot;resume&quot; if approved else &quot;waiting&quot;
+print(thread)</pre>
+<div class="ait-usecase"><h3>Example</h3><p>The UI shows the order id and the amount, then an Approve button. The graph does not spend money while it is waiting.</p></div>
+
+                <p>Compile the graph with a checkpointer and interrupt before the dangerous node. The process can exit. Later you resume with the same thread id and the human’s decision in state.</p>
+                <pre class="ait-code">from langgraph.checkpoint.memory import MemorySaver
+
+# app = graph.compile(
+#     checkpointer=MemorySaver(),
+#     interrupt_before=["refund"],
+# )
+# config = {"configurable": {"thread_id": "customer-asha"}}
+# app.invoke({"messages": [...]}, config)
+# later, after a person clicks Approve:
+# app.invoke(None, config)   # continues from the checkpoint</pre>
+                <p>Use a real checkpointer (Postgres, Redis) when more than one server handles traffic. <code>MemorySaver</code> dies with the process, which is fine for a tutorial and wrong for production.</p>
+                <p>Streaming (<code>app.stream</code>) lets a UI show each node as it finishes. That is how you debug “it refunded before it looked up the order”: you see the node order, not a single final string.</p>
+            </section>
+
+            <section class="ait-section" id="when">
+                <h2>Advantages and limits</h2>
+
+<div class="ait-analogy"><span class="ait-label">Analogy</span>Use a graph when you need to point at a step and say “it failed here.” If you cannot name the steps, you do not have a graph yet. You have a prompt.</div>
+<div class="ait-diagram"><span class="ait-label">Data flow</span><div class="ait-flow"><span>Named steps?</span><i>→</i><span>Yes</span><i>→</i><span>StateGraph</span><i>→</i><span>No</span><i>→</i><span>One function</span></div></div>
+<p>Branches, retries, and parallel steps are reviewable because they are drawn. Any chat model you can call can sit in a node. A single completion should stay a function. Prefer the message reducers in the docs when you add chat history, so you append messages instead of replacing them.</p>
+<p class="ait-code-label">Starter</p><pre class="ait-code">def needs_graph(steps: int, has_branch: bool) -&gt; bool:
+    return steps &gt; 1 or has_branch
+
+print(needs_graph(1, False))</pre>
+<div class="ait-usecase"><h3>Example</h3><p>A straight invoice email is a function. A support flow that loops on missing order ids is a graph.</p></div>
+
+                <ul>
+                    <li>Branches, retries, and parallel steps are drawn, so they are reviewable.</li>
+                    <li>State, checkpoints, and human approval are built in.</li>
+                    <li>Any chat model LangChain can call can sit in a node.</li>
+                    <li>A single completion does not need a graph. Extra nodes hide simple bugs.</li>
+                    <li>You have to think in state updates. Returning a partial dict merges; replacing a whole messages list by accident wipes history. Prefer the message reducers in the docs when you add chat history.</li>
+                </ul>
+            </section>
+
+            <section class="ait-section" id="practice">
+                <h2>Practice</h2>
+                <ul class="ait-checks">
+                    <li>Add an <code>attempts</code> field and stop after 2 failed fetches.</li>
+                    <li>Split “refund” and “status” into two nodes with a conditional edge.</li>
+                    <li>Interrupt before refund and print the state you would show an agent in a UI.</li>
+                    <li>Name one workflow at your job that is a straight line, and one that must loop.</li>
+                </ul>
+            </section>
+            <div class="ait-next">
+                <a href="/ai-tutorials/llamaindex/"><small>Previous</small>LlamaIndex</a>
+                <a href="/ai-tutorials/deep-agents/"><small>Next</small>Deep Agents</a>
+            </div>
+        </article>
+    </div>
+</main>
+<script src="/js/site-nav.js"></script>
+</body>
+</html>

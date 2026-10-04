@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <title>LangMem | AI Tutorial | Binod Suman</title>
+    <meta name="description" content="LangMem for intermediate builders: semantic, episodic, and procedural memory, hot path vs background extraction, and a support assistant that remembers a customer.">
+    <link rel="canonical" href="https://binodsuman.com/ai-tutorials/langmem/">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/site-nav.css">
+    <script src="/js/theme-boot.js"></script>
+    <link rel="stylesheet" href="/css/ai-tutorials.css">
+</head>
+<body class="ait-page">
+<main class="ait-wrap">
+    <nav class="ait-crumb"><a href="/">Home</a> · <a href="/ai-tutorials/">AI Tutorial</a> · LangMem</nav>
+    <header class="ait-hero">
+        <span class="ait-kicker">Long-term memory</span>
+        <h1>LangMem</h1>
+        <p class="ait-lead">A chat model forgets everything when the conversation ends. LangMem reads the chat, decides what is worth keeping, and stores it so a later conversation can find it. It is a Python library from LangChain, MIT licensed, and the API is still young — pin the version.</p>
+        <div class="ait-meta"><span class="ait-pill">Intermediate</span><span class="ait-pill">langmem · pin the release</span></div>
+    </header>
+    <div class="ait-layout">
+        <aside class="ait-toc">
+            <p>On this page</p>
+            <a href="#types">Three kinds of memory</a>
+            <a href="#layers">Core API vs store</a>
+            <a href="#when">Hot path and background</a>
+            <a href="#asha">Asha’s broken order</a>
+            <a href="#pitfalls">Pitfalls</a>
+            <a href="#practice">Practice</a>
+        </aside>
+        <article>
+            <section class="ait-section" id="types">
+                <h2>Semantic, episodic, procedural</h2>
+
+<div class="ait-analogy"><span class="ait-label">Analogy</span>Semantic memory is the contact card. Episodic memory is the story of last time. Procedural memory is the habit: “always reply the way they asked.” Mixing them in one blob means an update overwrites the wrong line.</div>
+<div class="ait-diagram"><span class="ait-label">Data flow</span><div class="ait-flow"><span>Conversation</span><i>→</i><span>Extract</span><i>→</i><span>Fact or episode or habit</span><i>→</i><span>Store under user id</span></div></div>
+<p>Semantic answers “what is true?” Episodic answers “what did we try?” Procedural answers “how should I work next time?” A support bot, a tutor, and a sales assistant all need the split. The tutor’s “weak on recursion” is semantic. “A diagram worked better than a definition” is episodic.</p>
+<p class="ait-code-label">Starter</p><pre class="ait-code">memory = {
+    &quot;semantic&quot;: &quot;Asha prefers email. Order A-1001 arrived broken.&quot;,
+    &quot;episodic&quot;: &quot;A voucher calmed a late-parcel complaint.&quot;,
+    &quot;procedural&quot;: &quot;Reply on the channel the customer asked for.&quot;,
+}
+print(memory[&quot;semantic&quot;])</pre>
+<div class="ait-usecase"><h3>Example</h3><p>Do not store “offering a voucher worked” as if it were a permanent fact that every late parcel gets a voucher.</p></div>
+
+                <p>LangMem sorts memory the way psychology textbooks sort human memory. The names matter because they tell you what to store and what to update.</p>
+                <div class="ait-table-wrap">
+                    <table class="ait-table">
+                        <tr><th>Type</th><th>What it holds</th><th>Support example</th><th>LangMem feature</th></tr>
+                        <tr><td>Semantic</td><td>Facts and preferences</td><td>Asha prefers email. Order A-1001 arrived broken.</td><td>A memory manager with a collection or a profile schema</td></tr>
+                        <tr><td>Episodic</td><td>What happened, and what worked</td><td>Offering a voucher calmed her about a late parcel.</td><td>A manager with an episode schema</td></tr>
+                        <tr><td>Procedural</td><td>How the agent should behave</td><td>Always reply on the channel the customer asked for.</td><td>A prompt optimizer that rewrites the system prompt</td></tr>
+                    </table>
+                </div>
+                <p>Semantic memory answers “what is true about this user?”. Episodic memory answers “what did we try?”. Procedural memory answers “how should I work next time?”. Stuffing all three into one blob makes updates overwrite the wrong thing.</p>
+            </section>
+
+            <section class="ait-section" id="layers">
+                <h2>Two layers</h2>
+
+<div class="ait-analogy"><span class="ait-label">Analogy</span>The core API is a clerk who returns a new pile of index cards and stores nothing. The stateful layer is the cabinet that files those cards and finds them later.</div>
+<div class="ait-diagram"><span class="ait-label">Data flow</span><div class="ait-flow"><span>Messages + old cards</span><i>→</i><span>Manager</span><i>→</i><span>Add, update, delete</span><i>→</i><span>Store by user id</span><i>→</i><span>Search</span></div></div>
+<p>A prompt optimizer is the procedural path: it rewrites instructions from feedback. Pin the package. Early releases move. Semantic search needs an embedding model. Any chat model can extract. Review optimizer output so a safety line is not slowly deleted. Lock the safety section outside the optimizer.</p>
+<p class="ait-code-label">Starter</p><pre class="ait-code">old = [{&quot;fact&quot;: &quot;prefers email&quot;}]
+# manager returns the new pile; you still have to save it
+new = [{&quot;fact&quot;: &quot;prefers a phone call&quot;}]  # update, do not keep both
+print(new)</pre>
+<div class="ait-usecase"><h3>Example</h3><p>Search and save tools let the agent do this during a turn. A background job can do it after the user goes quiet.</p></div>
+
+                <p>The core API does not store anything. You pass the conversation and the memories you already have. A memory manager returns the new list: add, update, or delete. A prompt optimizer takes a prompt plus feedback and returns a better prompt.</p>
+                <p>The stateful layer uses LangGraph’s store. A store manager searches, saves, and deletes for you. Two tools, typically “save memory” and “search memory”, let the agent do it during a turn. Semantic search needs an embedding model. Public labs often use a Gemini embedding with a Groq chat model. Any chat model and any embedder with the same roles will do.</p>
+                <pre class="ait-code">from pydantic import BaseModel
+
+class CustomerFact(BaseModel):
+    """A durable fact about one customer."""
+    subject: str
+    fact: str
+    preference: str | None = None
+
+# manager = create_memory_manager(model, schemas=[CustomerFact])
+# new_state = manager.invoke({"messages": messages, "existing": old_memories})</pre>
+                <p>Pin <code>langmem</code>. Early 0.0.x releases move. Treat the import names as something you confirm against the version you installed, and keep the ideas above even if a function is renamed.</p>
+            </section>
+
+            <section class="ait-section" id="when">
+                <h2>Hot path or background</h2>
+
+<div class="ait-analogy"><span class="ait-label">Analogy</span>Hot path is writing the note while you are still on the phone. Background is writing it after you hang up. The caller does not wait, but the next sentence cannot use the note yet.</div>
+<div class="ait-diagram"><span class="ait-label">Data flow</span><div class="ait-flow"><span>During the chat: memory tool</span><i>→</i><span>Immediate fact</span><i>→</i><span>After the chat: job</span><i>→</i><span>Long story distilled</span></div></div>
+<p>Use hot path for a channel preference. Use background for a long story distilled into one episode. Doing every memory on the hot path makes every reply slower and depends on the model remembering to call the tool.</p>
+<p class="ait-code-label">Starter</p><pre class="ait-code">hot = &quot;contact by email&quot;       # next message must obey it
+background = &quot;parcel arrived broken&quot;  # can be summarized after
+print(&quot;hot&quot;, hot)
+print(&quot;background&quot;, background)</pre>
+<div class="ait-usecase"><h3>Example</h3><p>“Email me, not SMS” has to exist before the next message. The tale of the broken parcel can wait until the chat ends.</p></div>
+
+                <div class="ait-table-wrap">
+                    <table class="ait-table">
+                        <tr><th></th><th>Hot path</th><th>Background</th></tr>
+                        <tr><td>When</td><td>The agent calls a memory tool during the chat.</td><td>A job reads the transcript after the user goes quiet.</td></tr>
+                        <tr><td>Pros</td><td>The next sentence can already use the fact.</td><td>The user does not wait on an extra model call.</td></tr>
+                        <tr><td>Cons</td><td>Slower reply, and a tool call the model might skip.</td><td>The fact is missing until the job finishes.</td></tr>
+                    </table>
+                </div>
+                <p>A useful design uses both. Hot path for “email me, not SMS”, because the very next message must obey it. Background for a long story about a broken parcel, distilled into one episode after the chat.</p>
+            </section>
+
+            <section class="ait-section" id="asha">
+                <h2>Example: remember Asha, and only Asha</h2>
+
+<div class="ait-analogy"><span class="ait-label">Analogy</span>The namespace is the customer’s folder. Asha’s folder is not the company folder. A search with no user id is how her order ends up in someone else’s prompt.</div>
+<div class="ait-diagram"><span class="ait-label">Data flow</span><div class="ait-flow"><span>Asha&#x27;s message</span><i>→</i><span>Extract</span><i>→</i><span>namespace customer-asha</span><i>→</i><span>Later chat searches that folder</span></div></div>
+<p>When she says “actually call me,” update the preference. Do not append a second fact that contradicts the first. A schema with one preference field makes that update natural. Store a time on episodes so a 2023 voucher does not force a 2026 voucher.</p>
+<p class="ait-code-label">Starter</p><pre class="ait-code">NAMESPACE = (&quot;memories&quot;, &quot;customer-asha&quot;)
+facts = [&quot;order A-1001 arrived broken&quot;, &quot;contact by email&quot;]
+print(NAMESPACE, facts)
+print(&quot;customer-ravi searches a different folder and must not see these&quot;)</pre>
+<div class="ait-usecase"><h3>Example</h3><p>A new customer the assistant has never met gets an empty search. That empty result is a test you should run.</p></div>
+
+                <pre class="ait-code">NAMESPACE = ("memories", "customer-asha")
+
+conversation = [
+    {"role": "user", "content": "Order A-1001 arrived broken. Please email me, I miss texts."},
+    {"role": "assistant", "content": "Sorry about A-1001. I will email you about the replacement."},
+]
+# After extraction, a later chat searches NAMESPACE and should see:
+# - fact: order A-1001 arrived broken
+# - preference: contact by email
+#
+# A new customer id ("customer-ravi") searches a different namespace and must not see Asha.</pre>
+                <div class="ait-usecase">
+                    <h3>More places the same split helps</h3>
+                    <ul>
+                        <li><strong>Tutor:</strong> semantic = “studying Java, weak on recursion”. Episodic = “a diagram worked better than a definition”. Procedural = “start with one example, then the rule”.</li>
+                        <li><strong>Sales assistant:</strong> semantic = budget and industry. Episodic = “they went cold after a pricing PDF”. Do not store the whole call transcript as the memory.</li>
+                        <li><strong>Coding agent:</strong> procedural memory becomes “this repo uses pytest, not unittest”, which is also what a <code>CLAUDE.md</code> or skill is for. Pick one source of truth.</li>
+                    </ul>
+                </div>
+                <p>When Asha changes her mind — “actually call me” — the manager should update the preference, not append a second fact that contradicts the first. Schemas with a single <code>preference</code> field make that update natural. A bag of strings does not.</p>
+            </section>
+
+            <section class="ait-section" id="pitfalls">
+                <h2>What goes wrong</h2>
+
+<div class="ait-analogy"><span class="ait-label">Analogy</span>The model still does not remember by magic. You must retrieve the memory and put it in the prompt. Storage without retrieval is a diary nobody opens.</div>
+<div class="ait-diagram"><span class="ait-label">Data flow</span><div class="ait-flow"><span>Save</span><i>→</i><span>Next turn</span><i>→</i><span>Search by user id</span><i>→</i><span>Put hits in the prompt</span><i>→</i><span>Then call the model</span></div></div>
+<p>Filter card numbers, passwords, and one-time codes before the manager runs. Key every search and save by user. Prefer recent episodes. Review procedural rewrites. If the coding agent’s “this repo uses pytest” is already in a project file, do not also let memory drift a second copy.</p>
+<p class="ait-code-label">Starter</p><pre class="ait-code">def remember(user_id: str, text: str) -&gt; str:
+    if &quot;api_key&quot; in text or &quot;password&quot; in text:
+        return &quot;do not store&quot;
+    return f&quot;save under {user_id}&quot;
+
+print(remember(&quot;asha&quot;, &quot;my password is hunter2&quot;))</pre>
+<div class="ait-usecase"><h3>Example</h3><p>A missing namespace writes Asha’s order onto a global list. That is a data leak, not a memory bug.</p></div>
+
+                <ul>
+                    <li><strong>Remembering secrets.</strong> Do not extract card numbers, passwords, or one-time codes. Filter them before the manager runs.</li>
+                    <li><strong>Wrong user id.</strong> A missing namespace writes Asha’s order onto a global list. Key every search and save by user.</li>
+                    <li><strong>Stale episodes.</strong> “A voucher fixed it” in 2023 should not force a voucher in 2026. Store a time, and prefer recent episodes.</li>
+                    <li><strong>Prompt optimizer drift.</strong> Procedural rewrites can slowly delete a safety line. Review the new system prompt, or lock the safety section outside the optimizer.</li>
+                </ul>
+                <div class="ait-callout"><strong>The model still does not remember by magic.</strong> On the next turn you must retrieve the memory and put it in the prompt. LangMem stores and finds. Your agent code does the retrieval.</div>
+            </section>
+
+            <section class="ait-section" id="practice">
+                <h2>Practice</h2>
+                <ul class="ait-checks">
+                    <li>Write three memories from Asha’s chat, one of each type.</li>
+                    <li>Change “email me” to “call me” and say which record updates.</li>
+                    <li>Show the search namespace for a customer the assistant has never met. It should be empty.</li>
+                    <li>Decide which of those facts are hot-path and which can wait until background.</li>
+                </ul>
+            </section>
+            <div class="ait-next">
+                <a href="/ai-tutorials/openai-agents-sdk/"><small>Previous</small>OpenAI Agents SDK</a>
+                <a href="/ai-tutorials/nemo-guardrails/"><small>Next</small>NeMo Guardrails</a>
+            </div>
+        </article>
+    </div>
+</main>
+<script src="/js/site-nav.js"></script>
+</body>
+</html>

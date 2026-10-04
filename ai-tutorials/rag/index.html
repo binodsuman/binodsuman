@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <title>RAG and RAGAS | AI Tutorial | Binod Suman</title>
+    <meta name="description" content="RAG and RAGAS for beginners and intermediate builders: chunking, embeddings, faithfulness, context precision, context recall, and how to tell retrieval from generation failures.">
+    <link rel="canonical" href="https://binodsuman.com/ai-tutorials/rag/">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/site-nav.css">
+    <script src="/js/theme-boot.js"></script>
+    <link rel="stylesheet" href="/css/ai-tutorials.css">
+</head>
+<body class="ait-page">
+<main class="ait-wrap">
+    <nav class="ait-crumb"><a href="/">Home</a> · <a href="/ai-tutorials/">AI Tutorial</a> · RAG &amp; RAGAS</nav>
+    <header class="ait-hero">
+        <span class="ait-kicker">Retrieval · evaluation</span>
+        <h1>RAG &amp; RAGAS</h1>
+        <p class="ait-lead">Retrieval-augmented generation answers from your documents: search first, then write. RAGAS scores the two halves separately, so a wrong answer tells you whether search missed or the model drifted.</p>
+        <div class="ait-meta"><span class="ait-pill">Intermediate</span><span class="ait-pill">RAGAS 0.4</span></div>
+    </header>
+    <div class="ait-layout">
+        <aside class="ait-toc">
+            <p>On this page</p>
+            <a href="#rag">The two steps</a>
+            <a href="#build">A small catalog bot</a>
+            <a href="#fail">Where it fails</a>
+            <a href="#ragas">What RAGAS measures</a>
+            <a href="#sample">A sample and a judge</a>
+            <a href="#read">Reading the report</a>
+            <a href="#practice">Practice</a>
+        </aside>
+        <article>
+            <section class="ait-section" id="rag">
+                <h2>Search, then write</h2>
+
+<div class="ait-analogy"><span class="ait-label">Analogy</span>RAG is two jobs wearing one coat. Search finds pages. Writing uses those pages. A wrong sentence does not tell you which job failed.</div>
+<div class="ait-diagram"><span class="ait-label">Data flow</span><div class="ait-flow"><span>Question</span><i>→</i><span>Retriever</span><i>→</i><span>Chunks</span><i>→</i><span>Generator</span><i>→</i><span>Answer</span></div></div>
+<p>A demo that uploads one PDF and asks one question does not say which chunk was used, or what happens on the next fifty questions. An evaluation set does. Metadata filters (tenant, brand, “published”) belong before similarity, or you will retrieve another customer’s document.</p>
+<p class="ait-code-label">Starter</p><pre class="ait-code">question = &quot;What is the return window?&quot;
+chunks = [&quot;Returns: 30 days, unused, with receipt.&quot;]
+prompt = &quot;Use only the context.\n&quot; + &quot;\n&quot;.join(chunks) + &quot;\nQ: &quot; + question
+print(prompt)</pre>
+<div class="ait-usecase"><h3>Example</h3><p>“How does self-attention work?” over one paper should cite the section. “What is your return window?” over a catalog should cite the policy row.</p></div>
+
+                <p>A RAG app does two jobs. A retriever finds chunks that match the question. A generator (the LLM) writes an answer from those chunks. When the answer is wrong, one of those jobs failed. Looking at the paragraph cannot tell you which.</p>
+                <pre class="ait-code">question
+  → embed
+  → nearest chunks in a vector store   # retrieval
+  → prompt = instructions + chunks + question
+  → LLM answer                           # generation</pre>
+                <p>Uploading a paper and asking one question is a demo. It does not say which chunk was used, or what happens on the next fifty questions. An evaluation set does.</p>
+            </section>
+
+            <section class="ait-section" id="build">
+                <h2>Example: an electronics help bot</h2>
+
+<div class="ait-analogy"><span class="ait-label">Analogy</span>A catalog bot is a librarian with a short shelf. If the shelf does not contain gift cards, the librarian says so. They do not invent a policy.</div>
+<div class="ait-diagram"><span class="ait-label">Data flow</span><div class="ait-flow"><span>Catalog rows</span><i>→</i><span>Embed or keyword score</span><i>→</i><span>Top k</span><i>→</i><span>Prompt</span><i>→</i><span>Answer or refusal</span></div></div>
+<p>Replace the keyword overlap with a real embedding model when you leave the tutorial. Keep k small. Add a reranker if the right row is in the top 20 but not the top 3. Tell the model to abstain when the context is silent.</p>
+<p class="ait-code-label">Starter</p><pre class="ait-code">catalog = [&quot;Returns: 30 days, unused.&quot;, &quot;Shipping: free over $50.&quot;]
+
+def retrieve(query: str):
+    return [row for row in catalog if any(w in row.lower() for w in query.lower().split())]
+
+print(retrieve(&quot;return window&quot;))</pre>
+<div class="ait-usecase"><h3>Example</h3><p>TechNest-style electronics help, an employee handbook, and an on-call runbook are the same pipeline with different rows.</p></div>
+
+                <p>A shop, call it TechNest, has a short catalog and a few policies. The bot should answer only from those rows.</p>
+                <pre class="ait-code">CATALOG = [
+    {"id": "p1", "text": "NovaBuds: wireless earbuds, 24h battery, 1-year warranty."},
+    {"id": "p2", "text": "Returns: 30 days, unused, with receipt. Opened earbuds are final sale."},
+    {"id": "p3", "text": "Shipping: free over $50, otherwise $6. Delivered in 3 to 5 business days."},
+]
+
+def retrieve(query: str, k: int = 3) -&gt; list[str]:
+    # Replace this keyword overlap with real embeddings in production.
+    scored = []
+    words = set(query.lower().split())
+    for row in CATALOG:
+        overlap = len(words &amp; set(row["text"].lower().split()))
+        scored.append((overlap, row["text"]))
+    scored.sort(reverse=True)
+    return [text for score, text in scored[:k] if score &gt; 0]
+
+def answer(query: str) -&gt; dict:
+    chunks = retrieve(query)
+    # Real app: send chunks to the model and require it to use only them.
+    return {"question": query, "contexts": chunks}</pre>
+                <div class="ait-usecase">
+                    <h3>Use cases that are the same pipeline</h3>
+                    <ul>
+                        <li>Employee handbook bot: “how many parental-leave weeks?” must cite the policy chunk.</li>
+                        <li>On-call runbook: “how do we fail over payments?” retrieves the runbook section, not a guess from training data.</li>
+                        <li>Research assistant over one PDF, such as <em>Attention Is All You Need</em>, where you care which section supported the sentence.</li>
+                    </ul>
+                </div>
+                <p>Production retrieval uses an embedding model (Gemini, OpenAI, or a local MiniLM) and a vector store. Add metadata filters (product line, tenant id, “published”) before similarity, or you will retrieve another customer’s document.</p>
+            </section>
+
+            <section class="ait-section" id="fail">
+                <h2>Chunking, top-k, and rerankers</h2>
+
+<div class="ait-analogy"><span class="ait-label">Analogy</span>Chunking is cutting a quilt. Too small and you lose the pattern. Too big and you hand the model the whole quilt when they needed one square.</div>
+<div class="ait-diagram"><span class="ait-label">Data flow</span><div class="ait-flow"><span>Document</span><i>→</i><span>Chunk + overlap</span><i>→</i><span>Embed</span><i>→</i><span>Top k</span><i>→</i><span>Optional rerank</span><i>→</i><span>Prompt</span></div></div>
+<p>Overlap keeps a rule that crosses a boundary. Prefer paragraph or heading boundaries over a hard character cut when the source is markdown. Do not send all 10 hits. Drop weak scores and leave room for the system prompt and the answer.</p>
+<p class="ait-code-label">Starter</p><pre class="ait-code">text = &quot;Returns: 30 days if unused. Opened earbuds are final sale.&quot;
+size = 28
+chunks = [text[i:i+size] for i in range(0, len(text), size)]
+print(chunks)  # the exception may fall into the next chunk; overlap fixes that</pre>
+<div class="ait-usecase"><h3>Example</h3><p>A chunk that says “30 days” without “opened earbuds are final sale” will produce a confident, wrong refund.</p></div>
+
+                <ul>
+                    <li><strong>Chunks too big:</strong> the right sentence is buried, the prompt is expensive, the model gets distracted.</li>
+                    <li><strong>Chunks too small:</strong> “30 days” is retrieved without “opened earbuds are final sale”.</li>
+                    <li><strong>No overlap:</strong> a rule split across a heading boundary is invisible.</li>
+                    <li><strong>Top-k too high:</strong> you pay to show the model junk. Rerank the top 20 down to the best 4.</li>
+                </ul>
+                <div class="ait-callout"><strong>Tell the model to abstain.</strong> “If the context does not contain the answer, say you do not know.” A bot that invents a 90-day return window is worse than a bot that refuses.</div>
+            </section>
+
+            <section class="ait-section" id="ragas">
+                <h2>RAGAS: a score for each half</h2>
+
+<div class="ait-analogy"><span class="ait-label">Analogy</span>RAGAS is a referee who scores the pass and the shot separately. Retrieval is the pass. Generation is the shot. A missed goal does not tell you which one failed until you look at both.</div>
+<div class="ait-diagram"><span class="ait-label">Data flow</span><div class="ait-flow"><span>Question + chunks + answer + expected</span><i>→</i><span>Judge model</span><i>→</i><span>Five scores</span><i>→</i><span>Fix the low half</span></div></div>
+<p>Faithfulness: do the claims follow from the chunks? Answer relevancy: does it address the question? Context precision: are useful chunks ranked above noise? Context recall: did search find what the reference answer needed? Answer correctness: does it match the expected answer? A judged score wobbles. A jump from 0.55 to 0.82 matters. A jump from 0.81 to 0.83 might be noise.</p>
+<p class="ait-code-label">Starter</p><pre class="ait-code">row = {
+    &quot;faithfulness&quot;: 0.4,   # answer invented facts
+    &quot;context_recall&quot;: 0.9, # the right chunk was there
+}
+print(&quot;fix the writer&quot; if row[&quot;context_recall&quot;] &gt; row[&quot;faithfulness&quot;] else &quot;fix search&quot;)</pre>
+<div class="ait-usecase"><h3>Example</h3><p>If recall is high and faithfulness is low, the prompt is letting the model improvise. If recall is low, stop tuning the writer. The fact never arrived.</p></div>
+
+                <p>RAGAS (Retrieval Augmented Generation Assessment) uses an LLM as a judge. A low number points at the part to fix. Five metrics cover the usual lab:</p>
+                <div class="ait-table-wrap">
+                    <table class="ait-table">
+                        <tr><th>Metric</th><th>Question it answers</th><th>Low score means</th></tr>
+                        <tr><td>Faithfulness</td><td>Do the claims in the answer follow from the retrieved chunks?</td><td>The model added facts. Fix the prompt or the generator.</td></tr>
+                        <tr><td>Answer relevancy</td><td>Does the answer address the question?</td><td>The model wandered. Fix instructions.</td></tr>
+                        <tr><td>Context precision</td><td>Are the useful chunks ranked above the noise?</td><td>Retrieval ranking is messy. Rerank or retune k.</td></tr>
+                        <tr><td>Context recall</td><td>Did retrieval find the chunks needed for the reference answer?</td><td>Search missed. Fix chunking or embeddings.</td></tr>
+                        <tr><td>Answer correctness</td><td>Does the answer match the expected answer?</td><td>End-to-end miss. Read the other four to see why.</td></tr>
+                    </table>
+                </div>
+                <p>You can also score without a model: exact match, “does this string appear?”, overlap of chunk ids. Use those for cheap checks. Use the judge when the wording can vary and still be right.</p>
+            </section>
+
+            <section class="ait-section" id="sample">
+                <h2>One sample, a judge, an experiment</h2>
+
+<div class="ait-analogy"><span class="ait-label">Analogy</span>A sample is one exam question with the pages the student was given, the answer they wrote, and the answer key.</div>
+<div class="ait-diagram"><span class="ait-label">Data flow</span><div class="ait-flow"><span>user_input</span><i>→</i><span>retrieved_contexts</span><i>→</i><span>response</span><i>→</i><span>reference</span><i>→</i><span>metric</span></div></div>
+<p>Cheap checks need no judge: exact match, “does this string appear?”, overlap of chunk ids. Use a judge when the wording can vary. Pin the library version. Import paths move. The judge is another model call, so it costs money and it is not perfectly stable.</p>
+<p class="ait-code-label">Starter</p><pre class="ait-code">sample = {
+    &quot;user_input&quot;: &quot;What is the return window for earbuds?&quot;,
+    &quot;retrieved_contexts&quot;: [&quot;Returns: 30 days, unused, with receipt.&quot;],
+    &quot;response&quot;: &quot;Unused earbuds can be returned within 30 days with a receipt.&quot;,
+    &quot;reference&quot;: &quot;30 days, unused, with receipt.&quot;,
+}
+print(sample[&quot;reference&quot;][:2], &quot;matches the spirit of the response&quot;)</pre>
+<div class="ait-usecase"><h3>Example</h3><p>Five real customer questions, each with the answer support would accept, beat a hundred toy questions. Include one whose correct answer is “I don’t know.”</p></div>
+
+                <p>A <code>SingleTurnSample</code> is one question, the chunks that came back, the answer, and the answer you expected.</p>
+                <pre class="ait-code">from ragas import SingleTurnSample
+from ragas.metrics import Faithfulness
+from ragas.llms import llm_factory
+
+sample = SingleTurnSample(
+    user_input="What is the return window for NovaBuds?",
+    retrieved_contexts=[
+        "Returns: 30 days, unused, with receipt. Opened earbuds are final sale."
+    ],
+    response="You can return unused NovaBuds within 30 days with a receipt.",
+    reference="Unused NovaBuds can be returned within 30 days with a receipt.",
+)
+
+# llm_factory wraps a hosted model so it can judge.
+# judge = llm_factory("groq/openai/gpt-oss-120b")
+# score = Faithfulness(llm=judge).score(sample)</pre>
+                <p>The names in RAGAS 0.4: <code>llm_factory</code> for the judge, <code>Dataset</code> plus <code>@experiment</code> for a saved run over a file of goldens, and the older <code>evaluate()</code> one-call API you will see in most existing blog posts. Pin the version. The import paths have moved.</p>
+                <div class="ait-usecase">
+                    <h3>A five-question golden file</h3>
+                    <p>Write questions a real customer asks, each with the answer support would accept. “Is shipping free on a $40 order?” Expected: no, it is $6 under $50. If context recall is low, the shipping chunk was not retrieved. If faithfulness is low, the chunk was there and the model still said shipping was free.</p>
+                </div>
+                <p>Labs often use one key for the answering model (Groq) and another for embeddings (Gemini or a local model). The judge is a second model call. It is not free, and it is not perfectly stable. Read scores as a direction. A move from 0.55 to 0.82 matters. A move from 0.81 to 0.83 might be noise.</p>
+            </section>
+
+            <section class="ait-section" id="read">
+                <h2>How to read a bad run</h2>
+
+<div class="ait-analogy"><span class="ait-label">Analogy</span>Read a bad run from the bottom of the pipe upward. If the page never arrived, do not blame the writer.</div>
+<div class="ait-diagram"><span class="ait-label">Data flow</span><div class="ait-flow"><span>Low correctness</span><i>→</i><span>Check recall</span><i>→</i><span>Then faithfulness</span><i>→</i><span>Then precision</span><i>→</i><span>Change one thing</span></div></div>
+<p>Sort questions by correctness. Low context recall means the generator never saw the fact. High recall and low faithfulness means the instruction is loose. Low precision with high recall means you retrieved the answer plus junk: lower k or rerank. Do not tune on the only test set you have.</p>
+<p class="ait-code-label">Starter</p><pre class="ait-code">recall, faith = 0.55, 0.90
+if recall &lt; 0.7:
+    print(&quot;fix chunking, embeddings, or filters&quot;)
+elif faith &lt; 0.7:
+    print(&quot;tighten the prompt and add a refusal example&quot;)</pre>
+<div class="ait-usecase"><h3>Example</h3><p>A shipping question that fails recall is a missing chunk. The same question that fails faithfulness, with the chunk present, is a model that said shipping was free anyway.</p></div>
+
+                <ol>
+                    <li>Sort questions by answer correctness.</li>
+                    <li>If context recall is low, stop. The generator never saw the fact. Inspect the chunk and the embedding of that question.</li>
+                    <li>If recall is high and faithfulness is low, the prompt is letting the model improvise. Tighten “use only the context” and show a refusal example.</li>
+                    <li>If precision is low but recall is high, you retrieved the answer plus a lot of junk. Lower k or rerank.</li>
+                </ol>
+                <div class="ait-callout"><strong>Do not tune on the test set only.</strong> Keep a handful of questions you never edit the prompt against. Otherwise the bot memorizes your quiz.</div>
+            </section>
+
+            <section class="ait-section" id="practice">
+                <h2>Practice</h2>
+                <ul class="ait-checks">
+                    <li>Add a golden whose answer is “I don’t know” because the catalog never mentions gift cards.</li>
+                    <li>Break retrieval on purpose (k = 1 and a vague chunk) and predict which metric falls.</li>
+                    <li>Write one sentence each for faithfulness vs answer relevancy, using the earbuds policy.</li>
+                    <li>Name one metadata filter you would add if the catalog had two brands.</li>
+                </ul>
+            </section>
+            <div class="ait-next">
+                <a href="/ai-tutorials/langchain/"><small>Previous</small>LangChain</a>
+                <a href="/ai-tutorials/llamaindex/"><small>Next</small>LlamaIndex</a>
+            </div>
+        </article>
+    </div>
+</main>
+<script src="/js/site-nav.js"></script>
+</body>
+</html>

@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <title>Deep Agents | AI Tutorial | Binod Suman</title>
+    <meta name="description" content="Deep Agents for intermediate builders: planning with to-do lists, a filesystem for notes, subagents, and a pause before spending money.">
+    <link rel="canonical" href="https://binodsuman.com/ai-tutorials/deep-agents/">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/site-nav.css">
+    <script src="/js/theme-boot.js"></script>
+    <link rel="stylesheet" href="/css/ai-tutorials.css">
+</head>
+<body class="ait-page">
+<main class="ait-wrap">
+    <nav class="ait-crumb"><a href="/">Home</a> · <a href="/ai-tutorials/">AI Tutorial</a> · Deep Agents</nav>
+    <header class="ait-hero">
+        <span class="ait-kicker">Agent harness</span>
+        <h1>Deep Agents</h1>
+        <p class="ait-lead">A shallow agent is a model plus tools in a loop. A deep agent adds a plan, a place to keep notes, specialist subagents, and a detailed brief. Deep Agents is LangChain’s library for that harness, and it runs on LangGraph.</p>
+        <div class="ait-meta"><span class="ait-pill">Intermediate</span><span class="ait-pill">deepagents 0.7 · Python 3.11+</span></div>
+    </header>
+    <div class="ait-layout">
+        <aside class="ait-toc">
+            <p>On this page</p>
+            <a href="#shallow">Shallow vs deep</a>
+            <a href="#four">The four parts</a>
+            <a href="#trip">Paris trip planner</a>
+            <a href="#files">Files and subagents</a>
+            <a href="#jobs">Jobs that fit</a>
+            <a href="#practice">Practice</a>
+        </aside>
+        <article>
+            <section class="ait-section" id="shallow">
+                <h2>Shallow agents stop too early</h2>
+
+<div class="ait-analogy"><span class="ait-label">Analogy</span>A shallow agent is a receptionist who answers one question. A deep agent is a project lead who writes a to-do list, keeps notes, and hands chapters to specialists.</div>
+<div class="ait-diagram"><span class="ait-label">Data flow</span><div class="ait-flow"><span>Question</span><i>→</i><span>Model</span><i>→</i><span>Maybe one tool</span><i>→</i><span>Answer</span></div></div>
+<p>A ReAct loop can call several tools and still be shallow. There is no written plan and nowhere to put a page of notes. A question like “today’s AI news, and how it touches energy prices” never gets broken into smaller questions unless you add those pieces.</p>
+<p class="ait-code-label">Starter</p><pre class="ait-code">def shallow(question: str) -&gt; str:
+    if &quot;weather&quot; in question.lower():
+        return &quot;Call the weather tool once.&quot;
+    return &quot;Answer from the prompt.&quot;
+
+print(shallow(&quot;Weather in Paris?&quot;))</pre>
+<div class="ait-usecase"><h3>Example</h3><p>“What is the temperature in Paris?” is shallow. “Plan four days in Paris under a budget” is not.</p></div>
+
+                <p>A weather question is a shallow job: one tool, one answer. A ReAct loop can call several tools in a row and still be shallow. There is no written plan, nowhere to put a page of notes, and a question like “today’s AI news, and how it touches energy prices and chip supply” never gets broken into smaller questions.</p>
+                <p>Claude Code, deep research products, and coding agents all grew the same four extras because long jobs fall over without them.</p>
+            </section>
+
+            <section class="ait-section" id="four">
+                <h2>Plan, files, subagents, instructions</h2>
+
+<div class="ait-analogy"><span class="ait-label">Analogy</span>The four extras are a notebook, a filing cabinet, teammates, and a job description. Without the job description the teammates improvise.</div>
+<div class="ait-diagram"><span class="ait-label">Data flow</span><div class="ait-flow"><span>Plan</span><i>→</i><span>Files</span><i>→</i><span>Subagents</span><i>→</i><span>Instructions</span><i>→</i><span>Same tool loop</span></div></div>
+<p>Planning is opt-in in current deepagents releases: you add a to-do middleware. The filesystem tools (`ls`, `read_file`, `write_file`, `edit_file`, `glob`, `grep`) hold notes that do not fit the window. A task tool hands one item to a specialist. The system prompt is yours. It runs on LangGraph, so you still get streaming and interrupts. Any tool-calling model can sit underneath, which is how this differs from a vendor coding agent locked to one model.</p>
+<p class="ait-code-label">Starter</p><pre class="ait-code">parts = ["plan", "files", "subagents", "instructions"]
+print("a deep agent adds:", ", ".join(parts))</pre>
+
+<div class="ait-usecase"><h3>Example</h3><p>Claude Code, deep research, and a trip planner all grew a plan, files, and specialists. The brand on the model is the part you can swap.</p></div>
+
+                <div class="ait-table-wrap">
+                    <table class="ait-table">
+                        <tr><th>Part</th><th>What it fixes</th><th>In deepagents 0.7</th></tr>
+                        <tr><td>Planning</td><td>The model forgets step 4 while doing step 2.</td><td><code>TodoListMiddleware</code>. Planning is opt-in in 0.7. Older videos show it always on.</td></tr>
+                        <tr><td>Filesystem</td><td>Notes bigger than the context window.</td><td><code>ls</code>, <code>read_file</code>, <code>write_file</code>, <code>edit_file</code>, <code>glob</code>, <code>grep</code>.</td></tr>
+                        <tr><td>Subagents</td><td>One prompt trying to be researcher, budgeter, and writer.</td><td>A <code>task</code> tool that hands work to a helper agent.</td></tr>
+                        <tr><td>System prompt</td><td>Vague “be helpful” behaviour.</td><td>You pass instructions. 0.7 does not ship a long built-in prompt.</td></tr>
+                    </table>
+                </div>
+                <p><code>create_deep_agent</code> returns an agent on LangGraph, so you also get streaming, saved state, and interrupts. It works with any tool-calling chat model: OpenAI, Anthropic, Gemini, Groq, or a local model. That is the split with the Claude Agent SDK, which is built around Claude’s own runtime.</p>
+            </section>
+
+            <section class="ait-section" id="trip">
+                <h2>Example: a trip inside a budget</h2>
+
+<div class="ait-analogy"><span class="ait-label">Analogy</span>The trip planner is a clerk with a price list. If a price is not on the list, it is not in the itinerary. The clerk writes the table to a file so the next step can add it up.</div>
+<div class="ait-diagram"><span class="ait-label">Data flow</span><div class="ait-flow"><span>Brief</span><i>→</i><span>To-dos</span><i>→</i><span>search_travel</span><i>→</i><span>Notes file</span><i>→</i><span>Cost table</span><i>→</i><span>Ask before booking</span></div></div>
+<p>`create_deep_agent` takes the model, your tools, and a system prompt that forbids invented prices and forbids booking. A captured style of run writes day-by-day lines and a cost table that stays under the cap only when every number came from the tool. Add the to-do middleware once you confirm its import for the version you installed.</p>
+<p class="ait-code-label">Starter</p><pre class="ait-code">CATALOG = {&quot;hotel&quot;: &quot;7500 INR per night&quot;, &quot;flight&quot;: &quot;42000 INR&quot;}
+
+def search_travel(item: str) -&gt; str:
+    return CATALOG.get(item, &quot;Not in the catalog. Do not invent a price.&quot;)
+
+print(search_travel(&quot;hotel&quot;))
+print(search_travel(&quot;balloon&quot;))</pre>
+<div class="ait-usecase"><h3>Example</h3><p>Three nights in Paris under 100,000 INR is the test. A hot-air balloon that is not in the catalog must be omitted, not priced from memory.</p></div>
+
+                <p>The brief: three nights in Paris, four days, budget 100,000 rupees, flying from Delhi. A shallow agent blurts an itinerary and invents prices. A deep agent writes a to-do list, searches a catalog, saves a cost table to a file, and waits before it books.</p>
+                <pre class="ait-code">from deepagents import create_deep_agent
+from langchain.tools import tool
+# Planning is opt-in in 0.7. Add TodoListMiddleware once you confirm
+# its import path for the deepagents version you installed.
+
+CATALOG = {
+    "flight": "Delhi → Paris → Delhi, 42000 INR",
+    "hotel": "Hotel Lumiere, 7500 INR per night",
+    "eiffel": "Eiffel Tower summit, 3100 INR",
+    "louvre": "Louvre, 2000 INR",
+}
+
+@tool
+def search_travel(item: str) -&gt; str:
+    """Look up a flight, hotel, or sight in the small travel catalog."""
+    return CATALOG.get(item, "Not in the catalog. Do not invent a price.")
+
+agent = create_deep_agent(
+    model="groq:openai/gpt-oss-120b",
+    tools=[search_travel],
+    # middleware=[TodoListMiddleware()],
+    system_prompt=(
+        "Plan a 4-day, 3-night Paris trip from Delhi under 100000 INR. "
+        "Use search_travel for every price. Write the itinerary and a cost table "
+        "to /itinerary.md. Never book. Stop and ask before spending money."
+    ),
+)
+# result = agent.invoke({"messages": [{"role": "user", "content": "Plan my Paris trip."}]})
+print(search_travel.invoke({"item": "hotel"}))</pre>
+                <p>A captured run of this style of planner produces a day-by-day plan and a cost table that adds up (flights, hotel, food, sights) and stays under the cap — for example a grand total around 85,700 INR when the catalog prices are respected. The point of the exercise is the addition, not the poetry. If a price is not in the tool result, it must not appear in the table.</p>
+            </section>
+
+            <section class="ait-section" id="files">
+                <h2>Why the file and the subagent exist</h2>
+
+<div class="ait-analogy"><span class="ait-label">Analogy</span>The file is a desk you can walk away from. The chat is a conversation that forgets the scratch paper. Subagents are coworkers who do not share a pencil.</div>
+<div class="ait-diagram"><span class="ait-label">Data flow</span><div class="ait-flow"><span>Researcher writes notes.md</span><i>→</i><span>Editor reads notes.md</span><i>→</i><span>itinerary.md</span><i>→</i><span>Human interrupt</span></div></div>
+<p>Give the researcher the search tool and the editor no search tool, so the editor cannot sneak in a price. Interrupt before pay, delete, or send. A general write_file on a developer laptop is a coding agent. The same tool on a server with customer data must be rooted in a per-run temp directory.</p>
+<p class="ait-code-label">Starter</p><pre class="ait-code">notes = &quot;hotel: 7500 INR per night\nflight: 42000 INR\n&quot;
+# editor is not allowed to add a line that is not in notes
+print(notes)</pre>
+<div class="ait-usecase"><h3>Example</h3><p>Research briefs, coding sessions, and procurement comparisons all want notes in files and a pause before money moves.</p></div>
+
+                <p>The cost table is awkward inside the chat. The agent writes <code>/itinerary.md</code>, the next step reads it back, and a summarizer can shrink the old tool chatter. You still have the file.</p>
+                <p>Two helpers beat one generalist:</p>
+                <ul>
+                    <li><strong>Researcher</strong> only calls <code>search_travel</code> and writes <code>/notes.md</code>.</li>
+                    <li><strong>Editor</strong> only reads notes and writes the final markdown. It cannot search, so it cannot sneak in a new price.</li>
+                </ul>
+                <div class="ait-usecase">
+                    <h3>Other jobs with the same shape</h3>
+                    <ul>
+                        <li><strong>Research brief:</strong> to-dos for sources, notes per source in files, a writer subagent that may only quote those files.</li>
+                        <li><strong>Coding:</strong> the same harness Claude Code uses — read the repo, edit files, run tests, keep a plan. Deep Agents is the open version you can point at any model.</li>
+                        <li><strong>Procurement:</strong> compare three vendors in files, then interrupt before anyone sends a purchase order.</li>
+                    </ul>
+                </div>
+                <div class="ait-callout"><strong>Interrupt on the irreversible step.</strong> Booking, paying, deleting, and emailing a customer are not tool calls you “hope the prompt avoids”. They are nodes that wait for a person. LangGraph’s interrupt is how that wait survives a restart.</div>
+            </section>
+
+            <section class="ait-section" id="jobs">
+                <h2>When a deep agent is too much</h2>
+
+<div class="ait-analogy"><span class="ait-label">Analogy</span>Add a deep agent when you watch a shallow one skip a step or contradict itself. Until then the to-do list is theatre and extra model turns are latency.</div>
+<div class="ait-diagram"><span class="ait-label">Data flow</span><div class="ait-flow"><span>One tool call</span><i>→</i><span>Stay shallow</span><i>→</i><span>Notes no longer fit</span><i>→</i><span>Add files</span><i>→</i><span>Two skills</span><i>→</i><span>Add a subagent</span></div></div>
+<p>Start shallow. Add planning when steps are skipped. Add files when notes no longer fit. Add a subagent when two skills need different tools. Sandbox the filesystem.</p>
+<p class="ait-code-label">Starter</p><pre class="ait-code">def harness(tool_calls: int, notes_too_big: bool) -&gt; str:
+    if notes_too_big:
+        return &quot;deep agent with files&quot;
+    if tool_calls &lt;= 1:
+        return &quot;plain function or shallow agent&quot;
+    return &quot;tool loop&quot;
+
+print(harness(1, False))</pre>
+<div class="ait-usecase"><h3>Example</h3><p>A weather answer does not get a to-do list. A migration across twenty files does.</p></div>
+
+                <p>If the task is one tool call, the to-do list is theatre and the extra model turns are latency. Start shallow. Add planning when you see the agent skip a step or contradict itself. Add files when the notes no longer fit the window. Add a subagent when two skills need different tools and different instructions.</p>
+                <p>Give the filesystem a sandbox. A general <code>write_file</code> on a developer laptop is a coding agent. The same tool on a server with customer data is an incident unless the root is a per-run temp directory.</p>
+            </section>
+
+            <section class="ait-section" id="practice">
+                <h2>Practice</h2>
+                <ul class="ait-checks">
+                    <li>List the to-dos you would expect before any flight is chosen.</li>
+                    <li>Add a catalog miss (“hot-air balloon”) and write the instruction that forbids an invented price.</li>
+                    <li>Split researcher and editor so only one of them can call <code>search_travel</code>.</li>
+                    <li>Name the step that must interrupt, in one sentence a reviewer can test.</li>
+                </ul>
+            </section>
+            <div class="ait-next">
+                <a href="/ai-tutorials/langgraph/"><small>Previous</small>LangGraph</a>
+                <a href="/ai-tutorials/mcp/"><small>Next</small>MCP</a>
+            </div>
+        </article>
+    </div>
+</main>
+<script src="/js/site-nav.js"></script>
+</body>
+</html>
