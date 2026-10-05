@@ -44,6 +44,7 @@ const TOOL_CATALOG = [
     { id: 'kubernetes-commands', cat: 'commands', label: 'Kubernetes (kubectl)', blurb: 'Pods, deploy, logs, scale, debug.' },
 
     /* Utilities */
+    { id: 'teleprompter', cat: 'utilities', label: 'Teleprompter', blurb: 'Type a script, scroll it at your speed, watch your camera, and record in the browser.' },
     { id: 'timestamp', cat: 'utilities', label: 'Unix Timestamp', blurb: 'Live epoch clock, timestamp ↔ date, GMT and local time.' },
     { id: 'cron', cat: 'utilities', label: 'Cron Explainer', blurb: 'Crontab expressions in plain English.' },
     { id: 'regex', cat: 'utilities', label: 'Regex Tester', blurb: 'Test patterns before putting them in code.' },

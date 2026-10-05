@@ -5,13 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="/favicon.svg" type="image/svg+xml">
     <title>Free Dev Tools — JSON, Markdown, JWT, SQL, API &amp; More | Binod Suman</title>
-    <meta name="description" content="30+ free in-browser tools for engineers: JSON, SQL, time zones, XML, YAML, Markdown, JWT, CSV, cURL, HTTP status codes, K8s YAML, passwords, and LLM token estimate. Nothing uploaded.">
+    <meta name="description" content="30+ free in-browser tools for engineers: JSON, SQL, time zones, a teleprompter, XML, YAML, Markdown, JWT, CSV, cURL, HTTP status codes, K8s YAML, passwords, and LLM token estimate. Nothing uploaded.">
     <link rel="canonical" href="https://binodsuman.com/tools/">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/css/site-nav.css">
     <script src="/js/theme-boot.js"></script>
-    <link rel="stylesheet" href="/css/tools.css">
+    <link rel="stylesheet" href="/css/tools.css?v=12">
     <link rel="stylesheet" href="/css/prompt-pages.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/4.1.0/js-yaml.min.js" defer></script>
@@ -298,6 +298,76 @@
                 </div>
             </div>
 
+            <!-- Teleprompter -->
+            <div class="tools-panel" data-tool-panel="teleprompter">
+                <div class="tp-layout" id="tpLayout">
+                    <div class="tp-stage">
+                        <div class="tp-guide" aria-hidden="true"><span>Read</span></div>
+                        <div class="tp-count" id="tpCount" hidden>3</div>
+                        <label class="visually-hidden" for="tpScript">Script</label>
+                        <textarea id="tpScript" class="tp-script" spellcheck="true" placeholder="Type or paste your script here. Press Play to scroll it while you look at the camera."></textarea>
+                    </div>
+                    <aside class="tp-side" aria-label="Camera and teleprompter controls">
+                        <div class="tp-cam" id="tpCamBox">
+                            <video id="tpVideo" autoplay playsinline muted></video>
+                            <div class="tp-cam-empty" id="tpCamEmpty">
+                                <i class="fas fa-user"></i>
+                                <p>Camera preview</p>
+                            </div>
+                            <div class="tp-rec-badge" id="tpRecBadge" hidden><i></i><span id="tpRecWord">REC</span> <span id="tpRecClock">0:00</span></div>
+                        </div>
+                        <div class="tp-lower">
+                            <div class="tp-controls">
+                                <button type="button" class="tp-btn tp-btn-ghost" id="tpOrient" aria-pressed="false">Top / bottom</button>
+                                <button type="button" class="tp-btn tp-btn-cam" id="tpCamBtn">Turn camera on</button>
+                                <button type="button" class="tp-btn tp-btn-go" id="tpGo">Record &amp; scroll</button>
+                                <label class="tp-slider">
+                                    <span class="tp-slider-top"><span>Scroll speed</span><strong id="tpSpeedVal">35 px/s</strong></span>
+                                    <input type="range" id="tpSpeed" min="15" max="220" value="35" aria-valuemin="15" aria-valuemax="220" aria-label="Scroll speed">
+                                </label>
+                                <label class="tp-slider">
+                                    <span class="tp-slider-top"><span>Font size</span><strong id="tpFontVal">36 px</strong></span>
+                                    <input type="range" id="tpFont" min="18" max="84" value="36" aria-label="Font size">
+                                </label>
+                                <label class="tp-field">Font
+                                    <select id="tpFamily">
+                                        <option value="'Inter', sans-serif">Inter</option>
+                                        <option value="Arial, Helvetica, sans-serif">Arial</option>
+                                        <option value="Georgia, 'Times New Roman', serif">Georgia</option>
+                                        <option value="'Courier New', Courier, monospace">Mono</option>
+                                    </select>
+                                </label>
+                                <div class="tp-btn-row">
+                                    <button type="button" class="tp-btn" id="tpPlay">Play</button>
+                                    <button type="button" class="tp-btn tp-btn-ghost" id="tpTop">Top</button>
+                                </div>
+                                <div class="tp-btn-row">
+                                    <button type="button" class="tp-btn tp-btn-ghost" id="tpMirror" aria-pressed="false">Mirror</button>
+                                    <button type="button" class="tp-btn tp-btn-ghost" id="tpSample">Sample</button>
+                                </div>
+                                <div class="tp-btn-row">
+                                    <button type="button" class="tp-btn tp-btn-ghost" id="tpClear">Clear</button>
+                                    <button type="button" class="tp-btn tp-btn-ghost" id="tpExpand">Expand</button>
+                                </div>
+                                <p class="tp-rec-label">Recording</p>
+                                <div class="tp-btn-row tp-btn-row-3">
+                                    <button type="button" class="tp-btn tp-btn-rec" id="tpRecStart">Start</button>
+                                    <button type="button" class="tp-btn tp-btn-ghost" id="tpRecPause" disabled>Pause</button>
+                                    <button type="button" class="tp-btn tp-btn-stop" id="tpRecStop" disabled>Stop</button>
+                                </div>
+                                <button type="button" class="tp-btn tp-btn-ghost" id="tpDownload" hidden>Download video</button>
+                                <p class="tp-status" id="tpStatus" role="status"></p>
+                            </div>
+                            <div class="tp-stats">
+                                <div><span>Words</span><strong id="tpWords">0</strong></div>
+                                <div><span>Time</span><strong id="tpTime">0:00</strong></div>
+                                <p id="tpTimeNote">Time follows scroll speed and font size.</p>
+                            </div>
+                        </div>
+                    </aside>
+                </div>
+            </div>
+
             <!-- Timestamp -->
             <div class="tools-panel" data-tool-panel="timestamp">
                 <div class="ts-page">
@@ -434,5 +504,6 @@
     <script src="/js/tools-command-grid.js"></script>
     <script src="/js/tools-app.js"></script>
     <script src="/js/time-converter.js"></script>
+    <script src="/js/teleprompter.js?v=12"></script>
 </body>
 </html>

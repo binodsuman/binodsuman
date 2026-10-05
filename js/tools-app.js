@@ -72,7 +72,7 @@
         $('toolsPanelTitle').textContent = meta.label;
         $('toolsPanelBlurb').textContent = meta.blurb;
         const demoBtn = $('toolsDemoBtn');
-        const noDemo = ['git-commands', 'unix-commands', 'docker-commands', 'kubernetes-commands', 'timezone'];
+        const noDemo = ['git-commands', 'unix-commands', 'docker-commands', 'kubernetes-commands', 'timezone', 'teleprompter'];
         if (demoBtn) {
             demoBtn.hidden = noDemo.includes(id);
             if (!noDemo.includes(id)) demoBtn.dataset.demo = id;
@@ -88,6 +88,7 @@
             }
         }
         runDemo(id);
+        document.dispatchEvent(new CustomEvent('tools:open', { detail: { id } }));
     }
 
     function toolIdFromLocation() {
