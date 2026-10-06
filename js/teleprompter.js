@@ -5,6 +5,7 @@
     if (!script) return;
 
     const GUIDE = 72;
+    const DEFAULT_SPEED = 25;
     const STORE = 'binodsuman.teleprompter.v1';
     const SAMPLE = [
         'Hello, I am Binod Suman.',
@@ -111,7 +112,7 @@
 
     function applyType() {
         const size = Number(fontEl.value) || 36;
-        const speed = Number(speedEl.value) || 35;
+        const speed = Number(speedEl.value) || DEFAULT_SPEED;
         script.style.fontSize = size + 'px';
         script.style.fontFamily = familyEl.value;
         speedVal.textContent = speed + ' px/s';
@@ -129,7 +130,7 @@
         applyType();
         const words = countWords(script.value);
         const distance = words ? Math.max(0, script.scrollHeight - script.clientHeight) : 0;
-        const px = Number(speedEl.value) || 35;
+        const px = Number(speedEl.value) || DEFAULT_SPEED;
         const size = Number(fontEl.value) || 36;
         const seconds = words && px ? distance / px : 0;
         wordsEl.textContent = String(words);
@@ -168,7 +169,10 @@
             if (!raw) return;
             const data = JSON.parse(raw);
             if (typeof data.script === 'string') script.value = data.script;
-            if (data.speed) speedEl.value = String(data.speed);
+            if (data.speed) {
+                const saved = Number(data.speed);
+                speedEl.value = String(saved === 35 ? DEFAULT_SPEED : saved);
+            }
             if (data.font) fontEl.value = String(data.font);
             if (data.family && [...familyEl.options].some((o) => o.value === data.family)) familyEl.value = data.family;
             const mirrored = !!data.mirror;
@@ -211,7 +215,7 @@
         if (!lastTs) lastTs = now;
         const dt = Math.min(0.05, (now - lastTs) / 1000);
         lastTs = now;
-        const px = Number(speedEl.value) || 35;
+        const px = Number(speedEl.value) || DEFAULT_SPEED;
         carry += px * dt;
         const step = Math.floor(carry);
         const max = Math.max(0, script.scrollHeight - script.clientHeight);
@@ -263,11 +267,20 @@
         });
     }
 
-    function pickMime(hasAudio) {
+    function pickMp4Mime(hasAudio) {
         if (typeof MediaRecorder === 'undefined') return '';
         const types = hasAudio
-            ? ['video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm', 'video/mp4']
-            : ['video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm', 'video/mp4'];
+            ? [
+                'video/mp4;codecs=avc1.42E01E,mp4a.40.2',
+                'video/mp4;codecs=avc1.4D001E,mp4a.40.2',
+                'video/mp4;codecs=avc1,mp4a.40.2',
+                'video/mp4'
+            ]
+            : [
+                'video/mp4;codecs=avc1.42E01E',
+                'video/mp4;codecs=avc1',
+                'video/mp4'
+            ];
         return types.find((t) => {
             try { return MediaRecorder.isTypeSupported(t); } catch (e) { return false; }
         }) || '';
@@ -365,7 +378,8 @@
         stopRecClock();
         recState = 'idle';
         updateRecUi();
-        const type = (recorder && recorder.mimeType) || 'video/webm';
+        const rawType = (recorder && recorder.mimeType) || '';
+        const type = /mp4/i.test(rawType) ? 'video/mp4' : (rawType || 'video/mp4');
         const blob = new Blob(chunks, { type: type });
         recorder = null;
         chunks = [];
@@ -390,10 +404,16 @@
             return false;
         }
         const hasAudio = camStream.getAudioTracks().some((t) => t.readyState === 'live');
-        const mime = pickMime(hasAudio);
+        const mime = pickMp4Mime(hasAudio);
+        if (!mime) {
+            setStatus('This browser cannot record MP4. Use Chrome or Safari.', true);
+            return false;
+        }
         chunks = [];
+        const options = { mimeType: mime, videoBitsPerSecond: 2500000 };
+        if (hasAudio) options.audioBitsPerSecond = 128000;
         try {
-            recorder = mime ? new MediaRecorder(camStream, { mimeType: mime }) : new MediaRecorder(camStream);
+            recorder = new MediaRecorder(camStream, options);
         } catch (err) {
             setStatus(err.message || 'Could not start recording.', true);
             recorder = null;
@@ -416,7 +436,7 @@
         recMark = Date.now();
         startRecClock();
         updateRecUi();
-        setStatus(hasAudio ? 'Recording camera and microphone.' : 'Recording camera only.');
+        setStatus(hasAudio ? 'Recording an MP4 with camera and microphone.' : 'Recording a silent MP4.');
         return true;
     }
 
@@ -493,7 +513,7 @@
         if (!lastUrl) return;
         const a = document.createElement('a');
         a.href = lastUrl;
-        a.download = lastName || 'teleprompter.webm';
+        a.download = lastName || 'teleprompter.mp4';
         document.body.appendChild(a);
         a.click();
         a.remove();
