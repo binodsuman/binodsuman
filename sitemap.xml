@@ -76,6 +76,11 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://binodsuman.com/ai-tutorials/jev/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://binodsuman.com/ai-tutorials/langchain/</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
